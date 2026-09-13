@@ -562,3 +562,52 @@ search result summary.
 
   It followed with "Run `npm install-scripts ls` to review, or `npm install-scripts approve <pkg>` to allow."
   Whether the Cypress binary is installed was not checked, and Cypress has not been run in either pass.
+
+## 2026-09-14 — Screenshots moved to `screenshots/`; §10.3 merged into §6
+
+- **From the user, before phases 3–7:**
+
+  > Before running phases 3-7 please reorganize the screenshots folder:
+  > - move to the root of the repo
+  > - organize by platform-variant-version/surface-state.png (variant=matched|stock for capacitor, empty for swift; version = v1/v2/v3/... in case of re-iterations; surface=home|chat|...; state=empty|selected|...) - select the naming scheme that will encompass existing and future screenshots, and be extensible for more platforms, more surfaces, more variants (dark)
+  > - record the naming scheme in the spec.
+  >
+  > Additionally, merge §10.3 "Phases added" with the original §6 Phasing in the spec.
+  >
+  > Then commit.
+
+- **The move.**
+  - A shell loop wrote 45 old and new paths to `screenshot-map.txt` in the session scratchpad; the 45 new
+    paths are distinct.
+  - `shasum -a 256` ran over the old files, `mv -n` moved each file, and `shasum -a 256` ran over each new
+    file: 0 mismatches.
+  - The old folders `phase1/`, `phase2/` and `chat/` held only PNG files, and `rmdir` removed them and
+    `specs/001-four-tab-shells/screenshots/`.
+  - `du -sh` and `ls | wc -l` per new folder: `native-swift-v1` 1.9 MB, 7 files; `native-swift-v2` 2.2 MB, 8
+    files; `ionic-capacitor-stock-v1` 3.4 MB, 15 files; `ionic-capacitor-matched-v1` 4.3 MB, 15 files.
+- **Where the scheme in spec 001 §17 differs from the request:**
+  - The first part is named `build` and takes the repository directory name. Both current names contain a
+    `-`, so every other part's values are kept free of `-`, and a folder name splits one way only.
+  - `appearance` (`dark`) and `device` are parts of their own after `style`. `dark` then combines with
+    `stock` and `matched`, and iPad and iPhone Duo screenshots in phases 3–5 have a part to go in. Both are
+    omitted for the four current folders.
+  - `native-swift/` has two versions. Its phase 1 set (round v6, added in `f88d70e`) and its chat set
+    (round c5, added in `b28c7d2`) were built from different trees; `Chat/ChatList.swift` went from 227 to
+    248 lines between them (spec 001 §12.4).
+  - `surface` is the tab. The file names keep the old screen names without the build and style prefix, so
+    `home-detail` and `chat-group-typing` read as a surface and a state.
+- **Spec paths.** Spec 001 §11.2, §12.4, §13.1, §13.7, §13.8, §14.3, §15.3 and §15.6 still name the old
+  paths, as AGENTS.md §"Specs are an append-only decision ledger" requires. Each takes an "Added
+  2026-09-14" line pointing to §17.3, which maps old paths to new. The round m8 row in this file's entry
+  "2026-09-13 — Pass 2b: building `matched` in `ionic-capacitor/`" names the old folder and is not edited.
+- **§10.3 merged into §6.** Removing §10.3's text is a revision that AGENTS.md §"Specs are an append-only
+  decision ledger" does not allow on an agent's own initiative; the user asked for it in this request.
+  - §6 takes §10.3's note on D17 and O7, the rows for phases 6 and 7, and the two paragraphs under the
+    table, with an "Added 2026-09-14" line naming the merge.
+  - §10.3 keeps its heading and a line pointing to §6. Its text as first written is at `187bd6e`.
+  - §10.2 O2 and O5, §13's opening list, §13.6 D17, §13.9 O7 and §13.10 still cite §10.3 and are not
+    edited.
+- **README.md:** the layout table takes a row for `screenshots/`.
+- **`ionic-capacitor/src/styles/matched/index.css`:** `git grep -n 'screenshots/\(phase1\|phase2\|chat\)'`
+  outside spec 001 and this file found the old folders in the header comment, lines 3–4. The comment now
+  names `screenshots/native-swift-v1/` and `screenshots/native-swift-v2/`.

@@ -1,7 +1,7 @@
 /*
  * The `matched` variant (spec 001 §13.1, §13.3, D15): @rdlabo/ionic-theme-ios26 9.2.0, then the rules that move each
- * screen toward the `native-swift/` screenshots in `specs/001-four-tab-shells/screenshots/phase1/` and
- * `screenshots/chat/`. Comments name the Swift file a value is taken from. Selectors that override a theme rule repeat
+ * screen toward the `native-swift/` screenshots in `screenshots/native-swift-v1/` and
+ * `screenshots/native-swift-v2/`. Comments name the Swift file a value is taken from. Selectors that override a theme rule repeat
  * its `.ios:not(.ios-theme-disabled)` so that they are at least as specific as that rule.
  */
 @import '@rdlabo/ionic-theme-ios26/dist/css/default-variables.css';

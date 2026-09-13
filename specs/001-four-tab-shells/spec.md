@@ -421,6 +421,15 @@ device or simulator, OS version, window size in points, toolchain versions and c
 **Added 2026-09-13:** §13.7 replaces the phase 2 row with passes 2a (`stock`) and 2b (`matched`).
 §13.10 O7 sets which variants phases 4, 6 and 7 cover, and amends the phase 4 row's requirement.
 
+**Added 2026-09-14:** §10.3 "Phases added" is merged into this section at the user's request
+(DISCOVERY.md, entry "Screenshots moved to `screenshots/`; §10.3 merged into §6"). The note below
+marked "in §10.3", the phase 6 and 7 rows and the two paragraphs under the table moved here from §10.3
+with their text unchanged. Sections that cite §10.3 for phases 6 and 7 refer to this section.
+
+**Added 2026-09-13, in §10.3:** §13.6 D17 adds `@capgo/capacitor-native-navigation` to phase 7, tried after
+`stay-liquid` and before a hand-written plugin. §13.10 O7 amends the requirements of phases 6 and 7,
+and limits phase 7 to the `matched` variant.
+
 Every commit subject carries `[001-four-tab-shells]`. Each phase ends with its §5 measurements
 appended, and needs its own go-ahead.
 
@@ -432,6 +441,15 @@ appended, and needs its own go-ahead.
 | 3 | `native-swift/` wide layout: iPad device family, `.sidebarAdaptable`, `NavigationSplitView` per tab; record the window widths at which the size class changes | phase 1 |
 | 4 | `ionic-capacitor/` wide layout: `IonSplitPane`, `IonMenu`, two-column tabs | phase 2; §9 O4 answered |
 | 5 | both builds on the iOS 27.1 SDK in the iPhone Duo simulator; `native-swift/` tries `.defaultTabBarPlacement(.sidebar)` and an `ArrangementView` for Calendar's week strip and agenda (D3) | Xcode 27.1 beta installed |
+| 6 | dark mode in `native-swift/` and `ionic-capacitor/`: a dark value for every colour in the screens, headers and tab bar, including the accent colour; each screen screenshotted in the iPhone 16 simulator in dark appearance | phases 1 and 2; can land before phases 3–5 |
+| 7 | `ionic-capacitor/` with a native iOS tab bar in place of `ion-tab-bar`, selecting the same four routes | phase 2; phase 4 for the regular-width check |
+
+No reference screenshot shows dark mode, so phase 6 lists the dark colours it chose in its §5 entry.
+
+Phase 7 tries `stay-liquid` (§1.6) first. If it does not build against Capacitor 8.5.2, or cannot
+select the four routes, phase 7 writes a local Capacitor plugin under `ionic-capacitor/ios/` instead,
+and its §5 entry records why `stay-liquid` was dropped. The last commit before phase 7 in
+`ionic-capacitor/` is the baseline for the "before" values in §10.4.
 
 ## 7. Decisions
 
@@ -543,21 +561,9 @@ and each superseded section carries a line pointing here.
 
 ### 10.3 Phases added
 
-**Added 2026-09-13:** §13.6 D17 adds `@capgo/capacitor-native-navigation` to phase 7, tried after
-`stay-liquid` and before a hand-written plugin. §13.10 O7 amends the requirements of phases 6 and 7,
-and limits phase 7 to the `matched` variant.
-
-| phase | what lands | requires |
-| --- | --- | --- |
-| 6 | dark mode in `native-swift/` and `ionic-capacitor/`: a dark value for every colour in the screens, headers and tab bar, including the accent colour; each screen screenshotted in the iPhone 16 simulator in dark appearance | phases 1 and 2; can land before phases 3–5 |
-| 7 | `ionic-capacitor/` with a native iOS tab bar in place of `ion-tab-bar`, selecting the same four routes | phase 2; phase 4 for the regular-width check |
-
-No reference screenshot shows dark mode, so phase 6 lists the dark colours it chose in its §5 entry.
-
-Phase 7 tries `stay-liquid` (§1.6) first. If it does not build against Capacitor 8.5.2, or cannot
-select the four routes, phase 7 writes a local Capacitor plugin under `ionic-capacitor/ios/` instead,
-and its §5 entry records why `stay-liquid` was dropped. The last commit before phase 7 in
-`ionic-capacitor/` is the baseline for the "before" values in §10.4.
+**Added 2026-09-14:** merged into §6 at the user's request. This section's note on D17 and O7, the
+phase 6 and 7 rows, and the paragraphs on dark colours and on `stay-liquid` are in §6. The text as
+first written here is in this file at commit `187bd6e`.
 
 ### 10.4 Measures added
 
@@ -679,6 +685,9 @@ and "Phase 1 measurements".
 
 ### 11.2 Measurements (§5, phase 1)
 
+**Added 2026-09-14:** the screenshots named in this section moved to `screenshots/` at the repository root
+and were renamed; §17.3 maps each old path to its new one.
+
 | measure | value | how |
 | --- | --- | --- |
 | device | simulator `iPhone 16 (iOS 26.5)`, `70D15E5B-3D95-4290-B3E9-970F68617BE8`, 393 × 852 pt, portrait | `xcrun simctl create` (§10.6) |
@@ -773,6 +782,9 @@ from its last message. All names are invented.
 
 ### 12.4 Results (added 2026-09-13)
 
+**Added 2026-09-14:** the screenshots named in this section moved to `screenshots/` at the repository root
+and were renamed; §17.3 maps each old path to its new one.
+
 Measured on the working tree on top of `f88d70e`, in the `iPhone 16 (iOS 26.5)` simulator
 (393 × 852 pt) with Xcode 26.6. Taken at round c5; DISCOVERY.md, entry "Chat detail: iterating in the
 simulator", records rounds c1 to c5.
@@ -833,6 +845,9 @@ This section:
 - adds a phase 7 candidate to §10.3 (D17).
 
 ### 13.1 The variants
+
+**Added 2026-09-14:** the screenshots named in this section moved to `screenshots/` at the repository root
+and were renamed; §17.3 maps each old path to its new one.
 
 | variant | what it looks like | pass |
 | --- | --- | --- |
@@ -1003,6 +1018,9 @@ Routes, the fixture module and the model stay as pass 2a wrote them.
 
 **Added 2026-09-13:** pass 2b's results are §15.
 
+**Added 2026-09-14:** the screenshots named in this section moved to `screenshots/` at the repository root
+and were renamed; §17.3 maps each old path to its new one.
+
 | pass | what lands | requires |
 | --- | --- | --- |
 | 2a | `ionic-capacitor/` as §4.2 and §4.3; the fixture as a TypeScript module; the four screens, their details and the conversation (§12), styled as `stock` (D16); the `@style` alias with `src/styles/stock/` (D13) | Node 24.21.0 through `nvm use 24` (§10.6); §13.9 O8 answered |
@@ -1040,6 +1058,9 @@ Pass 2b:
    `screenshots/chat/ionic-capacitor-matched-chat-<screen>.png`, and append the §13.8 measurements.
 
 ### 13.8 Measures added
+
+**Added 2026-09-14:** the screenshots named in this section moved to `screenshots/` at the repository root
+and were renamed; §17.3 maps each old path to its new one.
 
 | measure | how it is taken | passes |
 | --- | --- | --- |
@@ -1205,6 +1226,9 @@ From the user on 2026-09-13: "Please take 2a (stock) now." Measured on the worki
   printed "9:41" in the chat list while `formatRange` printed "09:15 – 09:40" in the agenda.
 
 ### 14.3 Measurements (§5, §13.8, pass 2a)
+
+**Added 2026-09-14:** the screenshots named in this section moved to `screenshots/` at the repository root
+and were renamed; §17.3 maps each old path to its new one.
 
 | measure | value | how |
 | --- | --- | --- |
@@ -1409,6 +1433,9 @@ TSX, shared by both variants. A class that only `matched` has a rule for leaves 
 
 ### 15.3 Measurements (§5, §13.8, pass 2b)
 
+**Added 2026-09-14:** the screenshots named in this section moved to `screenshots/` at the repository root
+and were renamed; §17.3 maps each old path to its new one.
+
 | measure | value | how |
 | --- | --- | --- |
 | device | simulator `iPhone 16 (iOS 26.5)`, `70D15E5B-3D95-4290-B3E9-970F68617BE8`, 393 × 852 pt, portrait | as §14.3 |
@@ -1526,6 +1553,9 @@ messages are dated 23:56 and 23:57.
   - `npm run dev:matched` in a desktop browser, and Cypress.
 
 ### 15.6 Fidelity of `matched` (§13.8)
+
+**Added 2026-09-14:** the screenshots named in this section moved to `screenshots/` at the repository root
+and were renamed; §17.3 maps each old path to its new one.
 
 Round m8's screenshots against `screenshots/phase1/native-swift-*.png` and
 `screenshots/chat/native-swift-chat-*.png`, compared in copies scaled to 900 px high. Marked:
@@ -1718,3 +1748,87 @@ the `index.css` counts are its sections, comments included.
     transition, the time format, and a 4 pt sliver in the selected-day scroll.
   - SF Symbols and refraction are not available to web content, and the other three are fixable in TSX or
     CSS.
+
+## 17. Screenshot folders and names (added 2026-09-14)
+
+From the user on 2026-09-14, before phases 3–7 (DISCOVERY.md, entry "Screenshots moved to
+`screenshots/`; §10.3 merged into §6"): move the screenshots to the root of the repository, organize
+them "by platform-variant-version/surface-state.png", and choose names that cover the existing
+screenshots and extend to more platforms, more surfaces and more variants, including dark.
+
+This supersedes the screenshot paths named in §11.2, §12.4, §13.1, §13.7, §13.8, §14.3, §15.3 and
+§15.6. Each of those sections carries a line pointing here.
+
+### 17.1 The scheme
+
+```
+screenshots/<build>[-<style>][-<appearance>][-<device>]-v<N>/<surface>[-<state>].png
+```
+
+A folder holds one screenshot round of one build configuration. A file is one screen in one state.
+
+| part | values in use | omitted when | new values |
+| --- | --- | --- | --- |
+| `build` | `native-swift`, `ionic-capacitor` | never | the name of the repository directory that was built |
+| `style` | `stock`, `matched` (§13.1) | the build has a single styling, as `native-swift/` does | the name of a new styling variant of that build |
+| `appearance` | none | the screenshots are in light appearance | `dark`, from phase 6 |
+| `device` | none | the screenshots are from the `iPhone 16 (iOS 26.5)` simulator, 393 × 852 pt, portrait | one name per other device, simulator or window setup, chosen by the phase that first takes such screenshots, for example `ipad` in phases 3 and 4 and `duo` in phase 5 |
+| `v<N>` | `v1`, `v2` | never | the next number for the same folder prefix (§17.2) |
+| `surface` | `home`, `calendar`, `chat`, `settings` | never | the tab the screen is in; a screen outside the four tabs takes a new name |
+| `state` | `detail`, `selected`, `empty`, `three`, `list`, `after`, `group`, `direct`, `child`, `typing`, `sent` | the screen is the tab's first screen at launch | one token for each way the screen differs from the tab's first screen: the pushed screen first, then the content or the action |
+
+Examples:
+
+| path | parts used |
+| --- | --- |
+| `screenshots/native-swift-v1/home.png` | build, version, surface |
+| `screenshots/native-swift-v1/calendar-selected.png` | build, version, surface, one state token |
+| `screenshots/ionic-capacitor-matched-v1/chat-group-typing.png` | build, style, version, surface, two state tokens |
+| `screenshots/ionic-capacitor-stock-dark-v1/settings.png` (not taken yet) | build, style, appearance, version, surface |
+| `screenshots/native-swift-ipad-v1/home-detail.png` (not taken yet; if phase 3 names its device `ipad`) | build, device, version, surface, one state token |
+
+### 17.2 Rules
+
+- **Separators and order.** Parts are joined with `-` in the order of the pattern. Values use lowercase
+  ASCII letters and digits; the build names are the only values that contain a `-`. No value appears in
+  the lists of two parts. A folder name is read by removing `-v<N>` from the end, matching a build name at
+  the start, and giving each remaining value to the part whose list holds it. A file name is read as the
+  surface, then the state tokens.
+- **`chat-empty`.** It names its state although it is the Chat tab's first screen at launch, because the
+  Chat list is also taken with chats in it (`chat-three`, `chat-list`, `chat-list-after`).
+- **Versions.** `v<N>` counts the committed rounds for one folder prefix, the name before `-v<N>`,
+  starting at `v1`. Each prefix counts on its own: the first `ionic-capacitor-matched-dark` round is `v1`
+  whatever version `ionic-capacitor-matched` has reached.
+- **A new round is a new folder.** Files in an earlier version are not replaced, renamed or deleted. A
+  version holds only the screens taken in its round. For a screen missing from it, the highest earlier
+  version that has the screen holds its latest screenshot.
+- **Round names in DISCOVERY.md stay as they are.** The iteration rounds (v1–v6, c1–c5, s1, m1–m8) keep
+  their names, and §17.3 gives the round each version was taken in. Round v6 is in `native-swift-v1`.
+- **What is recorded per version.** The section that reports the round records the folder, the files,
+  the pixel size, the round, the commit the working tree was on, the commit that adds the files, and the
+  device or simulator, OS, window size in points and toolchain (AGENTS.md §"Two builds of one shell"). In
+  this spec, a later version also adds a row to the table in §17.3.
+
+### 17.3 The sets moved on 2026-09-14
+
+All four were taken in the `iPhone 16 (iOS 26.5)` simulator, `70D15E5B-3D95-4290-B3E9-970F68617BE8`,
+393 × 852 pt, portrait, at 1179 × 2556 px, with Xcode 26.6 (17F113) on macOS 26.6.2 (25G83). The section
+in the last column lists the rest of the toolchain.
+
+| folder | files | round | working tree on top of | added in | earlier path | section |
+| --- | --- | --- | --- | --- | --- | --- |
+| `native-swift-v1` | 7: `home`, `home-detail`, `calendar`, `calendar-selected`, `chat-empty`, `chat-three`, `settings` | v6 | `00a38f5` | `f88d70e` | `specs/001-four-tab-shells/screenshots/phase1/native-swift-<name>.png` | §11.2 |
+| `native-swift-v2` | 8: `chat-list`, `chat-group`, `chat-direct`, `chat-child`, `chat-group-typing`, `chat-group-sent`, `chat-child-sent`, `chat-list-after` | c5 | `f88d70e` | `b28c7d2` | `specs/001-four-tab-shells/screenshots/chat/native-swift-<name>.png` | §12.4 |
+| `ionic-capacitor-stock-v1` | 15: the names in `native-swift-v1` and `native-swift-v2` | s1 | `445751c` | `93ad230` | `specs/001-four-tab-shells/screenshots/phase2/ionic-capacitor-stock-<name>.png` for the 7 names in `native-swift-v1`; `specs/001-four-tab-shells/screenshots/chat/ionic-capacitor-stock-<name>.png` for the 8 in `native-swift-v2` | §14.3 |
+| `ionic-capacitor-matched-v1` | 15, as `ionic-capacitor-stock-v1` | m8 | `93ad230` | `187bd6e` | as `ionic-capacitor-stock-v1`, with `matched` in place of `stock` | §15.3 |
+
+- `<name>` is the new file name without `.png`. The move removed the prefix `native-swift-`,
+  `ionic-capacitor-stock-` or `ionic-capacitor-matched-` and kept the rest of the name:
+  `specs/001-four-tab-shells/screenshots/chat/ionic-capacitor-matched-chat-group-typing.png` is now
+  `screenshots/ionic-capacitor-matched-v1/chat-group-typing.png`.
+- `native-swift/` has two versions because its two sets were built from different trees:
+  `Chat/ChatList.swift` had 227 lines at `f88d70e` and 248 after the chat change (§12.4). `native-swift-v2`
+  holds only the chat run, so `native-swift-v1` holds the latest `native-swift/` screenshots of Home,
+  Calendar, Settings, `chat-empty` and `chat-three`.
+- Pass 2b's comparison in §15.6 used `native-swift-v1` and `native-swift-v2` together.
+- The 45 files have the same `shasum -a 256` before and after the move.
