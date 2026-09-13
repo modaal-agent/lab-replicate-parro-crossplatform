@@ -234,6 +234,8 @@ the trailing button from the screenshot. The header and tab-bar appearance follo
 **Added 2026-09-13:** the Chat fixture and the empty-state paragraph below are superseded by §10.2
 O3.
 
+**Added 2026-09-13:** §12.2 adds the messages of each chat to the fixture.
+
 One fixture, the same content in both builds, with invented names only (AGENTS.md §"Two builds of
 one shell"): one school, one child, two groups (one with an unread count of 1), four calendar events
 across two months, three chats, and the Settings rows in §1.2. SwiftUI reads it from Swift literals in
@@ -245,6 +247,8 @@ it is switched on is §9 O3.
 ### 2.3 List and detail
 
 **Added 2026-09-13:** "+" in the Chat row below is superseded by §10.2 O3.
+
+**Added 2026-09-13:** a chat opens a conversation screen, not the placeholder detail below (§12).
 
 Each tab is a list whose rows open a placeholder detail: a title from the row and one line of
 placeholder text.
@@ -689,3 +693,99 @@ system idiom, under §10.7 or D7/D8) or **gap** (content from §1.2 not built).
 | Settings | black line icons | white SF Symbols on coloured rounded squares, as in the iOS Settings app | change |
 | Settings | "Language" with subtitle "English, English" | "Language" with the value "English" on the trailing side | change |
 | Settings | external-link square icon on "Parro support" | `arrow.up.forward` in tertiary grey | change |
+
+## 12. Chat detail screen (added 2026-09-13)
+
+From the user on 2026-09-13, after the phase 1 commit `f88d70e` (DISCOVERY.md, entry "Phase 1
+committed; chat detail screen requested"): "add one screen and a fixture for the chat details screen
+- with corresponding fixtures. Messages come in bubbles. Iterate on the chat screen until the UI is
+high fidelity. Record screenshots."
+
+This supersedes, for the Chat tab only, the placeholder detail of §2.3 ("a title from the row and one
+line of placeholder text"), and adds messages to the chat fixture of §2.2 as amended by §10.2 O3. The
+conversation opens where the §2.3 detail opened, one level below the list, so §8's "any screen
+deeper than the §2.3 detail" stays a non-goal.
+
+### 12.1 The screen
+
+No file in `_assets/` shows a conversation. The layout follows iOS Messages, under §10.7.
+
+- **Navigation bar:** the chat's title and a subtitle, inline, with the chat's avatar on the trailing
+  side. The tab bar is hidden while the conversation is on screen.
+- **Bubbles:** the parent's messages on the trailing side, white text on the accent colour; everyone
+  else's on the leading side, primary text on system grey. Consecutive messages from one sender form
+  a run; the last bubble of a run has a tail. In a group chat, the sender's name sits above a run
+  and their avatar beside its last bubble.
+- **Date lines:** above the first message, and above any message sent more than an hour after the
+  one before it: "Today", "Yesterday" or the weekday, then the time.
+- **Receipt:** "Read" under the parent's last message when someone else wrote after it, otherwise
+  "Delivered".
+- **Photo message:** a picture drawn in code, with its caption in a bubble below it.
+- **Composer:** an attachment button that opens nothing, a message field that grows to five lines,
+  and a send button that appears when the field has text.
+
+### 12.2 Fixture
+
+Each of the three chats "+" adds (§10.2 O3) carries its messages. A list row's time and preview come
+from its last message. All names are invented.
+
+| chat | kind | messages | senders |
+| --- | --- | --- | --- |
+| Group 6/7/8 B | group | 6, from Fri 11 Sep 15:02 to Sun 13 Sep 09:41 | teacher Jamie Visser, parent Priya Shah, the parent using the app |
+| Jamie Visser | private | 3, Sat 12 Sep 15:48 to 16:20 | the parent using the app, Jamie Visser |
+| Sam | child | 2, Fri 11 Sep 13:58 and 14:05; the second is a photo | Jamie Visser |
+
+### 12.3 Decisions
+
+- **D10 — Sending works, in memory.** The send button appends the message to the open chat, and the
+  list row's preview and time follow it. The request did not mention a composer. Cost: phase 2
+  builds the same behaviour in `ionic-capacitor/`.
+- **D11 — Opening a chat marks it read.** Its unread dot leaves the list and the Unread filter.
+- **D12 — `native-swift/` first.** Phase 2 builds this screen in `ionic-capacitor/` with the rest
+  of the shell; the commit that adds it to `native-swift/` names `ionic-capacitor/` as not reached
+  (AGENTS.md §"Two builds of one shell").
+
+### 12.4 Results (added 2026-09-13)
+
+Measured on the working tree on top of `f88d70e`, in the `iPhone 16 (iOS 26.5)` simulator
+(393 × 852 pt) with Xcode 26.6. Taken at round c5; DISCOVERY.md, entry "Chat detail: iterating in the
+simulator", records rounds c1 to c5.
+
+- **Files** (`wc -l`):
+
+  | file | lines | what |
+  | --- | --- | --- |
+  | `Chat/ChatDetail.swift` (new) | 215 | the screen; runs, date lines and receipts; the composer |
+  | `Chat/MessageBubble.swift` (new) | 146 | the bubble, `BubbleShape` with its tail, the drawn photo |
+  | `Chat/ChatList.swift` | 248, was 227 | rows navigate by `ChatRoute`; `Avatar` and `ChatDates`, shared with the conversation |
+  | `Fixtures/Fixture.swift` | 180 | participants, messages, `ChatThread.preview` |
+  | `Fixtures/ShellModel.swift` | 51 | `chat(id:)`, `markRead(chatID:)`, `send(_:to:)` |
+
+  The app is 14 Swift files, 1518 lines.
+- **Build:** one line matching `warning:`, from `appintentsmetadataprocessor`, as in §11.2. No Swift
+  compiler warnings.
+- **Layout values:**
+  - bubble corner radius 18 pt, or half the height when that is smaller;
+  - text padding 12 pt horizontal and 8 pt vertical;
+  - 2 pt between bubbles of one run and 10 pt before a new run;
+  - side padding 14 pt, with the tail tip 4 pt outside the bubble;
+  - incoming fill `UIColor.systemGray5`, outgoing fill `AccentColor`;
+  - group avatars 28 pt;
+  - toolbar avatar 36 pt, with `sharedBackgroundVisibility(.hidden)`.
+- **Scroll edge:** the conversation sets `.scrollEdgeEffectStyle(.hard, for: .top)`. With the default
+  soft effect, bubbles scrolled under the navigation bar showed through its title.
+- **Sent message dates:** a message from the composer is dated with the current time of day on the
+  fixture's today, and at least one minute after the chat's last message.
+- **Exercised in the simulator:**
+  - opening each of the three chats;
+  - typing in the composer with the software keyboard, with the field growing to two lines;
+  - sending in the group chat and in the child chat;
+  - the list after returning, where unread dots are cleared (D11) and the previews ("You: …") and
+    times come from the sent messages (D10).
+- **Not exercised:** the attachment button (it opens nothing), a draft longer than five lines,
+  dragging to dismiss the keyboard, landscape, Dynamic Type sizes, VoiceOver, dark appearance.
+- **Screenshots:** `screenshots/chat/native-swift-chat-{list,group,direct,child,group-typing,group-sent,child-sent,list-after}.png`,
+  1179 × 2556 px. The status bar shows the time the script ran (21:25–21:27), not 9:41, so that it
+  agrees with the times of the sent messages.
+- **No reference to compare against:** no file in `_assets/` shows a conversation, and no screenshot
+  of the Messages app was taken for comparison.

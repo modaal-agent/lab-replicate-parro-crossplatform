@@ -33,6 +33,12 @@ enum ChatFilter: CaseIterable, Identifiable {
   }
 }
 
+/// A chat row's navigation value. The conversation reads the chat from `ShellModel` by id, so it
+/// shows messages sent after the row was tapped.
+struct ChatRoute: Hashable {
+  let id: ChatThread.ID
+}
+
 /// `IMG_0212.PNG`: filter chips, the chat list or its empty state, and "+" to add a chat.
 struct ChatList: View {
   @Environment(ShellModel.self) private var model
@@ -60,8 +66,8 @@ struct ChatList: View {
           Button("Search", systemImage: "magnifyingglass") {}
         }
       }
-      .navigationDestination(for: ChatThread.self) { chat in
-        PlaceholderDetail(title: chat.title, systemImage: "bubble.left.and.bubble.right")
+      .navigationDestination(for: ChatRoute.self) { route in
+        ChatDetail(chatID: route.id)
       }
   }
 
@@ -79,7 +85,7 @@ struct ChatList: View {
         description: Text("Chats that match this filter will appear here."))
     } else {
       List(visibleChats) { chat in
-        NavigationLink(value: chat) {
+        NavigationLink(value: ChatRoute(id: chat.id)) {
           ChatRow(chat: chat)
         }
         // The wider leading inset leaves room for the unread dot, as in Messages.
@@ -155,18 +161,20 @@ private struct ChatRow: View {
 
   var body: some View {
     HStack(spacing: 12) {
-      ChatAvatar(chat: chat)
+      Avatar(initials: chat.initials, symbol: chat.symbol, color: chat.color)
       VStack(alignment: .leading, spacing: 3) {
         HStack(alignment: .firstTextBaseline) {
           Text(chat.title)
             .font(.headline)
             .lineLimit(1)
           Spacer(minLength: 8)
-          Text(timestamp)
-            .font(.subheadline)
-            .foregroundStyle(chat.isUnread ? Color.accentColor : Color.secondary)
+          if let date = chat.lastMessage?.date {
+            Text(ChatDates.listTimestamp(date))
+              .font(.subheadline)
+              .foregroundStyle(chat.isUnread ? Color.accentColor : Color.secondary)
+          }
         }
-        Text(chat.lastMessage)
+        Text(chat.preview)
           .font(.subheadline)
           .foregroundStyle(.secondary)
           .lineLimit(2)
@@ -176,52 +184,65 @@ private struct ChatRow: View {
     }
     .padding(.vertical, 4)
     .overlay(alignment: .leading) {
-      unreadDot
+      if chat.isUnread {
+        Circle()
+          .fill(.tint)
+          .frame(width: 10, height: 10)
+          .offset(x: -20)
+          .accessibilityLabel("Unread")
+      }
     }
   }
+}
 
-  /// The time for a message from the fixture's today, "Yesterday", or the weekday, as Messages shows them.
-  private var timestamp: String {
+/// A round avatar with a symbol or initials, for chats and for the people in them.
+struct Avatar: View {
+  let initials: String
+  var symbol: String?
+  let color: Color
+  var size: CGFloat = 44
+
+  var body: some View {
+    Group {
+      if let symbol {
+        Image(systemName: symbol)
+          .font(.system(size: size * 0.4, weight: .semibold))
+      } else {
+        Text(initials)
+          .font(.system(size: size * 0.38, weight: .semibold))
+      }
+    }
+    .foregroundStyle(.white)
+    .frame(width: size, height: size)
+    .background(color.gradient, in: .circle)
+  }
+}
+
+/// Dates as Messages shows them, relative to the fixture's today.
+enum ChatDates {
+  static func time(_ date: Date) -> String {
+    date.formatted(date: .omitted, time: .shortened)
+  }
+
+  /// "Today", "Yesterday", the weekday within the last week, or the date.
+  static func dayName(_ date: Date) -> String {
     let calendar = Fixture.calendar
-    let date = chat.lastMessageDate
     if calendar.isDate(date, inSameDayAs: Fixture.today) {
-      return date.formatted(date: .omitted, time: .shortened)
+      return "Today"
     }
     if let yesterday = calendar.date(byAdding: .day, value: -1, to: Fixture.today),
       calendar.isDate(date, inSameDayAs: yesterday)
     {
       return "Yesterday"
     }
-    return date.formatted(.dateTime.weekday(.wide))
+    if let weekAgo = calendar.date(byAdding: .day, value: -6, to: Fixture.today), date >= weekAgo {
+      return date.formatted(.dateTime.weekday(.wide))
+    }
+    return date.formatted(.dateTime.day().month(.abbreviated).year())
   }
 
-  @ViewBuilder
-  private var unreadDot: some View {
-    if chat.isUnread {
-      Circle()
-        .fill(.tint)
-        .frame(width: 10, height: 10)
-        .offset(x: -20)
-        .accessibilityLabel("Unread")
-    }
-  }
-}
-
-private struct ChatAvatar: View {
-  let chat: ChatThread
-
-  var body: some View {
-    Group {
-      if let symbol = chat.symbol {
-        Image(systemName: symbol)
-          .font(.system(size: 18, weight: .semibold))
-      } else {
-        Text(chat.initials)
-          .font(.system(size: 17, weight: .semibold))
-      }
-    }
-    .foregroundStyle(.white)
-    .frame(width: 44, height: 44)
-    .background(chat.color.gradient, in: .circle)
+  /// The time for a message from today, otherwise the day.
+  static func listTimestamp(_ date: Date) -> String {
+    Fixture.calendar.isDate(date, inSameDayAs: Fixture.today) ? time(date) : dayName(date)
   }
 }

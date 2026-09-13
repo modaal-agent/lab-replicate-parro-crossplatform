@@ -232,3 +232,42 @@ search result summary.
   holds neither.
 - Each build log has one line matching `warning:`, from `appintentsmetadataprocessor`.
 - Values and the fidelity list: spec 001 §11.2 and §11.3.
+
+## 2026-09-13 — Phase 1 committed; chat detail screen requested
+
+- From the user, answering "Commit?": "Please commit." Committed as `f88d70e`, 27 files. The question
+  whether to include the seven screenshots got no separate answer; they were part of the proposed
+  commit and went in.
+- O6 (spec 001 §10.7) has no answer yet.
+- From the user, next: "add one screen and a fixture for the chat details screen - with corresponding
+  fixtures. Messages come in bubbles. Iterate on the chat screen until the UI is high fidelity.
+  Record screenshots." No reference screenshot shows a conversation (spec 001 §1.2). Recorded in
+  spec 001 as §12.
+- iOS 26.5 SDK, `arm64-apple-ios-simulator.swiftinterface`, `@available` lines not read:
+  `defaultScrollAnchor(_:)` SwiftUI `:11576`, `scrollDismissesKeyboard(_:)` SwiftUI `:11856`,
+  `toolbar(_:for:)` SwiftUI `:9564`, `scrollPosition(_:anchor:)` SwiftUI `:21433`,
+  `Glass.interactive(_:)` SwiftUICore `:5764`, `UnevenRoundedRectangle` SwiftUICore `:10241`,
+  `GlassEffectContainer` SwiftUICore `:9045`.
+
+## 2026-09-13 — Chat detail: iterating in the simulator
+
+- **Method:** a second script in the session scratchpad (not committed), built like the phase 1
+  script. It finds a chat row by the prefix of its accessibility label in `axe describe-ui` output,
+  adds the three chats, opens each one, types and sends. Five rounds, c1 to c5, in
+  `iPhone 16 (iOS 26.5)` with Xcode 26.6.
+- **c1:** the tab bar is hidden in the conversation, a conversation shorter than the screen sits at
+  the bottom, and returning to the list clears the unread dots of the chats that were opened.
+- **Each round, what the screenshots showed and the change that followed:**
+
+  | round | what the screenshots showed | change |
+  | --- | --- | --- |
+  | c1 | a tail whose curve started inside the bubble's rounded corner drew as a flat sliver below the corner; the outgoing tail tip sat about 7 pt from the screen edge | the tail runs down the bubble's side edge, fills the corner, and has a notch beside the tip; side padding 14 pt (c2) |
+  | c1 | `axe tap --label Message` matched nothing: `axe describe-ui` gives the composer's `TextField` no `AXLabel`, and its placeholder "Message" as `AXValue` | the script taps the field at (227, 788) pt |
+  | c2 | `axe type "…" --udid …` exited 0 and entered no text while the software keyboard was on screen | the script taps the keyboard's keys at their accessibility frames: letter keys are labelled in upper case, the space bar " " (c3) |
+  | c3 | with the keyboard up, bubbles scrolled under the navigation bar showed through the title and subtitle | `.scrollEdgeEffectStyle(.hard, for: .top)` on the conversation (c4) |
+  | c3 | messages sent at 21:24 appeared below a status bar overridden to 9:41 | the chat script overrides the status bar clock with the current time (c4) |
+  | c3, c4 | the first tapped letter arrived in lower case while the keyboard showed upper-case keys; waiting 2.5 s after focusing the field made no difference | typed messages start with "I ", which autocorrect capitalises (c5) |
+
+- `axe describe-ui` lists the keyboard's "Next keyboard" key with the value "Nederlands": a Dutch
+  keyboard is installed in the simulator besides English.
+- **Results:** spec 001 §12.4.
