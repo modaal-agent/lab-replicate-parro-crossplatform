@@ -1,0 +1,13 @@
+/* Two lines in the 44 pt iOS toolbar: `ion-title` has no subtitle. */
+.stacked-title {
+  line-height: 20px;
+}
+
+.stacked-subtitle {
+  overflow: hidden;
+  font-size: 12px;
+  font-weight: 400;
+  line-height: 16px;
+  text-overflow: ellipsis;
+  color: var(--ion-color-medium);
+}

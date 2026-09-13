@@ -326,3 +326,83 @@ search result summary.
 - From the user: "Please resolve open questions and commit the spec work." Both answers are recorded
   in spec 001 §13.10. Spec 001 now has no open question. The §13 spec work is committed together with
   this entry.
+
+## 2026-09-13 — Pass 2a: building `stock` in `ionic-capacitor/`
+
+- From the user: "Please take 2a (stock) now." Spec 001 §13.7, pass 2a. The spec work was committed as
+  `445751c`. Results: spec 001 §14.
+- **Creating the project:**
+  - `npx --yes @ionic/cli@7.2.1 start --help` lists `--project-id` ("used for the directory name and
+    package name") and `--package-id` ("the bundle ID/application ID for your app").
+  - `npx --yes @ionic/cli@7.2.1 start TabShell tabs --type=react --capacitor
+    --project-id=ionic-capacitor --package-id=dev.modaal.lab.tabshell.stock --no-git
+    --no-interactive` took 52.32 s real. Its `npm i` printed "10 vulnerabilities (8 moderate, 2 high)"
+    and "3 packages have install scripts not yet covered by allowScripts": `core-js@3.50.0`,
+    `cypress@13.17.0`, `fsevents@2.3.3`.
+  - `capacitor.config.ts` got `appId: 'dev.modaal.lab.tabshell.stock'`, `appName: 'TabShell'` and
+    `webDir: 'dist'`.
+  - **Side effect:** `ionic start` created `~/.ionic/config.json` with `"telemetry": true`.
+    `~/.capacitor` does not exist after `cap add` and `cap sync`.
+  - `grep -rn "@capacitor" src` printed nothing. The starter's plugins `@capacitor/app`,
+    `@capacitor/haptics`, `@capacitor/keyboard` and `@capacitor/status-bar` were uninstalled.
+    `@capacitor/keyboard` was installed again after round r3.
+  - `npx cap add ios` printed "[error] Could not find the ios platform. You must install it in your
+    project first, e.g. w/ npm install @capacitor/ios". After `npm install @capacitor/ios@8.5.2` it
+    added the platform.
+  - The template project has `TARGETED_DEVICE_FAMILY = "1,2"` and `IPHONEOS_DEPLOYMENT_TARGET = 15.0`.
+    `CapApp-SPM/Package.swift` takes `capacitor-swift-pm` from GitHub with `exact: "8.5.2"`.
+  - The root `.gitignore:16`, `*.xcodeproj`, matched `ionic-capacitor/ios/App/App.xcodeproj`. After the
+    negation line, `git check-ignore -v` on its `project.pbxproj` prints nothing.
+  - The first `xcodebuild` of the app took 10.07 s real and succeeded.
+- **Sources read:**
+
+  | source | how it was read | what was taken |
+  | --- | --- | --- |
+  | `native-swift/TabShell/` Swift files: `Fixture.swift`, `ShellModel.swift`, `RootTabView.swift`, `HomeList.swift`, `Agenda.swift`, `CalendarList.swift`, `WeekStrip.swift`, `ChatList.swift`, `SettingsList.swift`, `PlaceholderDetail.swift`, `InitialsBadge.swift`, `MessageBubble.swift` | read | the fixture, model, rows, date rules and drawing, ported to TypeScript |
+  | `gh api repos/ionic-team/ionic-docs/contents/src/components/page/theming/_utils/color.ts`, last commit on the file `07f9946` (2026-09-02) | command | `shade(weight = 0.12)` mixes in black, `tint(weight = 0.1)` mixes in white, `contrast()` picks black or white by contrast ratio |
+  | `node_modules/@ionic/core/dist/collection/components/textarea/textarea.ios.css` | read | `--padding-start` and `--padding-end` apply to `.textarea-wrapper`; `:host` sets `--padding-start: 0px` |
+  | `node_modules/@ionic/react/dist/types/components/index.d.ts` | read | `setupIonicReact: (config?: IonicConfig) => void`, with `IonicConfig` imported from `@ionic/core/components` |
+
+- **AXe and the web view:**
+  - `axe describe-ui --udid …` lists the `Application` element and four scroll bar sliders, and no web
+    content.
+  - `axe describe-ui --point x,y --udid …` returns the web element at that point:
+    - `Link` for an `IonItem` with `routerLink`, labelled with its texts and `aria-label`s joined, for
+      example "Group 6/7/8 B 1 unread Teacher JV";
+    - `Button` for an `IonItem button`;
+    - `CheckBox` for a `<button aria-pressed>`;
+    - `TextArea` "Message" for the `IonTextarea`.
+  - The session scratchpad's screenshot script therefore taps coordinates. It finds targets that move
+    (the week strip's days, the Send button) by probing points in 6 pt steps.
+  - After `xcrun simctl launch` with the native TabShell app in front, the status bar showed a
+    "◀ TabShell" back link. Terminating both apps before the launch removed it.
+- **Rounds** in `iPhone 16 (iOS 26.5)` with Xcode 26.6, what the screenshots showed and the change that
+  followed:
+
+  | round | what the screenshots or probes showed | change |
+  | --- | --- | --- |
+  | r1 | the chat list printed "9:41" while the agenda printed "09:15 – 09:40": `hour: 'numeric'` in `format`, and `formatRange` | `timeStyle: 'short'` (r2) |
+  | r2 | selecting Wednesday 16 scrolled the whole page: the week strip, inside the large title's condensed header, left the screen with the title | a fixed `IonHeader` on Calendar with a two-line title and the strip as a second toolbar (r3) |
+  | r2 | the composer's placeholder touched the field's border; the field ran to the screen edge; the header avatar touched the screen edge | selectors `ion-textarea.composer-field`, because Ionic's `:host` padding variables load after the app's CSS and won at equal specificity; `margin-inline-end`; a margin on the header avatar (r3, s1) |
+  | r3 | without `@capacitor/keyboard`, focusing the composer scrolled the web view up and put the navigation bar under the status bar; only the keyboard's accessory bar (up, down, ✓) appeared, with no keys; key taps entered nothing | `npm install @capacitor/keyboard@8.0.5`, `npx cap sync ios` (k1) |
+  | k1 | a caret in the field and no keyboard; `axe type "…"` exited 0 and entered nothing | — |
+  | k2, k3 | text copied with `xcrun simctl pbcopy`; tapping the field showed an edit menu with Paste and AutoFill; `axe tap --label Paste` matched nothing (AXe lists the item as `GenericElement`); a coordinate tap on Paste entered nothing | — |
+  | k4 | AppleScript clicked the Simulator app's I/O › Keyboard › Toggle Software Keyboard; `keys.py` then found the keys at y 964 pt, below the 852 pt screen | — |
+  | k5 | the menu item Connect Hardware Keyboard read `AXMenuItemMarkChar` "✓"; after a click on it the mark still read "✓"; the keys moved to y 595 pt, and iOS's "Speed up your typing by sliding your finger across the letters to compose a word." sheet with Continue covered the keyboard | `axe tap --label Continue` (k7) |
+  | k7 | key taps typed the message; Send was found at y 462 pt and sent it; "wednesday" stayed lower case, because Send was tapped before autocorrect committed "Wednesday" | a trailing space after the typed text; sending trims it (s1) |
+  | s1 | the 15 screenshots spec 001 §14.3 lists | — |
+
+- **Side effect on the machine:** the Simulator app's I/O › Keyboard menu was clicked twice, on Toggle
+  Software Keyboard and on Connect Hardware Keyboard. Which of the two clicks brought the software
+  keyboard up was not isolated. Afterwards the menu still showed Connect Hardware Keyboard checked.
+- With `@capacitor/keyboard` installed (k5, s1 `group-typing`): the web view shrinks above the
+  keyboard, the composer sits on it, the navigation bar stays in place, and Ionic hides the tab bar.
+- `defaults read com.apple.iphonesimulator DevicePreferences` has no entry for
+  `70D15E5B-3D95-4290-B3E9-970F68617BE8`.
+- `npm audit --json`: 10 vulnerabilities, 8 moderate and 2 high. Not acted on.
+- Measurements and fidelity: spec 001 §14.3 and §14.5.
+- The user asked whether the table comparing `native-swift/` and `stock` build times and sizes was
+  recorded; it was not, as a table. From the user: "Please append, and then comit." Spec 001 §14.3 takes
+  the table, and pass 2a is committed together with this entry.
+- The question whether to turn off Ionic CLI telemetry (`~/.ionic/config.json`) got no answer;
+  telemetry stays on.

@@ -1,0 +1,74 @@
+/* Ionic has no week strip component (spec 001 §13.6 D16). */
+.week-strip-month {
+  font-weight: 600;
+  text-align: center;
+}
+
+.week-strip-pages {
+  display: flex;
+  overflow-x: auto;
+  scroll-snap-type: x mandatory;
+  scrollbar-width: none;
+}
+
+.week-strip-pages::-webkit-scrollbar {
+  display: none;
+}
+
+.week-strip-page {
+  display: flex;
+  flex: none;
+  width: 100%;
+  scroll-snap-align: start;
+}
+
+.week-strip-day {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  padding: 6px 0;
+  background: none;
+  color: var(--ion-text-color, #000);
+  font: inherit;
+}
+
+.week-strip-weekday {
+  font-size: 12px;
+}
+
+.week-strip-number {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  font-size: 18px;
+}
+
+.week-strip-day.weekend {
+  color: var(--ion-color-medium);
+}
+
+.week-strip-day.today .week-strip-number {
+  color: var(--ion-color-primary);
+  font-weight: 600;
+}
+
+.week-strip-day.selected .week-strip-number {
+  background: var(--ion-color-primary);
+  color: var(--ion-color-primary-contrast);
+  font-weight: 600;
+}
+
+.week-strip-dot {
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+}
+
+.week-strip-day.has-events .week-strip-dot {
+  background: var(--ion-color-medium);
+}

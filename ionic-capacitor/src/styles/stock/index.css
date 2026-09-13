@@ -1,0 +1,5 @@
+/*
+ * Styles only the `stock` variant loads, through the `@style` alias (spec 001 §13.4, D13).
+ * `stock` takes Ionic's default iOS styles (D16), so this file is empty. The colour variables
+ * both variants use are in `src/theme/variables.css`; each screen's layout CSS sits beside it.
+ */

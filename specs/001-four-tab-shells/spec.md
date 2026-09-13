@@ -357,6 +357,9 @@ records the Node version it built with.
 
 ### 4.2 Project creation
 
+**Added 2026-09-13:** the commands below do not install `@capacitor/ios`, which `npx cap add ios`
+needs. §14.1 lists the commands pass 2a ran.
+
 ```bash
 npx @ionic/cli start ionic-capacitor tabs --type=react --capacitor   # binding: D5, §9 O1
 cd ionic-capacitor && npm run build && npx cap add ios                # SPM template (§1.3)
@@ -907,6 +910,9 @@ The sources are listed in the DISCOVERY.md entry named above.
 
 ### 13.3 Where the variants differ
 
+**Added 2026-09-13:** pass 2a changed the `stock` column for the Calendar header and the conversation
+title; §14.2.
+
 This table is the expectation before pass 2b; §13.8 measures what pass 2b changes. "Kind" is what
 pass 2b edits: CSS, TSX, or the `setupIonicReact` options.
 
@@ -953,6 +959,8 @@ Routes, the fixture module and the model stay as pass 2a wrote them.
 
 ### 13.6 Decisions
 
+**Added 2026-09-13:** pass 2a extends D16's list of own CSS by three files (§14.2).
+
 - **D13 — Option A: one project, with the variant chosen at build time.** Routes, fixture, model and
   screens are written once, and each build holds only its own variant's styles, so bundle size,
   build time and app size are measured per variant. Cost: §13.5.
@@ -986,6 +994,8 @@ Routes, the fixture module and the model stay as pass 2a wrote them.
   `@capacitor/core >=8.0.0`, and was last pushed 2026-08-20. Phase 7 uses its tab bar only.
 
 ### 13.7 Passes (supersedes phase 2 in §6)
+
+**Added 2026-09-13:** pass 2a's results are §14.
 
 | pass | what lands | requires |
 | --- | --- | --- |
@@ -1081,3 +1091,212 @@ From the user on 2026-09-13 (DISCOVERY.md, entry "O7 and O8 answered; spec work 
   - `matched`: `PRODUCT_BUNDLE_IDENTIFIER=dev.modaal.lab.tabshell.matched` passed to `xcodebuild`.
     Pass 2b records the full build and install command.
   - Pass 2a's requirement "§13.9 O8 answered" is met.
+
+## 14. Pass 2a results: `stock` (added 2026-09-13)
+
+From the user on 2026-09-13: "Please take 2a (stock) now." Measured on the working tree on top of
+`445751c`, in the `iPhone 16 (iOS 26.5)` simulator (393 × 852 pt, portrait). DISCOVERY.md, entry
+"Pass 2a: building `stock` in `ionic-capacitor/`", records the order in which things were tried.
+
+### 14.1 Project creation, against §4.2
+
+- **Commands that created the project**, from the repository root under Node 24.21.0:
+
+  ```bash
+  npx @ionic/cli@7.2.1 start TabShell tabs --type=react --capacitor --project-id=ionic-capacitor \
+    --package-id=dev.modaal.lab.tabshell.stock --no-git --no-interactive
+  cd ionic-capacitor
+  npm install @capacitor/ios@8.5.2
+  npm run build && npx cap add ios
+  ```
+
+  - They replace §4.2's `ionic start ionic-capacitor tabs`:
+    - the app name is `TabShell` (D1);
+    - `--project-id` names the directory;
+    - `--package-id` sets `appId` (§13.10 O8);
+    - `--no-git` skips a nested git repository;
+    - `--no-interactive` skips the prompts.
+  - `ionic start` took 52.32 s, including `npm i`.
+  - `npx cap add ios` fails until `@capacitor/ios` is installed. The starter's `--capacitor` integration
+    installs `@capacitor/core` and `@capacitor/cli`, and §4.2's commands do not install `@capacitor/ios`.
+  - The empty `ionic-capacitor/` directory was removed with `rmdir` before `ionic start`.
+- **Plugins (D6):**
+  - The starter installed `@capacitor/app` 8.1.1, `@capacitor/haptics` 8.0.2,
+    `@capacitor/keyboard` 8.0.5 and `@capacitor/status-bar` 8.0.3. No file under `src/` imported any
+    of them.
+  - App, Haptics and Status Bar are removed.
+  - Keyboard is kept, for the composer. Without it, focusing the message field scrolled the whole web
+    view up and put the navigation bar under the status bar. With it, the web view shrinks above the
+    keyboard (§14.4).
+- **The iOS project:**
+  - `npx cap add ios` wrote an SPM project (§1.3) with `IPHONEOS_DEPLOYMENT_TARGET = 15.0` and
+    `PRODUCT_BUNDLE_IDENTIFIER = dev.modaal.lab.tabshell.stock`.
+  - `TARGETED_DEVICE_FAMILY` is changed from `"1,2"` to `1` in both App target configurations of
+    `ios/App/App.xcodeproj/project.pbxproj`. This keeps the phone phases iPhone-only, as D2 does for
+    `native-swift/`; phase 4 sets it back.
+  - The root `.gitignore` takes `!ionic-capacitor/ios/App/App.xcodeproj`. Its `*.xcodeproj` line,
+    written for XcodeGen, also matched the Capacitor project that §4.2 commits.
+  - `ios/App/CapApp-SPM/Package.swift` depends on `capacitor-swift-pm` with `exact: "8.5.2"`.
+    `Package.resolved` records revision `0b6882e`.
+  - The template's `ios/.gitignore` ignores `App/App/public`, `App/App/capacitor.config.json` and
+    `App/App/config.xml`, which `npx cap copy` regenerates.
+- **Build and install**, from `ionic-capacitor/`:
+
+  ```bash
+  npm run build && npx cap copy ios      # npx cap sync ios after adding or removing a plugin
+  xcodebuild -project ios/App/App.xcodeproj -scheme App \
+    -destination 'platform=iOS Simulator,id=70D15E5B-3D95-4290-B3E9-970F68617BE8' build
+  ```
+
+### 14.2 What landed, against §13.6 D13 and D16
+
+- **Tree** (`wc -l`): `src/` holds 32 TypeScript, TSX and CSS files, 1,843 lines. The starter's
+  `main.tsx`, `setupTests.ts`, `vite-env.d.ts` and `App.test.tsx` are 33 of those lines.
+  - `fixtures/fixture.ts` (203) and `model/ShellModel.tsx` (103): the content and state of
+    `native-swift/`'s `Fixture.swift` and `ShellModel.swift`, as a TypeScript module and a React
+    context with a reducer.
+  - `lib/dates.ts` (70), `lib/agenda.ts` (63), `lib/messageRows.ts` (36).
+  - `pages/`: Home, Calendar, Chat, Conversation and Settings pages, `PlaceholderPage.tsx` with the
+    four detail pages, and `rows.ts` with the Home and Settings rows.
+  - `components/`: `Headers.tsx`, `WeekStrip.tsx`, `EmptyState.tsx`, `ChatAvatar.tsx`, and
+    `SunflowerDrawing.tsx`, the drawing of `MessageBubble.swift` as an SVG.
+  - `styles/stock/index.css` (a comment) and `styles/stock/setup.ts` (`setupIonicReact` options `{}`),
+    reached through the `@style` alias in `vite.config.ts` and `tsconfig.json` (D13).
+- **Routes** in `App.tsx`: `/home`, `/home/groups/:groupId`, `/home/:pageId`, `/calendar`,
+  `/calendar/:eventId`, `/chat`, `/chat/:chatId`, `/settings`, `/settings/:settingId`. All nine are in
+  the one `IonRouterOutlet` inside `IonTabs` (D14).
+- **Accent colour (D16):**
+  - The values: `--ion-color-primary` `#d13c63`, `-rgb` `209, 60, 99`, `-contrast` `#ffffff`,
+    `-contrast-rgb` `255, 255, 255`, `-shade` `#b83557`, `-tint` `#d65073`.
+  - They were computed in Node with the Color Generator's code, ionic-docs
+    `src/components/page/theming/_utils/color.ts` at `07f9946`. Shade mixes in 12 % black and tint
+    10 % white. The contrast ratio is 4.538 against black and 4.628 against white, so the contrast
+    colour is white.
+- **Own CSS:** 275 lines in seven files.
+
+  | file | lines | what | in D16's list |
+  | --- | --- | --- | --- |
+  | `components/WeekStrip.css` | 74 | the week strip | yes |
+  | `pages/CalendarPage.css` | 31 | the agenda's day column | yes, the agenda layout |
+  | `pages/ConversationPage.css` | 112 | bubbles, date lines, receipts, the composer field, the header avatar's margin | yes |
+  | `components/EmptyState.css` | 20 | the empty state | yes |
+  | `components/ChatAvatar.css` | 10 | initials and icons centred on a fill in `ion-avatar`, which sizes an image | no |
+  | `components/Headers.css` | 13 | a two-line toolbar title; `ion-title` has no subtitle | no |
+  | `pages/ChatPage.css` | 15 | the chips in one row that scrolls sideways | no |
+
+  The last three rows extend D16's list.
+- **Where the `stock` column of §13.3 changed:**
+  - **Calendar header.** The starter's large title is replaced by one fixed `IonHeader`. It holds a
+    two-line title (`StackedTitle`) and, as a second toolbar, the week strip. In round r2 the strip sat
+    in the large title's condensed header, and selecting a day scrolled the strip and the title off
+    screen with the agenda.
+  - **Conversation title.** It uses the same `StackedTitle`.
+  - **Group rows.** The colour dot is the `ellipse` ionicon in the group's colour. The initials badge
+    is `IonBadge color="light"`.
+  - **Unread chats.** The marker is the `ellipse` ionicon, `size="small"`, in the primary colour.
+  - **Send button.** It is shown only when the field has text, as in §12.1.
+- **Times** use `Intl.DateTimeFormat` with `timeStyle: 'short'`. In round r1, `hour: 'numeric'`
+  printed "9:41" in the chat list while `formatRange` printed "09:15 – 09:40" in the agenda.
+
+### 14.3 Measurements (§5, §13.8, pass 2a)
+
+| measure | value | how |
+| --- | --- | --- |
+| device | simulator `iPhone 16 (iOS 26.5)`, `70D15E5B-3D95-4290-B3E9-970F68617BE8`, 393 × 852 pt, portrait | as §11.2 |
+| toolchain | Node 24.21.0, npm 11.19.0, `@ionic/cli` 7.2.1, `@ionic/react` and `@ionic/react-router` 9.0.3, React 19.0.0, React Router 6.30.6, Capacitor CLI, core and iOS 8.5.2, `@capacitor/keyboard` 8.0.5, Vite 8.3.0, TypeScript 5.9.3; Xcode 26.6 (17F113), iOS 26.5 SDK; macOS 26.6.2 (25G83) | `npm ls --depth=0`, `npx cap --version`, `xcodebuild -version`, `sw_vers` |
+| clean web build | 3.31 s real for `tsc && vite build`; Vite reports 2.31 s | `/usr/bin/time -p npm run build` after `rm -rf dist` |
+| `npx cap sync ios` | 0.49 s real | `/usr/bin/time -p` |
+| clean Debug build | 8.38 s real | `/usr/bin/time -p xcodebuild … build` with a new `-derivedDataPath`. `capacitor-swift-pm` came from SwiftPM's cache on this machine; the session's first build took 10.07 s |
+| clean Release build | 5.15 s real | the same with `-configuration Release`, run directly after the Debug build |
+| web bundle | `dist/` 3052 KiB, 19 files. Modern build: `index-*.js` 1,384.97 kB (gzip 308.78 kB), `index-*.css` 64.56 kB (gzip 8.58 kB). `@vitejs/plugin-legacy` adds 8 files, among them `index-legacy-*.js` 1,450.11 kB and `polyfills-legacy-*.js` 76.52 kB | `du -sk dist`; `vite build` output |
+| theme CSS in `stock` | `grep -rl -- '--ion-color-primary-brightness' dist` matches no file | §13.8 |
+| app size, simulator build | Debug `.app` 8048 KiB. Release `.app` 7904 KiB, of which `public/` 3052 KiB, `Frameworks/` 4480 KiB and the `App` binary 154,352 bytes | `du -sk`, `stat -f %z` |
+| warnings | Xcode: one line per build, from `appintentsmetadataprocessor`, as in §11.2. `vite build`: `lightningcss` reports `:host-context` in Ionic's utility CSS as an unrecognised pseudo-class, and warns about a chunk over 500 kB. ESLint: one `react-refresh/only-export-components` warning at `src/model/ShellModel.tsx:97`, where `useShell` is exported beside `ShellProvider` | build logs; `npx eslint src` |
+| tests | `npx vitest run`: 1 of 1 passed, the starter's "renders without crashing". `cypress/e2e/test.cy.ts` now looks for "Groups"; Cypress was not run | |
+| npm audit | 10 vulnerabilities: 8 moderate, 2 high | `npm audit --json` |
+| screenshots | 15 files, 1179 × 2556 px, 3.4 MB, round s1: `screenshots/phase2/ionic-capacitor-stock-{home,home-detail,calendar,calendar-selected,chat-empty,chat-three,settings}.png` and `screenshots/chat/ionic-capacitor-stock-chat-{list,group,direct,child,group-typing,group-sent,child-sent,list-after}.png` | `xcrun simctl io … screenshot` |
+
+§11.2 measured `native-swift/`'s Release `.app` at 1024 KiB and its clean Release build at 4.31 s.
+
+**`native-swift/` and `stock` side by side.**
+
+| measure | `native-swift/` (§11.2) | `stock` (this section) |
+| --- | --- | --- |
+| web build before Xcode | none | 3.31 s (`npm run build`), then 0.49 s (`npx cap sync ios`) |
+| clean Debug build, `xcodebuild` | 6.47 s | 8.38 s |
+| clean Release build, `xcodebuild` | 4.31 s | 5.15 s |
+| Debug `.app` | 1524 KiB | 8048 KiB |
+| Release `.app` | 1024 KiB | 7904 KiB |
+| Release `.app` contents | `TabShell` binary 876,704 bytes, `Assets.car` 133,144 bytes | `App` binary 154,352 bytes, `public/` 3052 KiB, `Frameworks/` 4480 KiB |
+| Xcode warnings per build | 1, from `appintentsmetadataprocessor` | 1, from `appintentsmetadataprocessor` |
+
+Both columns come from a single run of each build:
+- simulator `iPhone 16 (iOS 26.5)`, Xcode 26.6 (17F113), macOS 26.6.2 (25G83);
+- a new `-derivedDataPath`, timed with `/usr/bin/time -p`, Release directly after Debug.
+
+The differences between the columns:
+- `native-swift/` was measured on the working tree on top of `00a38f5`, and `stock` on top of `445751c`.
+- The `stock` builds took `capacitor-swift-pm` from SwiftPM's cache on this machine.
+- The sizes are of the simulator `.app` on disk, not App Store download sizes.
+- `stock`'s `public/` includes the 8 files `@vitejs/plugin-legacy` adds.
+
+The chat screenshots' status bar shows 22:41, the time the script set before the chat steps. The sent
+messages are dated 22:42, the minute in which they were sent.
+
+### 14.4 Behaviour exercised in the simulator
+
+- **Home:** opening Group 6/7/8 B's placeholder page; "Mark all as read" clearing the row badge and
+  the Home tab badge, and disabling itself.
+- **Calendar:** paging the week strip to week 38; selecting Wednesday 16. The agenda scrolls as far as
+  the list's length allows; the list ends on 22 October, so the row for the 16th stops below the top.
+- **Chat:**
+  - the empty state, and three taps on "+" adding the three chats;
+  - the Unread filter (round r2);
+  - opening each chat;
+  - typing in the group chat and the child chat with the software keyboard, with the field growing to
+    two lines;
+  - sending, which adds a date line and "Delivered";
+  - the list afterwards, with "You: …" previews, the send time and no unread markers (D10, D11).
+- **Settings:** the list.
+- **Keyboard:** with `@capacitor/keyboard`, the web view shrinks above the keyboard, the composer sits
+  on the keyboard, the navigation bar stays, and Ionic hides the tab bar. Tapping Send closes the
+  keyboard.
+- **Not exercised:**
+  - the calendar button, the event and settings placeholder pages;
+  - the Child, Group and Private filters and the filtered empty state;
+  - the swipe-back gesture;
+  - a draft longer than five lines, so the 110 px cap in `ConversationPage.css` is untested;
+  - landscape, Dynamic Type sizes, VoiceOver, dark appearance;
+  - Cypress.
+
+### 14.5 Fidelity of `stock` (§13.8)
+
+Each visible difference between the round s1 screenshots and `_assets/`, marked:
+- **Ionic default:** what the Ionic component draws in iOS mode with the accent colour;
+- **own:** layout or content written in this pass;
+- **gap:** content from §1.2 that is not built.
+
+| screen | `_assets/` | `stock` | mark |
+| --- | --- | --- | --- |
+| all | flat tab bar, filled icon on the selected tab, dark labels, dark plum badge | flat 50 px `ion-tab-bar` with a 0.55 px top border, outline ionicons, grey labels with the selected one in the accent colour, badge in the accent colour | Ionic default |
+| all | rounded custom typeface | the system font through Ionic's iOS typography | Ionic default |
+| Home, Chat, Settings | small left-aligned header: title in the accent colour, subtitle below | large black title that condenses into the toolbar on scroll; the subtitle as a grey line under it; trailing icon button in the accent colour | Ionic default; the subtitle line own |
+| Calendar | the same small header | centred two-line toolbar title; the week strip in the fixed header | own |
+| Home | title is the school name, with a child avatar and the child's name | title "Home" | gap: the avatar |
+| Home, Settings | white rows, grey bands between sections | `IonList inset` on the white page background: sections separated by space, rows by hairlines | Ionic default |
+| Home, Settings | a chevron only on "Previous school years" | a chevron on every row that opens a page | Ionic default |
+| Home | dark plum count badge; lilac square initials badge | count badge in the accent colour; light grey capsule initials badge | Ionic default |
+| Home | filled icons; a double check on "Mark all as read" | outline ionicons; a check in a circle, grey when nothing is unread | Ionic default |
+| Home | no icon on "Previous school years" | clock icon | own |
+| Calendar | drag handle under the strip | no handle | gap |
+| Calendar | outlined month pill | grey sticky `IonItemDivider` | Ionic default |
+| Calendar | "Week 38, September 14 - September 20" | "Week 38 · 14 – 20 Sep", in the device's locale | own |
+| Calendar | timeline line with a dot; "There are no events today" in plum | "No events today" in grey in a list row | Ionic default |
+| Calendar | tinted cards, titles cut to one line, the all-day event as "01:00 - 01:00" | list rows, wrapped titles, "All day" | Ionic default |
+| Chat | chips with a solid accent outline | `IonChip outline` with a lighter accent outline; the selected chip tinted | Ionic default |
+| Chat | illustration, title, two sentences | ionicon, title, one sentence | gap: the illustration |
+| Chat | rounded-square "+" | round `IonFab` | Ionic default |
+| Chat | no rows shown | rows with avatar, name, wrapped preview, time and a dot | not in `_assets/` |
+| Settings | "Language" with the subtitle "English, English" | "Language" with "English" on the trailing side | own |
+| Settings | no separators | hairline separators | Ionic default |
+| conversation | not in `_assets/` | the tab bar stays visible (D14); bubbles without tails; the chat's avatar in the header | own |

@@ -1,0 +1,112 @@
+/* Ionic has no chat component: the bubbles, date lines and composer field (spec 001 §13.6 D16). */
+
+/* `ion-buttons` pads the buttons it holds; the avatar is not a button. */
+ion-buttons[slot='end'] .chat-avatar {
+  margin-inline-end: 12px;
+}
+
+.message-list {
+  display: flex;
+  flex-direction: column;
+  padding: 8px 14px 12px;
+}
+
+.message-row {
+  margin-top: 2px;
+}
+
+.message-row.starts-run {
+  margin-top: 10px;
+}
+
+.message-date {
+  margin: 16px 0 10px;
+  font-size: 12px;
+  text-align: center;
+  color: var(--ion-color-medium);
+}
+
+.message-sender {
+  margin: 0 0 3px 48px;
+  font-size: 12px;
+  color: var(--ion-color-medium);
+}
+
+.message-line {
+  display: flex;
+  align-items: flex-end;
+  gap: 8px;
+}
+
+.message-line.incoming {
+  padding-right: 60px;
+}
+
+.message-line.outgoing {
+  justify-content: flex-end;
+  padding-left: 60px;
+}
+
+.message-avatar-space {
+  flex: none;
+  width: 28px;
+}
+
+.message-bubble {
+  padding: 8px 12px;
+  border-radius: 18px;
+  font-size: 17px;
+  line-height: 22px;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+
+.message-bubble.incoming {
+  background: var(--ion-background-color-step-100, #e9e9eb);
+  color: var(--ion-text-color, #000);
+}
+
+.message-bubble.outgoing {
+  background: var(--ion-color-primary);
+  color: var(--ion-color-primary-contrast);
+}
+
+.message-photo {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 3px;
+}
+
+.message-photo svg {
+  border-radius: 18px;
+}
+
+.message-receipt {
+  margin: 4px 4px 0 0;
+  font-size: 11px;
+  font-weight: 500;
+  text-align: right;
+  color: var(--ion-color-medium);
+}
+
+/*
+ * `ion-textarea` sets its padding variables on itself with a class selector that loads after this file,
+ * so these selectors name the element as well as the class.
+ */
+ion-textarea.composer-field {
+  --padding-start: 12px;
+  --padding-end: 12px;
+  --padding-top: 7px;
+  --padding-bottom: 7px;
+  margin-block: 6px;
+  margin-inline-end: 12px;
+  border: 1px solid var(--ion-border-color, #c8c7cc);
+  border-radius: 18px;
+}
+
+/* The field grows to five lines, then scrolls (spec 001 §12.1). */
+ion-textarea.composer-field .native-wrapper {
+  max-height: 110px;
+  overflow-y: auto;
+}
