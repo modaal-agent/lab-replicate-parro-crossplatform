@@ -11,9 +11,11 @@ and fails if they differ.
 
 | you need | read |
 | --- | --- |
-| what is being built, the four screens, the scope, what the comparison measures | [README.md](README.md) |
-| what a screen looks like | `_assets/IMG_0210.PNG` … `IMG_0213.PNG` — README.md maps each file to its screen |
-| the plan for a change too big to carry in a commit message | `specs/` |
+| what is being built and why | [README.md](README.md) |
+| the screens, the scope, the phases, what the comparison measures | [specs/001-four-tab-shells/spec.md](specs/001-four-tab-shells/spec.md) |
+| what was found, tried, read and decided, in order | [DISCOVERY.md](DISCOVERY.md) |
+| what a screen looks like | `_assets/IMG_0210.PNG` … `IMG_0213.PNG` — spec 001 §1.2 maps each file to its screen |
+| the plan for any other change too big to carry in a commit message | `specs/` |
 
 Run from the repository root:
 
@@ -113,15 +115,38 @@ Habits to avoid (common LLM-isms):
   spec document — no source, project file or workflow edit, not even the one line that looks ready.
   When it is written, stop and ask.
 
+## DISCOVERY.md is an append-only log
+
+- **Record in [DISCOVERY.md](DISCOVERY.md) every observation that changes what someone would do
+  next:** a measurement, a tool behaving differently from its documentation, a side effect on the
+  machine, a source read and what was taken from it, an approach tried and dropped, and each decision
+  or answer the user gives. Add the entry in the same change that acts on it.
+- **Append only.** A new entry goes at the end of the file under `## YYYY-MM-DD — <what happened>`.
+  Do not edit or delete an existing entry, not to fix a typo or a path. A correction is a new entry
+  that names the entry it corrects by date and heading.
+- **Each bullet names where it came from:** the command run, the file and line, or the URL. A claim
+  taken from a third-party page, a search result summary or a summarizing fetch says which.
+- **Sources read for a spec are listed in a DISCOVERY.md entry** as a table: the source, whether it
+  was fetched or seen only in a search result, and what was taken from it.
+- **A discovery that changes a spec is written in both files.** The DISCOVERY.md entry records what
+  was found and names the spec section; the spec takes the change as an addition, under
+  §"Specs are an append-only decision ledger".
+- **A user's answer is recorded in their words** when it is short, and the entry names the question
+  it answers.
+
 ## What goes in which document
 
-- **README.md** — the goal, the four screens and their reference files, the scope, what the
-  comparison measures, the layout.
+- **README.md** — the goal, the layout, and a link to the spec that holds the current plan. The
+  screens, the scope and what is compared live in the spec.
 - **AGENTS.md / CLAUDE.md** — rules only, and one file in two places. If you are about to write a
   paragraph explaining what something *is*, it belongs in README.md or a spec.
 - **specs/`NNN-slug`/spec.md** — the plan for a change too big to carry in a commit message: what is
   true now (measured, with file and line references), what the change becomes, the phasing, the
   decisions and what stays open. Written before the change and left in place after it, as the record
   of why. It never becomes the place a *rule* is stated — that is here.
+- **DISCOVERY.md** — the dated log of observations, measurements, side effects, sources and user
+  answers, in the order they happened. The plan that follows from an entry goes in the spec; a rule
+  that follows from it goes here.
 - **`_assets/`** — the reference screenshots. They are inputs and are not edited; a new reference
-  screenshot is added beside them and listed in README.md's screen table in the same commit.
+  screenshot is added beside them and described in the spec that uses it, as an addition, in the
+  same commit.
