@@ -11,3 +11,7 @@ node_modules/
 xcuserdata/
 DerivedData/
 .build/
+
+# XcodeGen output (native-swift/): generated from native-swift/xcodegen.yml
+*.xcodeproj
+native-swift/TabShell/Info.plist

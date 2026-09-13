@@ -118,3 +118,117 @@ search result summary.
   `UIArrangementViewController`.
 - No `.simdevicetype` matching "Duo" or "Fold" under either Xcode's `Contents/Developer/Platforms` or
   in `/Library/Developer/CoreSimulator/Profiles/DeviceTypes`. Read with `find` and `ls`, not `simctl`.
+
+## 2026-09-13 — Node 24 installed; state before phase 1
+
+- From the user: "I installed Node 24 via nvm, and uninstalled Brew node."
+- `nvm ls`: v20.19.5 and v24.21.0 are installed, `lts/krypton -> v24.21.0`, and
+  `default -> 20 (-> v20.19.5)`. A new interactive shell (`zsh -ic 'which node; node --version'`)
+  still resolves `/Users/admin/.nvm/versions/node/v20.19.5/bin/node`, v20.19.5, npm 11.6.2. Phase 2
+  runs `nvm use 24` first, unless the default alias is changed with `nvm alias default 24`.
+- Under v24.21.0 (`nvm use 24`): npm 11.19.0; `npm ls -g --depth=0` lists only `corepack@0.36.0` and
+  `npm@11.19.0`. The eleven global packages under v20.19.5 (among them `@openai/codex`,
+  `firebase-tools`, `xcodebuildmcp`, `pnpm`) are not installed under v24.21.0.
+- `brew list --versions node` exits 1, and `/opt/homebrew/bin/node` does not exist.
+- The repository has no `.nvmrc` (`ls -a` at the root).
+- Spec 001 §0 item 6 and §1.3 give Node 20.19.5, below Capacitor 8's "Node 22 or greater"; v24.21.0
+  meets it. Recorded in spec 001 as §10.6.
+- Git: branch `001-four-tab-shells` at `00a38f5`, working tree clean (`git status --short`).
+- Unchanged since the entry "Machine changes since the first toolchain read": macOS 26.6.2 (25G83),
+  Xcode 26.6 (17F113) selected, Swift 6.3.3, XcodeGen 2.45.4 (`sw_vers`, `xcode-select -p`,
+  `xcodebuild -version`, `swift --version`, `xcodegen --version`).
+- `xcrun simctl list runtimes` (Xcode 26.6): iOS 18.6 (22G86), iOS 26.5 (23F77), iOS 27.0 (24A434),
+  watchOS 26.5 and 27.0. Spec 001 §1.3 listed two iOS 27.0 builds, 24A5370g and 24A5390f; one build,
+  24A434, is listed now.
+- From the user, on phase 1: "clear to implement phase 1. Please iterate on the UI extensively (run
+  in the simulator, analyze screenshots) to achieve visually pleasing UI, potentially improving the
+  reference - making it look like native iOS." Recorded in spec 001 as §10.7.
+
+## 2026-09-13 — Phase 1 prerequisites read
+
+- `xcrun simctl list devices available` (Xcode 26.6): every iPhone 16 simulator runs iOS 18.6. The
+  iOS 26.5 runtime has iPhone 17, 17 Pro, 17 Pro Max, 17e, Air and six iPads. D4's deployment
+  target, iOS 26.0, does not install on iOS 18.6, and spec 001 §5 takes fidelity screenshots in the
+  iPhone 16 simulator (393 × 852 pt).
+- `xcrun simctl list -j runtimes`: the iOS 26.5 runtime lists `iPhone 16` among its supported device
+  types.
+- Machine change: `xcrun simctl create "iPhone 16 (iOS 26.5)" com.apple.CoreSimulator.SimDeviceType.iPhone-16 com.apple.CoreSimulator.SimRuntime.iOS-26-5`
+  with Xcode 26.6 created device `70D15E5B-3D95-4290-B3E9-970F68617BE8`.
+- iOS 26.5 SDK, SwiftUI `arm64-apple-ios-simulator.swiftinterface` (the simulator file; §1.4 of spec
+  001 read the `arm64e-apple-ios` file, so line numbers differ): `navigationSubtitle(_:)` at `:17637`,
+  in an extension marked `@available(iOS 26.0, …)` at `:17632`. Spec 001 §3.3's fallback, the
+  subtitle as the list's first row, is not needed.
+- The same file declares, `@available` lines not read: `safeAreaBar(edge:alignment:spacing:content:)`
+  `:16455`, `ButtonStyle.glassProminent` `:3265`, `ButtonStyle.glass` `:1208`, `ContentUnavailableView`
+  `:16639`, `ToolbarSpacer` `:21574`, `scrollEdgeEffectStyle(_:for:)` `:11770`,
+  `ToolbarTitleDisplayMode.inlineLarge` `:19694`, `scrollPosition(id:anchor:)` `:21438`.
+- Colours sampled from `_assets/` with a CoreGraphics script run from the session scratchpad (not
+  committed), at pixel coordinates of the 1179 × 2556 px files:
+
+  | file | element | pixel | colour |
+  | --- | --- | --- | --- |
+  | `IMG_0210.PNG` | title text, Home tab icon | (240, 236), (130, 2345) | `#D13C63` |
+  | `IMG_0211.PNG` | today circle | (1062, 612) | `#D13C63` |
+  | `IMG_0212.PNG` | "+" button, chip border | (990, 2090), (50, 418) | `#D13C63` |
+  | `IMG_0210.PNG` | header avatar background | (60, 225) | `#D6EAE1` |
+  | `IMG_0210.PNG` | group dots | (83, 612), (83, 768) | `#E8436E`, `#C89409` |
+  | `IMG_0210.PNG` | unread badge | (945, 769) | `#4C1138` |
+  | `IMG_0210.PNG` | initials badge background | (1043, 736) | `#E8E2FC` |
+  | `IMG_0210.PNG` | page background below the rows | (512, 1920) | `#EFEFEF` |
+  | `IMG_0211.PNG` | event card background | (512, 1446) | `#DFD0DA` |
+  | `IMG_0211.PNG` | "There are no events today" | (230, 1085) | `#5F1546` |
+  | `IMG_0211.PNG` | week label | (205, 960) | `#6E6E6E` |
+
+- The XcodeGen reference `modaal-agent/duet-tutorials` ignores the generated `Info.plist` as well as
+  `*.xcodeproj` (`.gitignore:10`, `:13`), since `info.properties` in `xcodegen.yml` writes it.
+- `xcodebuildmcp` 2.6.2, installed globally under Node 20.19.5, bundles AXe 1.7.1 at
+  `…/node_modules/xcodebuildmcp/bundled/axe` (`axe --version`). It taps, swipes and reads the
+  accessibility tree of a booted simulator. `which axe idb` finds neither on `PATH`.
+
+## 2026-09-13 — Phase 1: iterating on `native-swift/` in the simulator
+
+- Method: a script in the session scratchpad (not committed) runs `xcodegen generate`, `xcodebuild`
+  with `-derivedDataPath` in the scratchpad, `xcrun simctl install` and `launch`, taps with AXe 1.7.1
+  by accessibility label, and `xcrun simctl io … screenshot`. The status bar was fixed with
+  `xcrun simctl status_bar … override --time "9:41" --batteryState charged --batteryLevel 100`. Six
+  rounds of screenshots, v1 to v6, all in `iPhone 16 (iOS 26.5)`, 393 × 852 pt, built with Xcode 26.6.
+- v1: the first launch on the new simulator showed a system "Ready for Apple Intelligence" banner
+  over the navigation bar. It was gone by v2.
+- `axe describe-ui`: the tab bar's items are `RadioButton` elements labelled "Home", "Calendar",
+  "Chat", "Settings". `axe tap --label Calendar --element-type Button` matched nothing (v2).
+- iOS 26.5 SDK behaviour seen in the screenshots, each with the change that fixed it:
+
+  | round | what the screenshot showed | change |
+  | --- | --- | --- |
+  | v1 | `.foregroundStyle(.primary)` on a `Section` header's text drew it grey | `Color.primary` (v2): `.primary` resolves against the header's own secondary style |
+  | v3 | a horizontal `ScrollView` inside `safeAreaBar(edge: .top)` took most of the screen height and pushed the agenda below the tab bar | `.frame(height: 76)` on the scroll view (v4) |
+  | v3 | with `safeAreaBar(edge: .top)` over a scrolling list, the large title and subtitle were drawn faded, on Calendar and on Chat with rows; Chat's empty state, which does not scroll, drew them at full contrast | `.toolbarTitleDisplayMode(.inlineLarge)` on Calendar and Chat (v4) |
+  | v3 | in a plain `List`, separators started at different x positions per row; an unread dot offset left of the avatar touched the screen edge | `.alignmentGuide(.listRowSeparatorLeading)` on the text column; `.listRowInsets` leading 30 (v4) |
+  | v4 | `.foregroundStyle(.primary)` inside a `List` `Button` label drew "Parro support" in the accent tint | `.foregroundStyle(Color.primary)` on the label (v5) |
+  | v4 | glass month pills as pinned `LazyVStack` section headers overlapped the week label below the bar | month pills not pinned (v5) |
+  | v4 | chat times were fixed strings ("9:41 AM"); `Date` formatting of events showed 24-hour times ("13:30–16:00") | chat times stored as `Date` and formatted with the locale (v5) |
+  | v5 | with `scrollEdgeEffectStyle(.hard, for: .top)` the scrolled agenda still showed through the week strip | `.background(.background)` on the strip (v6) |
+
+- Spec 001 §3.1's build command, `-destination 'platform=iOS Simulator,name=iPhone 16'`, waited
+  about 60 s and failed: "Unable to find a device matching the provided destination specifier". The
+  only device named exactly "iPhone 16" runs iOS 18.6, below the 26.0 deployment target. The same
+  run logged "IDERunDestination: Supported platforms for the buildables in the current scheme is
+  empty."
+- `AppIcon.png` was drawn by a Swift script in the session scratchpad (AppKit, not committed): SF
+  Symbol `rectangle.split.2x1.fill` in white on a vertical gradient from `#E2557B` to `#B92B53`,
+  1024 × 1024 px; `sips -g hasAlpha` reports `no`.
+
+## 2026-09-13 — Phase 1 measurements
+
+- `xcodebuild … -destination 'platform=iOS Simulator,name=iPhone 16 (iOS 26.5)' build` printed
+  `iPhone 16 (iOS 26.5)` under "Available destinations", reported no matching device, and exited
+  after 60.88 s real without building; the Release run did the same (60.65 s). The same builds with
+  `id=70D15E5B-3D95-4290-B3E9-970F68617BE8` succeeded. Spec 001 §11.1 gives the working command.
+- Clean builds with a new `-derivedDataPath`, timed with `/usr/bin/time -p`: Debug 6.47 s real,
+  Release 4.31 s real. Their user and sys times (0.65 s and 0.25 s for Debug) cover only the
+  `xcodebuild` process, so they do not measure the compile work.
+- `du -sk` on the simulator products: Debug `.app` 1524 KiB, Release `.app` 1024 KiB. The Debug
+  bundle holds `TabShell.debug.dylib` (1,290,688 bytes) and `__preview.dylib`; the Release bundle
+  holds neither.
+- Each build log has one line matching `warning:`, from `appintentsmetadataprocessor`.
+- Values and the fidelity list: spec 001 §11.2 and §11.3.
