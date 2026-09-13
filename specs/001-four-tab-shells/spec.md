@@ -1761,6 +1761,9 @@ This supersedes the screenshot paths named in §11.2, §12.4, §13.1, §13.7, §
 
 ### 17.1 The scheme
 
+**Added 2026-09-14:** §17.4 changes when `v<N>` goes up and merges `native-swift-v2` into
+`native-swift-v1`. The `v<N>` values in use are now `v1` only.
+
 ```
 screenshots/<build>[-<style>][-<appearance>][-<device>]-v<N>/<surface>[-<state>].png
 ```
@@ -1789,6 +1792,9 @@ Examples:
 
 ### 17.2 Rules
 
+**Added 2026-09-14:** §17.4 supersedes "`v<N>` counts the committed rounds" in the "Versions" rule
+and the rule "A new round is a new folder".
+
 - **Separators and order.** Parts are joined with `-` in the order of the pattern. Values use lowercase
   ASCII letters and digits; the build names are the only values that contain a `-`. No value appears in
   the lists of two parts. A folder name is read by removing `-v<N>` from the end, matching a build name at
@@ -1811,6 +1817,10 @@ Examples:
 
 ### 17.3 The sets moved on 2026-09-14
 
+**Added 2026-09-14:** §17.4 merges `native-swift-v2` into `native-swift-v1`. This supersedes the
+`native-swift-v2` row, the names of `native-swift-v2` in the `ionic-capacitor-stock-v1` row, and the
+second bullet below.
+
 All four were taken in the `iPhone 16 (iOS 26.5)` simulator, `70D15E5B-3D95-4290-B3E9-970F68617BE8`,
 393 × 852 pt, portrait, at 1179 × 2556 px, with Xcode 26.6 (17F113) on macOS 26.6.2 (25G83). The section
 in the last column lists the rest of the toolchain.
@@ -1832,3 +1842,31 @@ in the last column lists the rest of the toolchain.
   Calendar, Settings, `chat-empty` and `chat-three`.
 - Pass 2b's comparison in §15.6 used `native-swift-v1` and `native-swift-v2` together.
 - The 45 files have the same `shasum -a 256` before and after the move.
+
+### 17.4 A version goes up when a screen is retaken (added 2026-09-14)
+
+From the user on 2026-09-14, after `f6f36dc` (DISCOVERY.md, entry "`native-swift-v2` merged into
+`native-swift-v1`"): "native-swift-v2 and native-swift-v1 can be merged into *-v1 IMHO - they're all
+distinct, they are to *remakes* of the same screen?" A following message corrected "to" to "not":
+the files of the two folders are not remakes of the same screens.
+
+- **When `v<N>` goes up.** A round whose file names are all absent from the newest version of its folder
+  prefix adds its files to that version. A round that retakes at least one screen present in the newest
+  version goes into `v<N+1>`, with all of its files.
+- **Unchanged from §17.2:** each prefix counts on its own; files already in a version are not replaced,
+  renamed or deleted; for a screen missing from the newest version, the highest earlier version that has
+  it holds its latest screenshot.
+- **A version can hold more than one round.** The section that reports each round records its files with
+  the rest of §17.2 "What is recorded per version", and in this spec each round takes its own row.
+- **`native-swift-v1` now holds 15 files**, the same names as `ionic-capacitor-stock-v1` and
+  `ionic-capacitor-matched-v1`:
+
+  | files | round | working tree on top of | added in | earlier path | section |
+  | --- | --- | --- | --- | --- | --- |
+  | 7: `home`, `home-detail`, `calendar`, `calendar-selected`, `chat-empty`, `chat-three`, `settings` | v6 | `00a38f5` | `f88d70e` | `specs/001-four-tab-shells/screenshots/phase1/native-swift-<name>.png` | §11.2 |
+  | 8: `chat-list`, `chat-group`, `chat-direct`, `chat-child`, `chat-group-typing`, `chat-group-sent`, `chat-child-sent`, `chat-list-after` | c5 | `f88d70e` | `b28c7d2` | `specs/001-four-tab-shells/screenshots/chat/native-swift-<name>.png`, then `screenshots/native-swift-v2/<name>.png` in `f6f36dc` | §12.4 |
+
+- `chat-three` (round v6) and `chat-list` (round c5) both show the Chat list with chats in it, built from
+  different trees: `Chat/ChatList.swift` had 227 lines at `f88d70e` and 248 after the chat change (§12.4).
+- The 8 files moved from `screenshots/native-swift-v2/` with the same `shasum -a 256`, and the folder was
+  removed. Every folder in `screenshots/` is at `v1`.

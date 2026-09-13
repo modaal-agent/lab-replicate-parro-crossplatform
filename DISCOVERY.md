@@ -611,3 +611,25 @@ search result summary.
 - **`ionic-capacitor/src/styles/matched/index.css`:** `git grep -n 'screenshots/\(phase1\|phase2\|chat\)'`
   outside spec 001 and this file found the old folders in the header comment, lines 3–4. The comment now
   names `screenshots/native-swift-v1/` and `screenshots/native-swift-v2/`.
+
+## 2026-09-14 — `native-swift-v2` merged into `native-swift-v1`
+
+This corrects the entry "2026-09-14 — Screenshots moved to `screenshots/`; §10.3 merged into §6", in its
+bullet "`native-swift/` has two versions".
+
+- From the user, after `f6f36dc`: "native-swift-v2 and native-swift-v1 can be merged into *-v1 IMHO -
+  they're all distinct, they are to *remakes* of the same screen?" The next message, "*not*", corrects
+  "to" to "not". None of the 8 file names in
+  `native-swift-v2/` exists in `native-swift-v1/`.
+- **The move:**
+  - `shasum -a 256` over the 8 files;
+  - a check that no target name existed;
+  - `mv -n` into `native-swift-v1/` and `rmdir screenshots/native-swift-v2`;
+  - `shasum -a 256 -c` in `native-swift-v1/`: 0 failures, and `ls | wc -l` gives 15 files.
+- **Spec 001 §17.4** records the changed rule and the rounds `native-swift-v1` now holds. Under the rule,
+  `v<N>` goes up only when a round retakes a screen already in the newest version. §17.1, §17.2 and §17.3
+  each take a line pointing to §17.4.
+- `chat-three` (round v6, `f88d70e`) and `chat-list` (round c5, `b28c7d2`) are now in one folder. Both show
+  the Chat list built from different trees; §17.4 names the round of each file.
+- The header comment of `ionic-capacitor/src/styles/matched/index.css` now names only
+  `screenshots/native-swift-v1/`.
