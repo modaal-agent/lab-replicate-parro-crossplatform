@@ -43,7 +43,7 @@ export default function HomePage() {
           <IonItemGroup>
             {groups.map((group) => (
               <IonItem key={group.id} routerLink={`/home/groups/${group.id}`}>
-                <IonIcon slot="start" icon={ellipse} style={{ color: group.color }} aria-hidden="true" />
+                <IonIcon slot="start" className="group-dot" icon={ellipse} style={{ color: group.color }} aria-hidden="true" />
                 <IonLabel>{group.name}</IonLabel>
                 {group.unreadCount > 0 && (
                   <IonBadge slot="end" aria-label={`${group.unreadCount} unread`}>
@@ -65,7 +65,13 @@ export default function HomePage() {
           <IonItemGroup>
             <PageItem row={homeRows.reportAbsence} />
             <PageItem row={homeRows.privacy} />
-            <IonItem button detail={false} disabled={unreadCount === 0} onClick={markAllAsRead}>
+            <IonItem
+              className="action-item"
+              button
+              detail={false}
+              disabled={unreadCount === 0}
+              onClick={markAllAsRead}
+            >
               <IonIcon slot="start" icon={checkmarkCircleOutline} aria-hidden="true" />
               <IonLabel>Mark all as read</IonLabel>
             </IonItem>

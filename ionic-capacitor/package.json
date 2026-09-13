@@ -5,7 +5,9 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
+    "dev:matched": "vite --mode matched",
     "build": "tsc && vite build",
+    "build:matched": "tsc && vite build --mode matched",
     "preview": "vite preview",
     "test.e2e": "cypress run",
     "test.unit": "vitest",
@@ -17,6 +19,7 @@
     "@capacitor/keyboard": "^8.0.5",
     "@ionic/react": "^9.0.0",
     "@ionic/react-router": "^9.0.0",
+    "@rdlabo/ionic-theme-ios26": "^9.2.0",
     "ionicons": "^8.1.0",
     "react": "19.0.0",
     "react-dom": "19.0.0",

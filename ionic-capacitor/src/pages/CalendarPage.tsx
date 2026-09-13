@@ -21,6 +21,7 @@ import WeekStrip from '../components/WeekStrip';
 import { events, subtitle, today } from '../fixtures/fixture';
 import { agendaMonths, dayAnchor, weekStarts, type AgendaDay } from '../lib/agenda';
 import { formatMonth, formatTimeRange, formatWeekdayShort, isSameDay, startOfDay, weekTitle } from '../lib/dates';
+import { isMatched } from '../lib/variant';
 import './CalendarPage.css';
 
 const months = agendaMonths(events, today);
@@ -43,9 +44,13 @@ export default function CalendarPage() {
       return;
     }
     const top = row.getBoundingClientRect().top - scroller.getBoundingClientRect().top + scroller.scrollTop;
-    const divider = row.closest('ion-item-group')?.querySelector('ion-item-divider');
+    const divider = row.closest('ion-item-group')?.querySelector<HTMLElement>('ion-item-divider');
+    const weekTitle = row.previousElementSibling?.matches('.agenda-week') ? (row.previousElementSibling as HTMLElement) : null;
+    // `stock` pins the month divider over the list's top edge. `matched` lets it scroll away and keeps the week's
+    // title above the day, as `native-swift-calendar-selected.png` shows.
+    const above = isMatched ? (weekTitle?.offsetHeight ?? 0) : (divider?.offsetHeight ?? 0);
     const headerHeight = parseFloat(getComputedStyle(content.current).getPropertyValue('--offset-top')) || 0;
-    await content.current.scrollToPoint(0, top - headerHeight - (divider?.offsetHeight ?? 0), 300);
+    await content.current.scrollToPoint(0, top - headerHeight - above, 300);
   };
 
   return (
@@ -56,11 +61,16 @@ export default function CalendarPage() {
       */}
       <IonHeader>
         <IonToolbar>
-          <StackedTitle title="Calendar" subtitle={subtitle} />
+          <StackedTitle title="Calendar" subtitle={subtitle} large />
           <IonButtons slot="end">
-            <IonButton aria-label="Today" onClick={() => select(today)}>
-              <IonIcon slot="icon-only" icon={calendarOutline} />
-            </IonButton>
+            {/* `CalendarList.swift` has a "Today" text button. */}
+            {isMatched ? (
+              <IonButton onClick={() => select(today)}>Today</IonButton>
+            ) : (
+              <IonButton aria-label="Today" onClick={() => select(today)}>
+                <IonIcon slot="icon-only" icon={calendarOutline} />
+              </IonButton>
+            )}
           </IonButtons>
         </IonToolbar>
         <IonToolbar>
@@ -71,12 +81,12 @@ export default function CalendarPage() {
         <IonList>
           {months.map((month) => (
             <IonItemGroup key={month.start.getTime()}>
-              <IonItemDivider sticky>
+              <IonItemDivider className="agenda-month" sticky>
                 <IonLabel>{formatMonth(month.start)}</IonLabel>
               </IonItemDivider>
               {month.weeks.map((week) => (
                 <Fragment key={week.start.getTime()}>
-                  <IonItem lines="none">
+                  <IonItem className="agenda-week" lines="none">
                     <IonNote>{weekTitle(week.start)}</IonNote>
                   </IonItem>
                   {week.days.map((day) => (
@@ -96,14 +106,19 @@ function DayItems({ day }: { day: AgendaDay }) {
   const isToday = isSameDay(day.date, today);
   if (day.events.length === 0) {
     return (
-      <IonItem id={dayAnchor(day.date)}>
+      <IonItem className="agenda-item agenda-empty" id={dayAnchor(day.date)}>
         <DayLabel date={day.date} isToday={isToday} />
         <IonLabel color="medium">No events today</IonLabel>
       </IonItem>
     );
   }
   return day.events.map((event, index) => (
-    <IonItem key={event.id} id={index === 0 ? dayAnchor(day.date) : undefined} routerLink={`/calendar/${event.id}`}>
+    <IonItem
+      key={event.id}
+      className="agenda-item agenda-event"
+      id={index === 0 ? dayAnchor(day.date) : undefined}
+      routerLink={`/calendar/${event.id}`}
+    >
       <DayLabel date={day.date} isToday={isToday} hidden={index > 0} />
       <IonLabel className="ion-text-wrap">
         <h2>{event.title}</h2>

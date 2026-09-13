@@ -1,4 +1,4 @@
-import { Navigate, Route } from 'react-router-dom';
+import { matchPath, Navigate, Route, useLocation } from 'react-router-dom';
 import {
   IonApp,
   IonBadge,
@@ -11,7 +11,17 @@ import {
   setupIonicReact
 } from '@ionic/react';
 import { IonReactRouter } from '@ionic/react-router';
-import { calendarOutline, chatbubbleOutline, homeOutline, settingsOutline } from 'ionicons/icons';
+import {
+  calendar,
+  calendarOutline,
+  chatbubble,
+  chatbubbleOutline,
+  home,
+  homeOutline,
+  settings,
+  settingsOutline,
+} from 'ionicons/icons';
+import { isMatched } from './lib/variant';
 import { ShellProvider, useShell } from './model/ShellModel';
 import CalendarPage from './pages/CalendarPage';
 import ChatPage from './pages/ChatPage';
@@ -52,7 +62,8 @@ import './theme/variables.css';
 
 /* The styling variant's CSS and Ionic options, through the `@style` alias in vite.config.ts (spec 001 §13.4, D13) */
 import '@style/index.css';
-import { ionicConfig } from '@style/setup';
+import { attachTabBarEffect, ionicConfig } from '@style/setup';
+import { useEffect } from 'react';
 
 setupIonicReact(ionicConfig);
 
@@ -66,9 +77,21 @@ const App: React.FC = () => (
   </IonApp>
 );
 
+/** Filled icons in `matched`, as `native-swift/`'s tab bar draws its SF Symbols (spec 001 §13.3). */
+const tabIcons = isMatched
+  ? { home, calendar, chat: chatbubble, settings }
+  : { home: homeOutline, calendar: calendarOutline, chat: chatbubbleOutline, settings: settingsOutline };
+
 /** The four tabs, each with its list and the pages behind its rows (spec 001 §4.3, §12). */
 function Tabs() {
   const { unreadCount } = useShell();
+  // `matched` hides the tab bar in a conversation with this class (spec 001 §13.6 D14); `stock` has no rule for it.
+  const inConversation = matchPath('/chat/:chatId', useLocation().pathname) !== null;
+
+  useEffect(() => {
+    const tabBar = document.querySelector<HTMLElement>('ion-tab-bar');
+    return tabBar ? attachTabBarEffect(tabBar) : undefined;
+  }, []);
 
   return (
     <IonTabs>
@@ -84,22 +107,22 @@ function Tabs() {
         <Route path="/settings/:settingId" element={<SettingsDetail />} />
         <Route path="/" element={<Navigate to="/home" replace />} />
       </IonRouterOutlet>
-      <IonTabBar slot="bottom">
+      <IonTabBar slot="bottom" className={inConversation ? 'tab-bar-conversation' : undefined}>
         <IonTabButton tab="home" href="/home">
-          <IonIcon aria-hidden="true" icon={homeOutline} />
+          <IonIcon aria-hidden="true" icon={tabIcons.home} />
           <IonLabel>Home</IonLabel>
           {unreadCount > 0 && <IonBadge>{unreadCount}</IonBadge>}
         </IonTabButton>
         <IonTabButton tab="calendar" href="/calendar">
-          <IonIcon aria-hidden="true" icon={calendarOutline} />
+          <IonIcon aria-hidden="true" icon={tabIcons.calendar} />
           <IonLabel>Calendar</IonLabel>
         </IonTabButton>
         <IonTabButton tab="chat" href="/chat">
-          <IonIcon aria-hidden="true" icon={chatbubbleOutline} />
+          <IonIcon aria-hidden="true" icon={tabIcons.chat} />
           <IonLabel>Chat</IonLabel>
         </IonTabButton>
         <IonTabButton tab="settings" href="/settings">
-          <IonIcon aria-hidden="true" icon={settingsOutline} />
+          <IonIcon aria-hidden="true" icon={tabIcons.settings} />
           <IonLabel>Settings</IonLabel>
         </IonTabButton>
       </IonTabBar>

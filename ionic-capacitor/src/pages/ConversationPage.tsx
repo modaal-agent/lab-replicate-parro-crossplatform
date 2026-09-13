@@ -78,7 +78,11 @@ export default function ConversationPage() {
             <IonBackButton defaultHref="/chat" />
           </IonButtons>
           <StackedTitle title={chat.title} subtitle={chat.subtitle} />
-          <IonButtons slot="end">
+          {/*
+            `ios-theme-disabled` is the theme's opt-out: it keeps the glass capsule from the avatar, which
+            `ChatDetail.swift` draws without one (`sharedBackgroundVisibility(.hidden)`). `stock` has no rule for it.
+          */}
+          <IonButtons slot="end" className="ios-theme-disabled">
             <ChatAvatar initials={chat.initials} icon={chat.icon} color={chat.color} size={32} label={chat.title} />
           </IonButtons>
         </IonToolbar>
@@ -92,7 +96,7 @@ export default function ConversationPage() {
         </div>
       </IonContent>
 
-      <IonFooter>
+      <IonFooter className="composer">
         <IonToolbar>
           <IonButtons slot="start">
             {/* Opens nothing in this shell (spec 001 §12.1). */}
@@ -110,7 +114,7 @@ export default function ConversationPage() {
             onIonInput={(event) => setDraft(event.detail.value ?? '')}
           />
           {canSend && (
-            <IonButtons slot="end">
+            <IonButtons slot="end" className="composer-send">
               <IonButton aria-label="Send" onClick={submit}>
                 <IonIcon slot="icon-only" icon={arrowUpCircle} />
               </IonButton>
@@ -143,21 +147,23 @@ function MessageRowView({ row, showsSenders }: { row: MessageRow; showsSenders: 
           ) : (
             <span className="message-avatar-space" />
           ))}
-        <MessageBubble message={message} direction={direction} />
+        <MessageBubble message={message} direction={direction} tail={row.endsRun} />
       </div>
       {row.receipt && <p className="message-receipt">{row.receipt}</p>}
     </div>
   );
 }
 
-function MessageBubble({ message, direction }: { message: ChatMessage; direction: string }) {
+/** `tail` marks the last bubble of a run; `matched` draws a tail on it, `stock` has no rule for the class. */
+function MessageBubble({ message, direction, tail }: { message: ChatMessage; direction: string; tail: boolean }) {
+  const bubbleClass = `message-bubble ${direction}${tail ? ' tail' : ''}`;
   if (message.content.type === 'photo') {
     return (
       <div className={`message-photo ${direction}`}>
         <SunflowerDrawing />
-        <div className={`message-bubble ${direction}`}>{message.content.caption}</div>
+        <div className={bubbleClass}>{message.content.caption}</div>
       </div>
     );
   }
-  return <div className={`message-bubble ${direction}`}>{message.content.text}</div>;
+  return <div className={bubbleClass}>{message.content.text}</div>;
 }

@@ -900,6 +900,7 @@ The sources are listed in the DISCOVERY.md entry named above.
   requests uploaded (WebFetch summary). This plan therefore expects a web view on iOS 26.5 to draw
   glass as blur and saturation, without the lens distortion `glassEffect` draws in `native-swift/`.
   Pass 2b checks it in the simulator.
+  - **Added 2026-09-13:** pass 2b's check is in §15.4.
 - **`@capgo/capacitor-native-navigation` 8.3.1:**
   - It draws `UINavigationBar`, `UITabBar` and `UITabBarController` over the web view, and sends
     `tabSelect`, `navbarBack`, `navbarItemTap` and `safeAreaChanged` events. Its README states: "Your
@@ -912,6 +913,9 @@ The sources are listed in the DISCOVERY.md entry named above.
 
 **Added 2026-09-13:** pass 2a changed the `stock` column for the Calendar header and the conversation
 title; §14.2.
+
+**Added 2026-09-13:** pass 2b edited TSX in more places than the three this table expects, and moved
+some of the `matched` work from CSS to TSX; §15.2.
 
 This table is the expectation before pass 2b; §13.8 measures what pass 2b changes. "Kind" is what
 pass 2b edits: CSS, TSX, or the `setupIonicReact` options.
@@ -996,6 +1000,8 @@ Routes, the fixture module and the model stay as pass 2a wrote them.
 ### 13.7 Passes (supersedes phase 2 in §6)
 
 **Added 2026-09-13:** pass 2a's results are §14.
+
+**Added 2026-09-13:** pass 2b's results are §15.
 
 | pass | what lands | requires |
 | --- | --- | --- |
@@ -1300,3 +1306,415 @@ Each visible difference between the round s1 screenshots and `_assets/`, marked:
 | Settings | "Language" with the subtitle "English, English" | "Language" with "English" on the trailing side | own |
 | Settings | no separators | hairline separators | Ionic default |
 | conversation | not in `_assets/` | the tab bar stays visible (D14); bubbles without tails; the chat's avatar in the header | own |
+
+## 15. Pass 2b results: `matched` (added 2026-09-13)
+
+From the user on 2026-09-13: "Please take pass 2b when ready." Measured on the working tree on top of
+`93ad230`, in the `iPhone 16 (iOS 26.5)` simulator (393 × 852 pt, portrait). DISCOVERY.md, entry
+"Pass 2b: building `matched` in `ionic-capacitor/`", records rounds m1 to m8.
+
+### 15.1 What landed, against §13.7
+
+- **Theme:** `npm install @rdlabo/ionic-theme-ios26@9.2.0` took 1.65 s real. `npm ls --depth=0` gains one
+  line, `@rdlabo/ionic-theme-ios26@9.2.0`; the package declares a peer dependency and no dependencies.
+  `package.json` records `^9.2.0`.
+- **Variant switch (D13):**
+  - `vite.config.ts` exports a function of Vite's `mode`. `--mode matched` resolves `@style` to
+    `src/styles/matched/`; every other mode resolves it to `src/styles/stock/`.
+  - `tsconfig.json` is unchanged and maps `@style/*` to `stock` for type checking. Both `setup.ts` files
+    export the same names with the same types.
+  - `package.json` adds `"build:matched": "tsc && vite build --mode matched"` and
+    `"dev:matched": "vite --mode matched"`.
+  - `src/lib/variant.ts` (5 lines) exports `isMatched = import.meta.env.MODE === 'matched'` for TSX that
+    differs by variant.
+- **`src/styles/matched/`:**
+  - `setup.ts` (24 lines): the theme's `iosTransitionAnimation`, `popoverEnterAnimation` and
+    `popoverLeaveAnimation` behind `isPlatform('ios')`, as the theme's README writes them;
+    `backButtonText: ''`; and `attachTabBarEffect`, which calls the theme's `registerTabBarEffect` and
+    returns its `destroy`. `src/styles/stock/setup.ts` gains an `attachTabBarEffect` that does nothing.
+  - `index.css` (725 lines, 106 rule blocks, 9 `!important` declarations): the imports
+    `default-variables.css`, `ionic-theme-ios26.css`, `md-remove-ios-class-effect.css` and
+    `ionic-theme-ios26-dark-system.css`, then own rules grouped by screen. The dark stylesheet is the one
+    the README pairs with the `palettes/dark.system.css` that `App.tsx` imports; the own rules have light
+    values only (phase 6).
+  - The own rules are plain CSS, and `sass` is not added (D15). The glass on the month capsule, the chips
+    and the composer field repeats the values of the theme's `api.glass-background` mixin.
+- **Build and install**, from `ionic-capacitor/` (§13.10 O8):
+
+  ```bash
+  npm run build:matched && npx cap copy ios
+  xcodebuild -project ios/App/App.xcodeproj -scheme App \
+    -destination 'platform=iOS Simulator,id=70D15E5B-3D95-4290-B3E9-970F68617BE8' \
+    PRODUCT_BUNDLE_IDENTIFIER=dev.modaal.lab.tabshell.matched build
+  ```
+
+  - The built `Info.plist` has `CFBundleIdentifier` `dev.modaal.lab.tabshell.matched`, and the app installs
+    beside `stock` and `native-swift/`.
+  - `capacitor.config.ts` keeps `appId: 'dev.modaal.lab.tabshell.stock'`, so the `capacitor.config.json`
+    that `npx cap copy` writes names `stock` in both builds.
+- **`stock` after pass 2b** (round r2b): `stock` was rebuilt from the same tree and pass 2a's screenshot
+  script was run again.
+  - Compared with the committed round s1 screenshots below the status bar
+    (`magick compare -metric AE -fuzz 2%` after cropping the top 162 px), 12 of the 15 are identical.
+  - `chat-group-sent`, `chat-child-sent` and `chat-list-after` differ in 301, 359 and 600 pixels. The
+    differing pixels lie in a 217 × 34 px and a 196 × 34 px box around the sent message's date line, and in
+    a 132 × 497 px box over the list's time column: the send times come from the clock.
+
+### 15.2 Where `matched` differs from `stock`, against §13.3
+
+TSX, shared by both variants. A class that only `matched` has a rule for leaves `stock` unchanged (r2b,
+§15.1).
+
+| file | change | tests `isMatched` |
+| --- | --- | --- |
+| `App.tsx` | filled tab icons (`home`, `calendar`, `chatbubble`, `settings`); class `tab-bar-conversation` on `IonTabBar` when `matchPath('/chat/:chatId', …)` matches (D14); `attachTabBarEffect` in an effect | for the icons |
+| `components/Headers.tsx` | `StackedTitle` takes `large`; `TabHeader` shows `StackedTitle` with the subtitle; class `large-title-subtitle` on the large title's subtitle toolbar | in `TabHeader` |
+| `pages/ChatPage.tsx` | a fixed `IonHeader` with the title and a second toolbar of chips, over content without `fullscreen`, instead of the condensed large title with the chips inside the content; the chevron (`detail`) on rows; classes `chat-item`, `chat-time`, `chat-unread` | for the header and `detail` |
+| `pages/CalendarPage.tsx` | `StackedTitle large`; a "Today" text button instead of the calendar icon button; classes `agenda-month`, `agenda-week`, `agenda-item`, `agenda-empty`, `agenda-event`; the scroll offset of a selected day subtracts the height of the week's title instead of the pinned month divider | for the button and the offset |
+| `pages/SettingsPage.tsx`, `pages/rows.ts` | `SettingsIcon`: a filled icon with class `settings-tile` and `--tile-color`; rows carry `filledIcon` and `tileColor`, iOS 26 system colours from `SettingsList.swift` | in `SettingsIcon` |
+| `pages/HomePage.tsx` | classes `group-dot`, `action-item` | no |
+| `pages/ConversationPage.tsx` | class `tail` on the last bubble of a run; the theme's opt-out class `ios-theme-disabled` on the header avatar's `IonButtons`; classes `composer`, `composer-send` | no |
+
+- **This supersedes §13.3's "edits TSX in three places":** pass 2b tests `isMatched` in seven places and
+  adds class names in seven TSX files.
+- **Where the `matched` column of §13.3 changed:**
+  - **Chat header.** §13.3 expected CSS on the chips. `ChatList.swift` keeps the title and the chips on
+    screen while the list scrolls, and Ionic's condensed large title scrolls its toolbars away with the
+    content, so `matched` renders a different header (TSX).
+  - **Settings tiles.** The filled icons are chosen in TSX; CSS cannot replace an `ion-icon`'s glyph.
+  - **Calendar "Today".** A text button, in TSX.
+  - **Bubble tail.** CSS only: a `::before` whose `clip-path: path()` is the horn path of `BubbleShape` in
+    `MessageBubble.swift`, moved into a 28 × 24 px box. No SVG element.
+  - **Unread dot.** A `radial-gradient` on the row's `::part(native)`. An icon positioned outside
+    `.item-inner` is clipped (round m2).
+  - **Tab bar in the conversation.** `transform: translateY(calc(100% + 40px))` with a 300 ms transition.
+- **Theme rules that `index.css` overrides:**
+  - the tab bar's width, which leaves 72 px beside the bar for a search button;
+  - `--min-height: 68px` on every iOS toolbar without a large title: overridden with `!important` on the
+    subtitle toolbar, and through `::part(container)` on the chips and composer toolbars;
+  - the FAB, white glass beside the tab bar in the theme, an accent circle 16 px above the bar in
+    `matched`;
+  - the glass capsule on `ion-buttons`: removed from the conversation avatar with `ios-theme-disabled`, and
+    from the send button with CSS.
+- **Ionic behaviour the own CSS works around:**
+  - `ion-tabs` carries the `ion-page` class, so `.ion-page:has(…)` also matched the tabs container (m1);
+  - `ion-icon` sets `box-sizing: content-box !important` (m1);
+  - the large title's box ends 20 px below its text (m3, measured with outlines);
+  - `ion-toolbar` applies `--padding-*` to its container, while Ionic's footer adds the safe-area padding
+    to the toolbar itself (m4);
+  - `ion-textarea` sets `width: 100%` and `position: relative; z-index: 2` (m6, m7);
+  - `ion-footer` adds the home-indicator padding only when no bottom `ion-tab-bar` exists, and
+    `ion-tab-bar` has the class `tab-bar-hidden` while the keyboard is open (`footer.js` and `tab-bar.js`,
+    `render`).
+
+### 15.3 Measurements (§5, §13.8, pass 2b)
+
+| measure | value | how |
+| --- | --- | --- |
+| device | simulator `iPhone 16 (iOS 26.5)`, `70D15E5B-3D95-4290-B3E9-970F68617BE8`, 393 × 852 pt, portrait | as §14.3 |
+| toolchain | as §14.3, plus `@rdlabo/ionic-theme-ios26` 9.2.0; ImageMagick 7.1.2-31 for the screenshot comparison in §15.1 | `npm ls`, `magick -version` |
+| cost of `matched`: `src/styles/matched/` | 2 new files, 749 lines: `index.css` 725, `setup.ts` 24 | `wc -l` |
+| cost of `matched`: other TS and TSX | 9 changed files with 240 insertions and 80 deletions, 3 of the insertions in `src/styles/stock/setup.ts`; 1 new file, `src/lib/variant.ts`, 5 lines | `git diff --stat 93ad230 -- ionic-capacitor/src`, `wc -l` |
+| cost of `matched`: configuration | `package.json` 3 insertions, `package-lock.json` 10, `vite.config.ts` 5 insertions and 4 deletions; `tsconfig.json` unchanged | `git diff --stat 93ad230` |
+| npm packages added | one: `@rdlabo/ionic-theme-ios26@9.2.0` | `npm ls --depth=0` before and after |
+| web bundle, `stock` | `dist/` 3068 KiB, 19 files. Modern build: `index-*.js` 1,395.52 kB (gzip 312.74 kB), `index-*.css` 64.56 kB (gzip 8.58 kB). `index-legacy-*.js` 1,460.66 kB, `polyfills-legacy-*.js` 76.52 kB. §14.3 measured `index-*.js` at 1,384.97 kB before the TSX of §15.2 | `du -sk dist`, `find dist -type f`, `vite build` output |
+| web bundle, `matched` | `dist/` 6252 KiB, 205 files. Modern build: `index-*.js` 1,430.59 kB (gzip 323.65 kB), `index-*.css` 362.03 kB (gzip 26.66 kB). `index-legacy-*.js` 1,795.17 kB, `polyfills-legacy-*.js` 76.98 kB. 104 of the files are `*.entry` chunks of `@ionic/core`'s lazy-loading build, 2108 KiB, which the theme's 20 imports from `@ionic/core` bring in | the same; `du -ck` over the `*.entry*` files |
+| theme CSS by variant | `grep -rl -- '--ion-color-primary-brightness' dist` lists no file for `stock`, and `index-*.css` and `index-legacy-*.js` for `matched` | §13.8 |
+| app size, `matched`, simulator build | Debug `.app` 11296 KiB. Release `.app` 11152 KiB, of which `public/` 6252 KiB, `Frameworks/` 4480 KiB and the `App` binary 154,416 bytes | `du -sk`, `stat -f %z` |
+| warnings | Xcode: one line per build, from `appintentsmetadataprocessor`. `vite build`, both variants: 20 `lightningcss` lines about `:host-context`, and the warning about a chunk over 500 kB. ESLint: the one warning of §14.3 | build logs, `npx eslint src` |
+| tests | `npx vitest run`: 1 of 1 passed. Cypress not run | |
+| npm audit | 10 vulnerabilities: 8 moderate, 2 high, as in §14.3 | `npm audit --json` |
+| screenshots | 15 files, 1179 × 2556 px, 4.3 MB, round m8: `screenshots/phase2/ionic-capacitor-matched-{home,home-detail,calendar,calendar-selected,chat-empty,chat-three,settings}.png` and `screenshots/chat/ionic-capacitor-matched-chat-{list,group,direct,child,group-typing,group-sent,child-sent,list-after}.png` | `xcrun simctl io … screenshot` |
+
+The bundle, app size and warning values come from builds run on 2026-09-13 while the machine's load
+average was about 15 (DISCOVERY.md). File sizes do not depend on load; the timings of those builds are not
+recorded here.
+
+**Added 2026-09-14:** build times for pass 2b (§13.8 "build time and installed app size per variant") are
+deferred. From the user, while two further timing runs were affected by other processes on the machine:
+"timings are still affected by other background processes, defer for now". DISCOVERY.md, entry "Effort
+comparison requested; `matched` build timings deferred", lists those runs.
+
+**Added 2026-09-14:** the build times, measured after the user wrote "clear to run timings now if needed".
+This supersedes the deferral above. One run of each step, in the order of the table's rows, on the working
+tree on top of `93ad230`:
+- simulator `iPhone 16 (iOS 26.5)`, Xcode 26.6 (17F113), macOS 26.6.2;
+- `/usr/bin/time -p`, and a new `-derivedDataPath` for each `xcodebuild`;
+- `capacitor-swift-pm` from SwiftPM's cache on this machine.
+
+The one-minute load average was 2.86 before the first step and 7.08 at its highest, before the
+`native-swift/` Debug build; the list of the busiest processes before the run started with `launchd` at 46 %
+CPU.
+
+| measure | `native-swift/` | `stock` | `matched` |
+| --- | --- | --- | --- |
+| clean web build, `npm run build` or `build:matched` | none | 2.71 s real (Vite 1.94 s) | 4.02 s real (Vite 3.05 s) |
+| `npx cap sync ios` | none | 0.36 s | 0.57 s |
+| clean Debug build, `xcodebuild` | 5.14 s | 5.11 s | 7.45 s |
+| clean Release build, `xcodebuild` | 4.84 s | 4.19 s | 4.27 s |
+| Debug `.app` | 1940 KiB | 8064 KiB | 11296 KiB |
+| Release `.app` | 1308 KiB | 7920 KiB | 11152 KiB |
+
+- **Order of the builds:** `matched`'s four steps ran first, then `stock`'s, then `native-swift/`'s two
+  builds.
+- **Sizes:** `matched`'s were measured in this run. `stock`'s and `native-swift/`'s come from the run at
+  00:07:59 on the same tree (DISCOVERY.md), because sizes do not depend on load.
+- **`native-swift/` has changed since §11.2:** it includes the chat round, so its sizes differ from §11.2's
+  1524 and 1024 KiB.
+- **`matched`'s Debug build was the run's first `xcodebuild`.** How much of its 2.34 s over `stock`'s comes
+  from that position was not measured.
+
+The chat screenshots' status bar shows 23:55, the time the script set before the chat steps. The sent
+messages are dated 23:56 and 23:57.
+
+### 15.4 `backdrop-filter: url()` in the web view (§13.7 step 4)
+
+- **Page:** four boxes over red and white stripes:
+  1. `backdrop-filter: url(#displace)`, an inline SVG filter of `feTurbulence` and `feDisplacementMap`
+     (`scale="40"`);
+  2. `backdrop-filter: blur(6px)`;
+  3. `filter: url(#displace)` on a box with its own blue stripes;
+  4. no filter.
+- **How it ran:** after `npx cap copy ios`, the page replaced `ios/App/App/public/index.html`; the app was
+  built with `PRODUCT_BUNDLE_IDENTIFIER=dev.modaal.lab.tabshell.refraction`, launched, screenshotted and
+  uninstalled; `npx cap copy ios` then restored `public/` (round m4).
+- **Result:**
+  - Box 1 shows the stripes behind it straight, under its 15 % white fill.
+  - Box 2 blurs the stripes behind it.
+  - Box 3 displaces its own stripes.
+  - `CSS.supports('backdrop-filter', 'url(#displace)')` and the `-webkit-backdrop-filter` form both return
+    `true`.
+- In `WKWebView` on iOS 26.5 the SVG filter renders in `filter` and does not render in `backdrop-filter`,
+  although `CSS.supports` reports the value as supported. `matched` draws glass with blur and saturation
+  only, as §13.3's last row expects.
+- The web view's `navigator.userAgent` reads "Mozilla/5.0 (iPhone; CPU iPhone OS 18_7 like Mac OS X)
+  AppleWebKit/605.1.15 (KHTML, like Gecko) Mobile/15E148" on the iOS 26.5 runtime.
+
+### 15.5 Behaviour exercised in the simulator
+
+- **Home:** opening Group 6/7/8 B's placeholder page.
+- **Calendar:** paging the week strip to week 38 with a swipe at y 187 pt; selecting Wednesday 16, which
+  scrolls week 38's title to just below the strip.
+- **Chat:**
+  - the empty state, and three taps on "+";
+  - opening the group, private and child chats;
+  - typing in the group and child chats with the software keyboard, the field growing to two lines;
+  - sending, which adds a date line and "Delivered";
+  - the list afterwards, with "You: …" previews, the send times and no unread dots (D10, D11).
+- **Tab bar:**
+  - hidden in a conversation and shown again on the list;
+  - hidden by Ionic while the keyboard is open;
+  - with `registerTabBarEffect`, a 0.8 s swipe along the bar from Home to Settings ended with Settings
+    selected (round m5b); at rest the bar looks as without it.
+- **The push:** a screenshot started 0.1 s after tapping a chat row showed the conversation a few pixels
+  from its final position in m5, and in its final position in m8 and in `native-swift/`, with no tab bar
+  in all three. This method does not capture the tab bar during the transition, so how the bar leaves the
+  screen is not compared (D14).
+- **Composer frames**, `axe describe-ui --point`, against `native-swift/`:
+
+  | element | `matched` | `native-swift/` |
+  | --- | --- | --- |
+  | "+" | x 21, y 765, 45 × 45 | x 21, y 766, 44 × 44 |
+  | message text | x 93, y 776, 268 × 23 | x 94, y 777, 267 × 22 |
+  | send, keyboard open | x 333, y 468, 33 × 32 | not measured |
+
+- **Not exercised:**
+  - the Unread, Child, Group and Private filters and the filtered empty state;
+  - the Today button, the event and settings placeholder pages, swipe back;
+  - a draft longer than five lines;
+  - landscape, Dynamic Type sizes, VoiceOver, dark appearance;
+  - `npm run dev:matched` in a desktop browser, and Cypress.
+
+### 15.6 Fidelity of `matched` (§13.8)
+
+Round m8's screenshots against `screenshots/phase1/native-swift-*.png` and
+`screenshots/chat/native-swift-chat-*.png`, compared in copies scaled to 900 px high. Marked:
+- **matched:** the same element and colour, placed within 3 pt;
+- **gap:** a difference that remains, with its reason.
+
+| screen | `native-swift/` | `matched` | mark |
+| --- | --- | --- | --- |
+| all | floating glass tab bar 21 pt from each edge; filled symbols; the selected tab in a grey capsule with the accent colour; red badge | the theme's bar with the same geometry; filled ionicons; grey capsule; red badge | matched |
+| all | SF Symbols | ionicons: `people` for `person.3`, `chatbubbles-outline` for `bubble.left.and.text.bubble.right`, `open-outline` for `arrow.up.forward`, `download` for `arrow.down.doc.fill` | gap: SF Symbols are not available to web content |
+| all | glass with lens distortion | glass with blur and saturation | gap: §15.4 |
+| Home, Settings | large title, subtitle directly below, glass search circle, inset groups on the grouped background, 30 pt icon column, chevrons | the same | matched |
+| Home | "Groups" and the school year above the first group; accent capsule count; lilac initials square; accent icons; "Mark all as read" in the accent colour | the same | matched |
+| Settings | filled symbols on gradient tiles | filled ionicons on tiles with a CSS gradient | matched; the glyphs as in the second row |
+| Calendar | leading inline large title, "Today" glass capsule, week strip, glass month capsule, dashed box for an empty day, tinted cards with an accent bar | the same | matched |
+| Calendar, day selected | the title becomes a centred inline title once the agenda scrolls | the leading title stays | gap: `ion-title` has no transition between the two title styles; a scroll listener would add TSX |
+| Calendar, day selected | nothing between the strip and week 38's title | the bottom 4 pt of Sunday 13's dashed box | gap: the scroll offset is the week title's height, and the list end stops the scroll |
+| Chat | leading inline large title, glass chips, rows with chevrons, unread dots left of the avatars, accent "+" | the same | matched |
+| Chat list, conversation | "9:41", "Today 9:41" | "09:41", "Today 09:41" | gap: `Intl.DateTimeFormat` with `timeStyle: 'short'` (§14.2), shared with `stock` |
+| Chat, three chats | `native-swift-chat-three.png` shows the preview "Sam shared a drawing from art class." | "Photo: Sam’s drawing of the sunflowers" | no gap: the phase 1 screenshot predates the chat fixture of `b28c7d2`; `native-swift-chat-list.png` shows the same preview as `matched` |
+| conversation | glass back circle, centred title and subtitle, avatar without glass, runs with sender names and avatars, tails, date lines, receipts, the same line breaks | the same | matched |
+| conversation | glass "+" and glass field, the send button inside the field | the frames in §15.5 | matched |
+| conversation, typing | the composer on the keyboard | the composer on the keyboard; Ionic hides the tab bar | matched |
+| placeholder page | inline title, glass back circle, `ContentUnavailableView` centred | the same | matched; the glyph as in the second row |
+
+## 16. Effort: `ionic-capacitor/` styled as `matched` against `native-swift/` (added 2026-09-14)
+
+From the user on 2026-09-14, after pass 2b's results: "Please also reflect and record on the effort
+required to achieve native look and feel (matched) vs just writing native Swift. Also include your
+estimations on how much of the Ionic-capacitor project was scaffolded and how much had to be written by
+hand VS native Swift (# of modules / files / lines)." DISCOVERY.md, entry "Effort comparison requested;
+`matched` build timings deferred", lists the sources and commands.
+
+Terms and scope in this section:
+- **Written by hand:** written in this repository's sessions by Claude Code at the user's direction.
+- **Generated:** written by `ionic start`, `npx cap add ios`, `npx cap sync ios`, npm, SwiftPM, XcodeGen or
+  Vite.
+- **Tree counted:** the working tree on top of `93ad230` with pass 2b's change set, as staged on 2026-09-14.
+- **Lines:** `wc -l` unless a row names another count.
+- **Measured and estimated:** §16.1 to §16.3 are counts. §16.4 holds the estimates, each with what it rests
+  on.
+
+### 16.1 Files and lines by origin
+
+How `ionic-capacitor/` was classified:
+- Each file was compared with the file at the same path in one of two references:
+  - `ionic-team/starters` at `557f7c4` (main, committed 2026-08-19): `react-vite/base` with
+    `react-vite/official/tabs` laid over it, the two directories `ionic start … tabs --type=react` combines;
+  - for files under `ios/`, Capacitor 8.5.2's `ios-spm-template.tar.gz`.
+- Differing lines were counted with Python's `difflib`. Each edited line was attributed to a tool or to
+  hand by reading the diff against §14.1.
+- The starter was fetched from GitHub, not taken from the `ionic start` run of pass 2a, whose download was
+  not kept.
+
+| origin | `native-swift/` | `ionic-capacitor/` |
+| --- | --- | --- |
+| generated, committed, unchanged | none | 33 files, 437 lines: 16 from the starter (238 lines, 1 PNG), 17 from the iOS template (199 lines, 4 PNGs) |
+| generated edits to template files, committed | none | `ionic.config.json` +5 −4 and `capacitor.config.ts`, 9 lines (`ionic start --capacitor`); `package.json` +9 −3 (`ionic start`, `npm install`); `project.pbxproj` +2 −2, bundle identifier, and `Info.plist` +1 −1, display name (`npx cap add ios`); `Package.swift` +4 −2, the Keyboard plugin (`npx cap sync ios`) |
+| generated by a package manager, committed | none | `package-lock.json`, 11,245 lines, 779 packages; `Package.resolved`, 15 lines |
+| generated, not committed | `TabShell.xcodeproj/project.pbxproj`, 414 lines, and `TabShell/Info.plist`, 41 lines (XcodeGen) | `dist/`, `ios/App/App/public/`, `capacitor.config.json` (Vite, `npx cap copy`); `node_modules/`, 344 MB |
+| written by hand, new files | 18 text files, 1,605 lines: 14 Swift files, 1,518 lines; `xcodegen.yml`, 47; 3 asset catalog `Contents.json`, 40. `AppIcon.png` was drawn by a Swift script that is not committed (DISCOVERY.md, phase 1) | 29 files in `src/`, 2,575 lines: 20 TS and TSX files, 1,570 lines; 9 CSS files, 1,005 lines |
+| written by hand, edits to template files | none | 7 files, 117 lines added and 36 removed: `src/App.tsx` +84 −30, `src/theme/variables.css` +14, `vite.config.ts` +10 −2, `tsconfig.json` +4 −1, `package.json` +2 (the `matched` scripts), `project.pbxproj` +2 −2 (`TARGETED_DEVICE_FAMILY`), `cypress/e2e/test.cy.ts` +1 −1 |
+| template files deleted by hand | none | 8 files, 115 lines: `Tab1` to `Tab3` and `ExploreContainer`, each `.tsx` and `.css` |
+| **written by hand, total** | **18 files, 1,605 lines** | **36 files, 2,692 lines (2,575 new, 117 added to template files)** |
+
+- **Modules.**
+  - `native-swift/` is one Swift module, the `TabShell` target, whose 14 files sit in 6 folders (`Calendar`,
+    `Chat`, `Fixtures`, `Home`, `Settings`, `Shared`) and the target root.
+  - `ionic-capacitor/`'s hand-written code is 29 ES modules: 20 TS and TSX, and 9 CSS files that
+    components import. They sit in 7 folders of `src/` (`components`, `fixtures`, `lib`, `model`, `pages`,
+    `styles/stock`, `styles/matched`).
+  - `ios/App/App/` holds 2 Swift files from the template, `AppDelegate.swift` and `SceneDelegate.swift`,
+    unchanged.
+- **`ionic-capacitor/`'s committed files, excluding the two lock files:** 73 files, 3,763 text lines.
+  - by file: 29 new by hand (40 %), 7 template files edited by hand (10 %), and 37 generated and not edited
+    by hand (51 %);
+  - by line: 2,692 written by hand (72 %) and 1,071 generated (28 %).
+- **The hand-written part of `ionic-capacitor/`, by variant:**
+
+  | part | files | lines |
+  | --- | --- | --- |
+  | shared by both variants: `src/` except `styles/` and `lib/variant.ts`, and the edits to template files | 24 new, 7 edited | 1,809 new, 117 added |
+  | `stock` only: `src/styles/stock/` | 2 | 12 |
+  | `matched` only: `src/styles/matched/`, `src/lib/variant.ts` | 3 | 754 |
+
+  Pass 2b also changed 9 of the shared files for `matched`: 240 lines added and 80 removed (§15.3). Those
+  lines are inside the shared counts.
+
+### 16.2 The same screens, per element
+
+Lines written by hand for each element. The `matched` column is what pass 2b added on top of `stock`;
+the `index.css` counts are its sections, comments included.
+
+| element | `native-swift/` | `ionic-capacitor/` as `stock` (pass 2a) | added for `matched` (pass 2b) |
+| --- | --- | --- | --- |
+| tab bar: floating glass bar, filled icons, badge | `RootTabView.swift`, 32 lines; `TabView` draws the bar | the starter's `IonTabBar` in `App.tsx` | theme; 24 CSS lines; filled icons, the conversation class and `attachTabBarEffect` in `App.tsx`; `setup.ts` |
+| navigation bars: large and inline large titles, subtitles, glass buttons | modifiers in each screen file: `.navigationTitle`, `.navigationSubtitle`, `.toolbarTitleDisplayMode(.inlineLarge)`, `ToolbarItem` | `Headers.tsx`, 51, and `Headers.css`, 13 | theme; 105 CSS lines, empty state and content padding included; `TabHeader` and the Chat header in TSX |
+| Home and Settings lists | `HomeList.swift`, 114; `SettingsList.swift`, 154 | `HomePage.tsx`, 98; `SettingsPage.tsx`, 62; `rows.ts`, 106 | theme; 113 CSS lines; tile icons and colours in TSX |
+| Calendar | `CalendarList.swift`, 171; `WeekStrip.swift`, 99; `Agenda.swift`, 63 | `CalendarPage.tsx`, 142, and CSS, 31; `WeekStrip.tsx`, 85, and CSS, 74; `agenda.ts`, 63 | 171 CSS lines; the "Today" button and the scroll offset in TSX |
+| Chat list | `ChatList.swift`, 248 | `ChatPage.tsx`, 173, and CSS, 15; `ChatAvatar`, 29 + 10; `EmptyState`, 15 + 20 | theme; 126 CSS lines; the fixed header and chevrons in TSX |
+| conversation | `ChatDetail.swift`, 215; `MessageBubble.swift`, 146, of which `BubbleShape` 42 | `ConversationPage.tsx`, 169, and CSS, 112; `SunflowerDrawing.tsx`, 79; `messageRows.ts`, 36 | theme; 141 CSS lines, the tail as 3 rules holding `BubbleShape`'s path |
+| fixture, model, dates | `Fixture.swift`, 180; `ShellModel.swift`, 51 | `fixture.ts`, 203; `ShellModel.tsx`, 103; `dates.ts`, 70 | none |
+| imports, colour variables, glass values | the `AccentColor` colour set | `theme/variables.css`, +14 | 41 lines before `index.css`'s first section; `variant.ts`, 5 |
+
+- **Where `native-swift/` gets the iOS 26 look:** system components and modifiers:
+  - `TabView`, `NavigationStack` and `List`;
+  - `.glassEffect`, and the `.glass` and `.glassProminent` button styles, in `CalendarList.swift`,
+    `ChatList.swift` and `ChatDetail.swift`.
+
+  Its hand-written drawing is `BubbleShape`, `SunflowerDrawing` and the week strip.
+- **Where `matched` gets it:** the theme's CSS for the tab bar, toolbars, buttons, lists and FAB, and
+  `index.css` for everything §15.2 lists. `index.css` holds:
+  - 174 `px` values, each taken from `native-swift/`'s Swift sources, screenshots or accessibility frames;
+  - 84 comment lines;
+  - 9 `!important` declarations.
+- **What `matched` depends on in Ionic and the theme** (§15.2):
+  - five of Ionic's shadow parts: `native`, `inner`, `container`, `background`, `detail-icon`;
+  - Ionic's class names and behaviours: `tab-bar-hidden`, `footer-toolbar-padding`,
+    `header-collapse-condense`, `ion-page` on `ion-tabs`, and `ion-textarea`'s `z-index`;
+  - four theme rules that it overrides.
+
+### 16.3 Work recorded
+
+| work | rounds in DISCOVERY.md | tool calls in the session transcript | active time |
+| --- | --- | --- | --- |
+| `native-swift/` phase 1 | v1 to v6 | not in the transcript: it has no entries from 17:00 to 20:59 on 2026-09-13, and phase 1 was committed at 21:11 (`f88d70e`) | not measured |
+| `native-swift/` chat detail | c1 to c5 | 58 | 19 min |
+| `ionic-capacitor/` as `stock`, pass 2a | r1 to r3; k1 to k7 on text entry in the web view; s1 | 141 | 47 min |
+| `ionic-capacitor/` as `matched`, pass 2b, to 2026-09-14 00:04 | m1 to m8, m5b, r2b | 202 | 65 min |
+
+- **Tool calls:** unique `tool_use` ids between a pass's prompt and the next prompt.
+- **Active time:** from the first to the last tool call in that interval. None of these intervals has a gap
+  over 10 minutes.
+- **What the times include:** pass 2a's includes spec §14 and its commit; pass 2b's includes spec §15 and its
+  DISCOVERY.md entry, and excludes this section.
+- **Techniques pass 2b used to reach the values** that `native-swift/` gets from the system:
+  - temporary outlines on toolbars (m3);
+  - accessibility frames read from both apps (m4 to m7);
+  - hit-test probes along the composer (m6);
+  - a pixel comparison of `stock` before and after (r2b).
+- **Workarounds `native-swift/` recorded in phase 1** (DISCOVERY.md v1 to v5):
+  - `.foregroundStyle(.primary)` resolving to secondary in section headers;
+  - a large title covered by `safeAreaBar`'s edge effect;
+  - list separators starting at different insets;
+  - agenda content showing through the hard scroll edge effect.
+
+### 16.4 Estimates
+
+- **Hand-written lines for the native look.**
+  - `native-swift/` has 1,605 hand-written lines; `ionic-capacitor/` with both variants has 2,692, 1.7 times
+    as many.
+  - About 1,000 of the 2,692 exist only for `matched`: the 754 lines of `src/styles/matched/` and
+    `variant.ts`, and the 240 lines pass 2b added to shared TSX, of which 80 replaced lines of pass 2a.
+  - Basis: §16.1. The estimate treats `src/` at `93ad230`, 1,844 lines of which 33 are in the starter's files
+    (§14.2), as the cost of the screens and their behaviour, and pass 2b's lines as the cost of the look.
+- **Scaffolded share of `ionic-capacitor/`.**
+  - About a quarter of the committed text lines excluding lock files: 1,071 of 3,763.
+  - About half of the committed files: 37 of 73 were generated and not edited by hand.
+  - The generated files outside `src/` are the starter's build, lint, test and web entry files (12
+    unchanged, 5 edited) and the 20 files of the iOS template (17 unchanged, 3 edited by tools only).
+  - Of the app's own code in `src/`, the starter supplies 34 unchanged lines (`main.tsx`, `setupTests.ts`,
+    `App.test.tsx`, `vite-env.d.ts`) and the imports at the top of `App.tsx`. Every screen, the fixture, the
+    model and all styling are written by hand.
+  - `native-swift/` has no committed generated files. XcodeGen generates 455 uncommitted lines from its
+    47-line `xcodegen.yml`.
+- **Time and tool calls for the native look.**
+  - `ionic-capacitor/` took pass 2a and pass 2b: 343 tool calls, 112 minutes of active time, and 8 screenshot
+    rounds in pass 2b alone.
+  - For `native-swift/` the transcript gives only the chat detail round, 58 tool calls in 19 minutes, and
+    DISCOVERY.md gives 6 rounds for phase 1.
+  - Basis: §16.3. Phase 1's missing transcript entries prevent a count for all of `native-swift/`, so this
+    comparison rests on rounds and lines rather than on time.
+- **Dependence on `native-swift/`.**
+  - Pass 2b took every own value in `index.css` from `native-swift/`'s screenshots, Swift sources or
+    accessibility frames, and compared each round against its screenshots.
+  - Building `matched` without `native-swift/` in the repository would need these values from another
+    source: Apple's design resources, or measurements of iOS system apps. This spec does not estimate that
+    effort.
+- **Upkeep.**
+  - `matched` rests on the theme, whose peer range ends below `@ionic/core` 10 (§13.5), and on the Ionic
+    internals listed in §16.2.
+  - An Ionic or theme upgrade that changes one of them needs a new screenshot round in `matched`, and
+    `stock` does not.
+  - `native-swift/` has no third-party UI dependency. An iOS SDK change reaches it through SwiftUI, as the v1
+    to v5 workarounds did in phase 1.
+  - This estimate is not measured; phase 4 (wide layout) and phase 6 (dark mode) change both variants and can
+    measure it.
+- **Fidelity reached.**
+  - `matched` has 5 gaps against `native-swift/` (§15.6): SF Symbols, refraction, the Calendar title's
+    transition, the time format, and a 4 pt sliver in the selected-day scroll.
+  - SF Symbols and refraction are not available to web content, and the other three are fixable in TSX or
+    CSS.

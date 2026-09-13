@@ -406,3 +406,159 @@ search result summary.
   the table, and pass 2a is committed together with this entry.
 - The question whether to turn off Ionic CLI telemetry (`~/.ionic/config.json`) got no answer;
   telemetry stays on.
+
+## 2026-09-13 — Pass 2b: building `matched` in `ionic-capacitor/`
+
+- From the user, after pass 2a was committed as `93ad230`: "Please take pass 2b when ready."
+- `npm install @rdlabo/ionic-theme-ios26@9.2.0` took 1.65 s real. `npm ls --depth=0`, saved before and
+  after in the session scratchpad, differs in one line: `@rdlabo/ionic-theme-ios26@9.2.0`.
+- `npm view @rdlabo/ionic-theme-ios26@9.2.0`: peer dependency `@ionic/core >=8.8.1 <10`, unpacked size
+  644,741 bytes, last modified 2026-09-10.
+- **Sources read:**
+
+  | source | how it was read | what was taken |
+  | --- | --- | --- |
+  | `node_modules/@rdlabo/ionic-theme-ios26/README.md` | read | the four CSS imports; the `setupIonicReact` animation options behind `isPlatform('ios')`; the pairing of Ionic's dark palette with the theme's dark stylesheet |
+  | `…/docs/special-markup.md`, `using-ion-item-group.md`, `features.md`, `experimental-animation.md` | read | the `ios-theme-disabled` opt-out class; `ion-item-group` inside `ion-list inset`; the `api.glass-background` mixin; `registerTabBarEffect(tabBar)` and `destroy()` |
+  | `…/src/styles/default-variables.scss`, `ionic-theme-ios26.scss`, `utils/api.scss`, `utils/translucent.scss`, `utils/structured-list.scss` | read | the glass values (72 % white, `blur(2px) saturate(360%)`, the two shadows); the content fade behind the tab bar; group radius 24 px |
+  | `…/src/styles/components/ion-tabs.scss`, `ion-toolbar.scss`, `ion-list.scss`, `ion-fab.scss`, `ion-inputs.scss`, `ion-button.scss`, `ion-content.scss` | read | tab bar width `100% - 36px - 60px - 12px`, bottom `max(10px, safe area - 12px)`; toolbar `--min-height: 68px` except with a large title; item `--min-height: 52px`; FAB 61 px white glass; `ion-buttons` glass capsule; content bottom padding `60px + floating safe area` |
+  | `…/dist/index.d.ts`, `dist/utils.d.ts` | read | the exported animations and `registerTabBarEffect` |
+  | `node_modules/@ionic/core/dist/collection/components/item/item.js` | `grep part:` | `ion-item` parts `native`, `inner`, `container`, `detail-icon` |
+  | `…/toolbar/toolbar.js`, `…/tab-bar/tab-bar.js`, `…/footer/footer.js` | read, `render()` | toolbar parts `background`, `container`, `content`; `tab-bar-hidden` while the keyboard is visible; `footer-toolbar-padding` only when no bottom `ion-tab-bar` exists and the keyboard is closed |
+  | `…/title/title.ios.css`, `…/header/header.ios.css`, `…/item/item.ios.css`, `…/footer/footer.ios.css`, `…/textarea/textarea.ios.css` | read, `grep` | title padding 90 px, large title padding 2 px and 4 px; sticky condensed toolbars; slotted start margin 16 px; footer safe-area padding; `ion-textarea` `z-index: 2` |
+  | `node_modules/@ionic/react/dist/index.js` | `grep IonTabBar` | `IonTabBar` passes its props, `className` included, to `ion-tab-bar` |
+  | `node_modules/ionicons/icons/index.d.ts` | `grep` | `home`, `calendar`, `chatbubble`, `settings`, `help`, `arrowUpCircle` are exported |
+  | `native-swift/TabShell/` Swift files: `RootTabView.swift`, `HomeList.swift`, `SettingsList.swift`, `ChatList.swift`, `ChatDetail.swift`, `MessageBubble.swift`, `CalendarList.swift`, `WeekStrip.swift`, `Agenda.swift`, `InitialsBadge.swift`, `PlaceholderDetail.swift`, `Fixture.swift` lines 58–72 | read | sizes, paddings and colours for `index.css`; `BubbleShape`'s horn path; the preview rule |
+  | the installed `native-swift/` app in the group chat | `axe describe-ui` | the composer's "+" and text field frames |
+
+- **Rounds** in `iPhone 16 (iOS 26.5)` with Xcode 26.6, compared with the `native-swift/` screenshots in copies
+  scaled with `sips -Z 900`:
+
+  | round | what the screenshots or probes showed | change |
+  | --- | --- | --- |
+  | m1 | the theme's glass tab bar, buttons and inset groups applied. Row icons in 36 px boxes: `ion-icon` sets `box-sizing: content-box !important`. The subtitle 20 pt below native's and 4 pt to the right. "School year" bold. The tab bar 5 pt wider than set. Calendar's and Chat's bars grey: `ion-tabs` has the `ion-page` class and holds the Home page, so `.ion-page:has(ion-list.list-inset)` matched it. The unread dot over the chat title. "+" 5 pt closer to the edge. Week titles close under the month capsule | icon sizes as content sizes; `!important` min-height on the subtitle toolbar; `font-weight: 400`; tab bar width `100% - 47px`; `ion-router-outlet >`; FAB `right: 25px`; week title padding |
+  | m2 | icons in place; the subtitle still 20 pt low; no unread dots; the Sam preview on one line where native wraps it; the group avatar's icon small. Probing for "Group 6/7/8 B" and "Sam" in the chat list found nothing: the rows' accessibility labels start with the preview | temporary outlines on header toolbars and titles; the dot as a `radial-gradient` on `::part(native)`; label margin 8 px; avatar icon 26 px; fixed tap coordinates for the chat rows |
+  | m3 | the outlines: the subtitle toolbar one line high, and the large title's box ending 20 px below its text. Tails drawn. Bubbles 8 pt wider than native's: `HStack(spacing: 8)` also spaces the bubble from the 60 pt spacer. A short conversation at the top of the page. Calendar positions within 3 px of native | subtitle toolbar `margin-top: -20px`, above the title toolbar, transparent background; `padding-right` and `padding-left` 68 px; `.message-list` `min-height: 100%` and `justify-content: flex-end`; outlines removed |
+  | m4 | Home and Settings title, subtitle and first group within 2 px of native; bubbles break at the same words as native. The refraction page (spec 001 §15.4). Composer frames: "+" x 16, y 757; text x 84, y 768, 285 wide; `native-swift/`: "+" x 21, y 766; text x 94, y 777, 267 wide | toolbar `--padding-start: 21px`; field margin 12 px; the safe-area padding without the extra 8 px, which `--padding-bottom` already puts on the toolbar's container |
+  | m5 | "+" at x 21, y 765; text 280 wide. The send button drawn under the field's glass, and probing at x 355 did not find it. The swipe at y 150 did not page the week strip, so Wednesday 9 was selected. Home unchanged with `registerTabBarEffect` | textarea `width: auto`; send button `position: relative`, margins adding up to zero; Calendar scroll offset by the week title in `matched` |
+  | m5b | a swipe at y 187 paged the strip to week 38, and a second one to week 39; a swipe along the tab bar from Home to Settings selected Settings; `native-swift/`'s push screenshot, started 0.1 s after the tap, showed the finished push | the script swipes at y 187 |
+  | m6 | text x 93, 268 wide. The send button still drawn under the field; with "Hi" typed, probes at x 345–365 returned the text area and x 375 returned Send (x 333, y 468, 33 × 32). The selected day stopped about 60 pt short of the top: the agenda ended 7 pt above the tab bar, native's 35 pt | send button `z-index: 3`, above `ion-textarea`'s `z-index: 2`; Calendar content bottom padding `94px + floating safe area` |
+  | m7 | send drawn inside the field and tapped in both chats; week 38 at the top after selecting the 16th. A black Dynamic Island shape in `chat-group-typing` and `chat-list-after` (pixel 588, 88 black) | — |
+  | r2b | `stock` rebuilt and its pass 2a script run again; compared with the committed screenshots in spec 001 §15.1 | — |
+  | m8 | the script without a rebuild; 15 screenshots, pixel 588, 88 not black in any | copied to `specs/001-four-tab-shells/screenshots/` |
+
+- Round m1's Home screenshot was taken with `xcrun simctl status_bar … override --time 9:41`; the chat
+  screenshots of m5 to m8 use the time the script ran, as in pass 2a.
+- `xcrun simctl list devices booted` at the start of the pass also listed `iPhone 18 Pro`
+  (`F2DD4D68-FC30-4AC7-9774-7C55D6C7DD44`). This pass did not use it.
+- **Side effects on the simulator:**
+  - `dev.modaal.lab.tabshell.matched` is installed on `70D15E5B-3D95-4290-B3E9-970F68617BE8`.
+  - `dev.modaal.lab.tabshell.refraction` was installed and uninstalled.
+  - `ios/App/App/public/index.html`, ignored by `ios/.gitignore`, was replaced by the refraction page and
+    restored with `npx cap copy ios`; `grep -c 'backdrop-filter url() check'` over it then printed 0.
+- **Bundle files:** the theme's `dist/` has 20 `import … from '@ionic/core'` statements
+  (`grep -rhoE "from ['\"]@ionic/[a-z/-]+['\"]"`). `matched`'s `dist/assets` has 202 files against
+  `stock`'s 19 in `dist/`, among them 104 `*.entry` chunks of `@ionic/core`'s lazy-loading build,
+  2108 KiB (`du -ck`). The modern `index-*.js` grows from 1,395.52 kB to 1,430.59 kB. Whether the web view
+  requests any `.entry` chunk at runtime was not measured.
+- **Machine load:** the first timing run gave a clean `stock` web build of 25.65 s real, against 3.31 s in
+  pass 2a. `uptime` then read load averages 14.79, 17.56, 15.80, and `ps -Ao pcpu,comm -r` listed `rg` at
+  721.5 % CPU, VS Code's `Code Helper (Renderer)` at 185.6 %, `java` at 117.6 % and `com.docker.backend`
+  at 62.6 %. This session did not start those processes. The timings of that run are not used; spec 001
+  §15.3 records the run taken after the one-minute load average fell below 4.
+- Two user messages during the pass: "I installed ImageMagick from Homebrew", and "Also you can install PIL
+  if you need to". `magick -version` prints ImageMagick 7.1.2-31. PIL was not installed. A Swift image
+  comparison script written to the scratchpad before the first message was not used.
+- `npx eslint src`: one warning, `react-refresh/only-export-components` at `src/model/ShellModel.tsx:97`, as
+  in pass 2a. `npx vitest run`: 1 of 1 passed. `npm audit --json`: 10 vulnerabilities, 8 moderate and 2 high,
+  as in pass 2a.
+
+## 2026-09-14 — Effort comparison requested; `matched` build timings deferred
+
+- From the user, after pass 2b's results were reported: "Please also reflect and record on the effort
+  required to achieve native look and feel (matched) vs just writing native Swift. Also include your
+  estimations on how much of the Ionic-capacitor project was scaffolded and how much had to be written by
+  hand VS native Swift (# of modules / files / lines)." Spec 001 §16 takes the comparison.
+- From the user, during the timing runs below: "timings are still affected by other background processes,
+  defer for now". Spec 001 §15.3 records pass 2b's build times as deferred.
+- **Timing runs not used** (`/usr/bin/time -p`, new `-derivedDataPath`, load average from
+  `sysctl -n vm.loadavg` before each step):
+  - A background loop polled the load every 20 s and ended when the one-minute average was 3.36.
+  - **00:07:13 to 00:07:33, one-minute load 4.09 to 4.72, `matched`:**
+    - web build 4.60 s real (Vite 3.45 s);
+    - `npx cap sync ios` 0.64 s;
+    - clean Debug build 10.09 s, clean Release build 4.77 s;
+    - Debug `.app` 11296 KiB, Release `.app` 11152 KiB.
+  - **00:07:59 to 00:09:04, one-minute load rising from 4.15 to 11.73, `stock`:**
+    - web build 14.07 s (Vite 8.95 s);
+    - `npx cap sync ios` 6.01 s;
+    - clean Debug build 15.80 s, clean Release build 8.80 s;
+    - Debug `.app` 8064 KiB, Release `.app` 7920 KiB.
+  - **The same run, `native-swift/` at `HEAD`:**
+    - clean Debug build 9.44 s, clean Release build 10.77 s;
+    - Debug `.app` 1940 KiB, Release `.app` 1308 KiB. §11.2's 1524 and 1024 KiB were measured before the
+      chat round.
+- After the timing runs, `git status --short` listed pass 2b's change set as staged: 32 entries, `M ` and `A `.
+  This session ran no `git add`.
+- **Sources read for spec 001 §16:**
+
+  | source | how it was read | what was taken |
+  | --- | --- | --- |
+  | `gh api repos/ionic-team/starters/tarball/557f7c44de5b995f5cc9d65e04299c7c4907d0ba`, main, committed 2026-08-19 ("fix(angular): keep ng generate working with angular-toolkit 13 (#1887)") | fetched, unpacked in the session scratchpad | `react-vite/base`, 22 files, and `react-vite/official/tabs`, 10 files, compared file by file with `ionic-capacitor/` |
+  | `ionic-capacitor/node_modules/@capacitor/cli/assets/ios-spm-template.tar.gz` (8.5.2) | unpacked | 20 files, compared with `ionic-capacitor/ios/` |
+  | the session transcript, `~/.claude/projects/-Volumes-DATA01-Projects-lab-replicate-parro-crossplatform/4276af08-dfbc-4979-8dbb-6757d935c8d5.jsonl` | Python: entries deduplicated by `uuid`, tool calls by `tool_use` id | prompt timestamps; tool calls, tool names and active time between prompts |
+  | `git log --format='%h %cI %s'` | command | commit times |
+  | `git ls-files`, `wc -l`, Python `difflib` | command | files and lines by origin |
+  | `python3 -c` over `package-lock.json`'s `packages`; `du -sh node_modules` | command | 779 packages; 344 MB |
+
+- The starter was fetched from GitHub. The download that `ionic start` made in pass 2a was not kept, so it
+  was not compared with GitHub's `main`.
+- **Transcript entries per hour (local time):**
+  - 2026-09-13: 98 at 09:00, 478 at 10:00, none from 11:00 to 15:59, 1023 at 16:00, 2 at 17:00, none
+    from 18:00 to 20:59, 619 at 21:00, 654 at 22:00, 525 at 23:00;
+  - 2026-09-14: 93 at 00:00.
+
+  Phase 1 was committed at 21:11 (`f88d70e`), so its tool calls are not in the transcript. The transcript
+  has no sidechain entries.
+- **Tool calls between prompts** (unique ids; active time from the first to the last call, with no gap
+  over 10 minutes in these intervals):
+
+  | work | tool calls | active time | calls by tool |
+  | --- | --- | --- | --- |
+  | chat detail in `native-swift/` | 58 | 19 min | Read 21, Edit 16, Bash 12, Write 9 |
+  | spec 001 §13 | 49 | 24 min | Edit 16, Bash 15, WebFetch 13, Read 2, WebSearch 2, ToolSearch 1 |
+  | pass 2a | 141 | 47 min | Read 53, Write 35, Bash 34, Edit 19 |
+  | pass 2b, to 00:04 | 202 | 65 min | Read 77, Bash 58, Edit 53, Write 13, ToolSearch 1 |
+
+- `ionic-capacitor/` classification, from the `difflib` comparison:
+  - 33 files unchanged from the templates;
+  - 10 edited: 3 by tools only, 7 by hand;
+  - 29 new by hand in `src/`, plus `capacitor.config.ts`, which `ionic start --capacitor` writes;
+  - 2 lock files;
+  - 8 template files deleted.
+- `src/styles/matched/index.css`: `grep -oE '(-?[0-9]+(\.[0-9]+)?)px'` counts 174 values, and 84 lines start
+  a comment or continue one.
+- From the user, answering the deferral: "clear to run timings now if needed." The timing run went ahead;
+  spec 001 §15.3 takes the results.
+- **The run, 00:24:28 to 00:25:09.** It used `measure-matched.sh` from the session scratchpad, then the same
+  steps for `stock` and `native-swift/`.
+  - **Load before the run:** one-minute load average 2.86. `ps -Ao pcpu,comm -r` listed `launchd` at 46.0 %,
+    the Claude Code extension at 13.1 % and `WindowServer` at 11.9 %; the `rg` search of the pass 2b entry
+    was no longer in the list.
+  - **Load during the run:** 3.03 before `matched`'s Debug build, 4.87 before its Release build, 7.08 before
+    `native-swift/`'s Debug build, and 6.45 at the end.
+  - **Results:**
+    - `matched`: web build 4.02 s real (Vite 3.05 s), `npx cap sync ios` 0.57 s, clean Debug build 7.45 s,
+      clean Release build 4.27 s;
+    - `stock`: web build 2.71 s (Vite 1.94 s), `npx cap sync ios` 0.36 s, clean Debug build 5.11 s, clean
+      Release build 4.19 s;
+    - `native-swift/`: clean Debug build 5.14 s, clean Release build 4.84 s.
+  - **Sizes:** `matched`'s `.app` sizes were 11296 and 11152 KiB, the same as in the run at 00:07:13.
+- **npm install scripts (not recorded in the pass 2b entry):** `npm install @rdlabo/ionic-theme-ios26@9.2.0`
+  printed `npm warn install-scripts` for three packages:
+  - `core-js@3.50.0` (postinstall);
+  - `cypress@13.17.0` (postinstall: `node index.js --exec install`);
+  - `fsevents@2.3.3` (install).
+
+  It followed with "Run `npm install-scripts ls` to review, or `npm install-scripts approve <pkg>` to allow."
+  Whether the Cypress binary is installed was not checked, and Cypress has not been run in either pass.
