@@ -12,15 +12,28 @@ export const columnsQuery = '(min-width: 672px)';
  */
 export const menuWhen = 'lg';
 
-function subscribeToColumns(onChange: () => void) {
-  const query = window.matchMedia(columnsQuery);
-  query.addEventListener('change', onChange);
-  return () => query.removeEventListener('change', onChange);
+/** Ionic's `lg` as a media query, the width from which the split pane shows the menu. */
+export const menuQuery = '(min-width: 992px)';
+
+function subscribeTo(media: string) {
+  return (onChange: () => void) => {
+    const query = window.matchMedia(media);
+    query.addEventListener('change', onChange);
+    return () => query.removeEventListener('change', onChange);
+  };
 }
+
+const subscribeToColumns = subscribeTo(columnsQuery);
+const subscribeToMenu = subscribeTo(menuQuery);
 
 /** Whether the window is at least 672 px wide, updated as the window is resized. */
 export function useColumns(): boolean {
   return useSyncExternalStore(subscribeToColumns, () => window.matchMedia(columnsQuery).matches);
+}
+
+/** Whether the window is at least 992 px wide, where the split pane shows the menu in place of the tab bar. */
+export function useMenu(): boolean {
+  return useSyncExternalStore(subscribeToMenu, () => window.matchMedia(menuQuery).matches);
 }
 
 /**

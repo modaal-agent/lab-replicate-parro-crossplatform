@@ -13,8 +13,9 @@ import {
 } from '@ionic/react';
 import { IonReactRouter } from '@ionic/react-router';
 import TabMenu from './components/TabMenu';
-import { menuWhen, useColumns, watchWindowed } from './lib/layout';
-import { shellTabs, useTabPaths } from './lib/tabs';
+import { menuWhen, useColumns, useMenu, watchWindowed } from './lib/layout';
+import { useNativeTabBar, usesNativeTabBar } from './lib/nativeTabBar';
+import { shellTabs, tabOf, useTabPaths } from './lib/tabs';
 import { DraftProvider } from './model/Drafts';
 import { ShellProvider, useShell } from './model/ShellModel';
 import CalendarPage from './pages/CalendarPage';
@@ -123,13 +124,16 @@ function Shell() {
 function Tabs({ columns }: { columns: boolean }) {
   const { unreadCount } = useShell();
   const { pathname } = useLocation();
+  const menu = useMenu();
   // `matched` hides the tab bar in a conversation with this class (spec 001 §13.6 D14); `stock` has no rule for it.
   // A conversation in the detail column keeps the bar, as `ChatDetail.swift` does in regular width.
   const inConversation = !columns && matchPath('/chat/:chatId', pathname) !== null;
 
+  useNativeTabBar({ selectedTab: tabOf(pathname) ?? 'home', hidden: inConversation || menu, homeBadge: unreadCount });
+
   useEffect(() => {
     const tabBar = document.querySelector<HTMLElement>('ion-tab-bar');
-    return tabBar ? attachTabBarEffect(tabBar) : undefined;
+    return tabBar && !usesNativeTabBar ? attachTabBarEffect(tabBar) : undefined;
   }, []);
 
   return (

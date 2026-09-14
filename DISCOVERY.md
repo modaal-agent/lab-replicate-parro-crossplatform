@@ -937,3 +937,180 @@ bullet "`native-swift/` has two versions".
     `p4-retake.sh` and `p4-fix.sh`).
   - `ionic-capacitor/dist/` and `ionic-capacitor/ios/App/App/public/` hold `matched`'s 11:15:49 web build.
   - Derived data (`dd-p4-*`), round screenshots, notes and logs are in the session scratchpad.
+
+## 2026-09-14 — AGENTS.md: specs may be edited in place while their feature is in progress
+
+- The user, after `6952a01` and `25b7609`: "Please update AGENTS/CLAUDE.md wrt specs discipline: - a spec is a living
+  doc while we're working on it - edits are made in-place once decided (as a supersession note for an important past
+  decision when a subsequent analysis proved it wrong, or in place in simple cases), and commit standalone on the
+  current branch."
+- A first rewrite of the section was reset by the user: "The CLAUDE/AGENTS.md change was too rigid, prescriptive and
+  narrow, I reset the files to their pre-edited states. Just relax the hard "append-only ledger" rule while the spec is
+  in progress."
+- Committed as `50b2683`: AGENTS.md §"Specs are an append-only decision ledger" became §"Specs are a decision record",
+  with the spec editable in place while its feature is worked on and a short note where an important decision is
+  overturned. `cmp AGENTS.md CLAUDE.md` prints nothing.
+
+## 2026-09-14 — Phase 7: a native iOS tab bar in `matched`
+
+From the user on 2026-09-14, after `50b2683`: "Please commit. Then pickup phase 7 - native ios tab bar. Record effort
+that went into wiring the native code into the shell." Spec 001 §6 sets the order: `stay-liquid`, then
+`@capgo/capacitor-native-navigation` (D17), then a hand-written plugin. Work started at 11:53:51. Results are in spec
+001 §20.
+
+### Sources
+
+| source | how | what was taken |
+| --- | --- | --- |
+| `npm view stay-liquid` | command | E404: not on the npm registry |
+| `gh api repos/alistairheath/stay-liquid`, its commits, tree, `package.json`, `StayLiquid.podspec`, `ios/Plugin/TabsBarPlugin.m`, `README.md`, issues | command | HEAD `77a7f57`, 2025-08-21; 48 stars; version 0.1.0; peer `@capacitor/core >=6.0.0`; a CocoaPods podspec and no `Package.swift`; the plugin registered with the `CAP_PLUGIN` macro in Objective-C; README install `npm i https://github.com/alistairheath/stay-liquid`, API `TabsBar.configure`, `show`, `hide`, `select`, `setBadge` |
+| `node_modules/@capacitor/cli/dist/util/spm.js:50–54`, `:300–305` | file | `npx cap sync` writes a plugin into `CapApp-SPM/Package.swift` only if the plugin has a `Package.swift`, and warns otherwise |
+| `npm view @capgo/capacitor-native-navigation`; `gh api repos/Cap-go/capacitor-native-navigation`, `package.json`, `Package.swift`, `src/definitions.ts`, `README.md`, issues | command | 8.3.1, peer `@capacitor/core >=8.0.0`, MPL-2.0, 34 stars, last push 2026-08-20 (`0a1a397`); SPM target `NativeNavigationPlugin`; `setTabbar` options (tabs with `icon.ios.sfSymbol`, `badge`, `selectedId`, `hidden`, `colors.tint`), the `tabSelect` event, CSS variables `--cap-native-*`; 42 issues and pull requests, all closed |
+| `node_modules/@capgo/capacitor-native-navigation/ios/Sources/NativeNavigationPlugin/NativeNavigationPlugin.swift`, 8.3.1, 3163 lines | file | `:82–87` the system tab bar on iOS 26; `:222–239` `setTabbar`; `:781–816` a container view as the bridge view controller's view; `:998–1015` the web view moved into the selected tab's controller; `:909–925`, `:1044–1058` `hidden`; `:1142` `badgeValue`; `:1467–1541` appearance and `tabBar.tintColor`; `:1959–2006` insets and CSS variables; `:2631–2695` the tab and content controllers |
+| `node_modules/@ionic/react/dist/index.js:2296–2345`, `:2436–2475`, `:2560–2612` | file | `IonTabs` takes the tab state from `IonTabBar`; `IonTabBar` keeps each tab's current path and resets the selected tab to its first path on a second click |
+| `node_modules/@ionic/core/components/ion-tab-button.js` | file | the host's `onClick` calls `selectTab`, which emits `ionTabButtonClick` |
+| `node_modules/@ionic/core/components/ion-footer.js` | file | `footer-toolbar-padding` only without the keyboard and without a bottom `ion-tab-bar` in `ion-tabs` |
+| `node_modules/@rdlabo/ionic-theme-ios26/dist/css/default-variables.css`, `ionic-theme-ios26.css` | file | `--ios26-floating-safe-area-bottom: max(10px, calc(var(--ion-safe-area-bottom, 0px) - 12px))`; three rules padding full-screen content and its fade by `60px` plus it; the bottom tab bar `position: absolute` |
+| `node_modules/@capacitor/ios/Capacitor/Capacitor/CAPBridgeViewController.swift:302` | file | the web view's `contentInsetAdjustmentBehavior` from the configuration |
+| `native-swift/TabShell/RootTabView.swift` | file | symbols `house`, `calendar`, `bubble.left`, `gearshape`; `.badge(model.unreadCount)` |
+| `native-swift/xcodegen.yml:50`, `native-swift/TabShell/Assets.xcassets/AccentColor.colorset/Contents.json` | file | `ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME: AccentColor`; sRGB `0xD1`, `0x3C`, `0x63` |
+| `NSImage(systemSymbolName:)` for eight names, `p7/symbols.swift` in the session scratchpad | command | `house.fill`, `bubble.left.fill`, `gearshape.fill` exist; `calendar.fill` does not |
+
+### `stay-liquid` dropped
+
+- 11:55:37 `npm i https://github.com/alistairheath/stay-liquid`: exit 0, 5.99 s; `package-lock.json` resolved
+  `git+ssh://git@github.com/alistairheath/stay-liquid.git#77a7f5727bbae5537da438b7ea0116d01d8359c9`.
+- 11:55:43 `npx cap sync ios`: "[warn] stay-liquid does not have a Package.swift", "[warn] Some installed Capacitor
+  plugins are not compatible with SPM"; `stay-liquid@0.1.0` listed among the iOS plugins; `CapApp-SPM/Package.swift`
+  unchanged (`git diff --quiet`). No Swift of the plugin is compiled into the app: spec 001 §6's "does not build
+  against Capacitor 8.5.2".
+- 11:56:09 `npm uninstall stay-liquid`: `package.json` and `package-lock.json` equal to `25b7609` again (`git status`).
+
+### `@capgo/capacitor-native-navigation` installed
+
+- 11:56:10 `npm i @capgo/capacitor-native-navigation@8.3.1`: "added 1 package", 1.05 s. `npx cap sync ios`: "All
+  Capacitor plugins have a Package.swift file and will be included in Package.swift", 0.38 s; `Package.swift` gains the
+  package and the product.
+- `npm ls --depth=0` before and after differ in one line, `@capgo/capacitor-native-navigation@8.3.1`.
+- Approach chosen before the first build: `IonTabBar` stays in the page, hidden by CSS, and a native `tabSelect` clicks
+  the `ion-tab-button` of the same tab, so `IonTabBar` keeps choosing each tab's page (the sources above). The native
+  bar is hidden in a conversation below 672 px and from 992 px, where `matched`'s CSS bar was hidden and the menu shows.
+
+### Rounds
+
+Builds with `p7-build.sh` in the session scratchpad: `npm run build:matched`, `npx cap copy ios`, Debug `xcodebuild` with
+`PRODUCT_BUNDLE_IDENTIFIER=dev.modaal.lab.tabshell.matched`, installed on `iPhone 16 (iOS 26.5)` and `iPad Pro 13-inch
+(M5)`. iPhone tours with `p7-tour-iphone.sh` (`axe tap`, `axe describe-ui`); iPad tours with the phase 4 XCUITest
+`testTour` through `p7-test.sh`.
+
+- **n1** (build 12:01:00–12:01:17, 17.01 s with the installs): `nativeTabBar.ts`, `useMenu`, the SF Symbols, `ion-tab-bar`
+  hidden. `npx eslint src`: 0 errors, 2 warnings as before; `npx vitest run`: 1 of 1.
+  - iPhone: `axe describe-ui` lists "Tab Bar" at y 769 pt, 393 × 83 pt; the capsule at x 21 pt, 351 × 62 pt; radio
+    buttons Home (value 1), Calendar, Chat and Settings, 92.8 × 54 pt at y 773 pt. Home in the accent colour with its
+    badge.
+  - iPad at 1032 pt, portrait: the menu column and no native bar.
+  - The bottom 120 pt of `home` from n1, `ionic-capacitor-matched-v1` and `native-swift-v1` side by side: n1's bar and
+    `native-swift`'s have the same capsule, selected pill, glyphs, label weight and badge; the CSS bar of
+    `ionic-capacitor-matched-v1` differs in the Calendar and Chat glyphs and the label weight.
+- **n2** (tabs tapped by coordinates): the selected native tab followed each tap, Home, Calendar, Chat, Home. "+" was at
+  y 648–704 pt, 49 pt higher than in pass 2b (its bottom at 753 pt): its rule adds `max(10px, safe-area − 12px)`, 61 px
+  and 16 px, which gives a bottom 148 pt above the screen's for a safe area of 83 pt.
+- **n3, n4, n6:** finding "+" failed three ways. A walk of the full `axe describe-ui` tree found no "New chat"; `axe tap
+  --label "New chat"` printed "No accessibility element matched"; a point probe matched at y 600 pt, outside the button's
+  frame, and the tap missed. The script now reads the frame from the probe and taps its centre.
+- **n5** (iPad `testTour`, 12:05:36, 129.7 s, passed, the n1 build): at 1032 and 1376 pt the menu and no native bar; at
+  816 pt UIKit shows the tabs as a floating bar at the top centre, with the Home badge, above the two columns, the
+  selected tab's text system blue; at 605 pt no bar in the conversation and the bar at the bottom of the chat list.
+- **Edit:** "+" at `--ion-safe-area-bottom` + 16 px with the native bar.
+- **n7** (build 12:09:25): "+" at y 697–753 pt, as pass 2b. During the push and in the open conversation no tab bar in
+  the accessibility tree; the composer above the home indicator; after going back, the list and the bar.
+- **Comparison at 816 pt** (n5 against `ionic-capacitor-matched-ipadmedium-v1` and `native-swift-ipad-v1` at 1032 pt): the
+  native top bar is where `native-swift`'s is. The composer in the detail column stood 61 px plus the floating safe area
+  above the bottom: its rule tests for an `ion-tab-bar` without Ionic's `tab-bar-hidden`, and `ion-tab-bar` is in the page.
+- **n8** (Settings scrolled to the end with three swipes, in `matched` and in `native-swift`): the last `matched` card
+  about 87 pt above the bar's top, `native-swift`'s about 26 pt. The theme pads full-screen content by 60 px plus the
+  floating safe area, 131 px with a safe area of 83 pt.
+- **Edits:** `AccentColor.colorset` and `ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME` in the App target, since the App
+  target had neither (`project.pbxproj:301`, `:323`) and the plugin sets the tint on `tabBar` (`:1541`); the composer rule
+  excluded with the native bar; full-screen content padding and fade from `--ion-safe-area-bottom`.
+- **n9** (build 12:14:06): Settings ends about 40 pt above the bar. **n10** (iPad `testTour`, 128.8 s, passed): at 816 pt
+  the selected tab in the accent colour and the composer at the bottom.
+- **q1** (12:17:31, `p4-iphone.sh matched q1` on the n9 build, against round b0 below the top 162 px):
+  - 0 pixels different: `chat-child`, `chat-direct`, `chat-group`, `push`;
+  - the tab bar area only: `home` 1.372 %, `settings` 1.846 %, `calendar` 3.277 %, `chat-three` and `chat-list` 2.868 %;
+  - the send time: `chat-child-sent` 0.097 %; the date line, as in phase 4: `chat-group-sent` 27.848 %;
+  - content above the bar too: `home-detail` 3.016 % from y 1352 px; `chat-list-after` 2.998 % from y 546 px;
+    `chat-empty` 5.177 % from y 1143 px, its title about 450 pt from the top where b0's and `native-swift-v1`'s are about
+    473 pt; `calendar-selected` 11.396 % from y 669 px, the agenda about 6 pt higher and without the line above "Week 38"
+    that b0 shows, `native-swift-v1` having none; `chat-group-typing` 41.209 % from y 1551 px, the keyboard's background
+    light grey where b0's was dark grey, `native-swift-v1`'s light grey.
+  - Cause of `chat-empty` and `calendar-selected`: `matched/index.css:292–303` pad content that is not full-screen by
+    60 px and 94 px plus the floating safe area, 71 px with the native bar and 22 px before. Cause of the keyboard: the
+    plugin's container view takes the web view's opaque background (`NativeNavigationPlugin.swift:795–804`).
+  - **Edit:** with the native bar, those two paddings from `--ion-safe-area-bottom`, and that + 34 px for the agenda.
+- **q2** (12:20:09, the `stock` build of 12:19:54, against b0): 12 of 15 screens with 0 pixels different; `child-sent`
+  0.059 % and `list-after` 0.148 %, the send times; `group-sent` 26.762 %, the date line as in phase 4.
+- **s1** (`stock` iPad `testTour`, 124.3 s, passed): 1032 pt menu, columns 288+376 and 663+369; 1376 pt menu; 816 pt no
+  menu, two columns and the tab bar; 605 pt one column and the tab bar: the layouts of phase 4's `stock`.
+- **Final build** 12:22:45; its Xcode log has 0 `warning:` lines.
+- **q3** (12:22:55, against b0): 0 pixels different in `chat-child`, `chat-direct`, `chat-group`, `push`; the tab bar area
+  and send time as q1; `chat-child-sent` 0.049 %; `chat-group-sent` 27.848 %; `chat-list-after` 2.945 %; `home-detail`
+  3.016 % and `chat-empty` 3.531 % from y 1215 px, both with the centred content about 1 px away from b0's (83 px of
+  padding against 82); `calendar-selected` 5.969 %, the agenda about 2 pt higher and without the line; `chat-group-typing`
+  41.209 %.
+- **n11** (iPad `testTour`, 120.989 s, passed, ends 12:25:20): the layouts of n5 and n10.
+
+### Before and after builds
+
+`p7-measure.sh` in the session scratchpad, 12:25:59–12:26:42, one run each; the before tree is `git archive 25b7609
+ionic-capacitor` with `npm ci --prefer-offline` (748 packages, 4.14 s). Load average 3.98 to 6.39; Visual Studio Code's
+renderer at 161.8 % CPU before the run.
+
+| step | before | after |
+| --- | --- | --- |
+| `npm run build:matched`, clean | 5.24 s (Vite 3.33 s); `dist/` 6276 KiB, 205 files | 4.27 s (Vite 3.26 s); `dist/` 6300 KiB, 207 files |
+| `npx cap sync ios` | 0.66 s, 1 plugin | 0.55 s, 2 plugins |
+| Debug `xcodebuild`, new derived data | 8.01 s, 1 warning line | 8.66 s, 1 warning line |
+| Release `xcodebuild`, new derived data | 4.81 s, 1 warning line | 9.75 s, 1 warning line |
+| `.app` Debug / Release | 11320 / 11176 KiB | 12184 / 11604 KiB |
+| Release `App` binary | 154,800 bytes | 567,808 bytes |
+| Release `Frameworks/` | 4480 KiB: Capacitor, Cordova | 4480 KiB: Capacitor, Cordova |
+| resolved Swift packages | CapApp-SPM, capacitor-swift-pm 8.5.2, CapacitorKeyboard | the same and CapgoCapacitorNativeNavigation (local) |
+
+### Screenshots
+
+- `p7-copy.sh n11 q3` copied 35 files into `ionic-capacitor-matched-v2` (15, 4276 KiB), `-ipad-v2` (11, 3476 KiB),
+  `-ipadlandscape-v2` (4, 952 KiB, turned upright with `magick -auto-orient`), `-ipadmedium-v2` (3, 4736 KiB) and
+  `-ipadnarrow-v2` (2, 5332 KiB). `magick identify`: 1179 × 2556, 2064 × 2752 and 2752 × 2064 px, orientations `TopLeft`
+  or `Undefined`. `shasum -a 256`: no two of the 139 PNG files under `screenshots/` are equal.
+- A montage of `ipadmedium-v2/calendar-event`, `ipadnarrow-v2/home-detail`, `ipadnarrow-v2/chat-group-sent` and
+  `ipadlandscape-v2/calendar-event`: the top bar with Calendar selected; the bottom bar on the pushed placeholder; no bar
+  in the conversation; the menu and no bar in landscape.
+
+### Effort, checks and side effects
+
+- `p7-effort.py` in the session scratchpad over this session's transcript, from 09:53:51 UTC (11:53:51 local): 142 unique
+  `tool_use` ids, the first at 11:53:59 and the last at 12:27:14, 33.2 minutes, no gap over 10 minutes; Bash 74, Read 50,
+  Edit 11, Write 7. Counted before spec 001 §20 and this entry were written.
+- The same script at 12:40:42, after spec 001 §20, its pointer lines and these entries were written and the user had
+  answered how to commit: 158 tool calls from 11:53:59 to 12:40:42, 46.7 minutes, no gap over 10 minutes; Bash 81,
+  Read 51, Edit 19, Write 7.
+- Tools that behaved differently from what the commands assumed:
+  - `magick … -annotate` printed "unable to read font `'" three times and wrote no file: no font is configured for
+    ImageMagick on this machine. The comparison images were made without labels.
+  - `grep -rn … --include=*.css` in zsh printed "no matches found: --include=*.css": zsh expanded the pattern before
+    `grep` ran. Quoting it, `--include='*.css'`, worked.
+- Checks at 12:27 on the final code: `npx tsc --noEmit` exit 0; `npx eslint src` 0 errors and 2 warnings
+  (`Drafts.tsx:25`, `ShellModel.tsx:97`); `npx vitest run` 1 of 1 passed; `cmp AGENTS.md CLAUDE.md` prints nothing.
+- Side effects on the machine:
+  - `stay-liquid` was fetched from GitHub over `git+ssh` by npm and removed from `node_modules`;
+    `@capgo/capacitor-native-navigation` 8.3.1 is in `ionic-capacitor/node_modules`.
+  - `dev.modaal.lab.tabshell.matched` (built 12:22:45) and `dev.modaal.lab.tabshell.stock` (built 12:19:54) are installed
+    on `iPhone 16 (iOS 26.5)` and `iPad Pro 13-inch (M5)`; both simulators have their status bar time overridden.
+  - `ionic-capacitor/dist/`, `ios/App/App/public/` and `ios/App/App/capacitor.config.json` hold `matched`'s web build from
+    `p7-measure.sh` at 12:26:18.
+  - The session scratchpad holds `p7/base` (the `25b7609` tree with its `node_modules`), derived data `dd-p7-*`, the
+    round screenshots, notes and logs.
+- **Commit.** Asked whether phase 7 goes in one commit or in two (the code, project files and screenshots, then the spec
+  and DISCOVERY.md), the user answered: "Make sure all reflections, discoveries and measurmenets are in, then commit as a
+  single commit."

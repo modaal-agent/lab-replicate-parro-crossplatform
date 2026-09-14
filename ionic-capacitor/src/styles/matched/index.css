@@ -57,6 +57,11 @@ ion-tabs ion-tab-bar.tab-bar-conversation.ios:not(.ios-theme-disabled)[slot='bot
   pointer-events: none;
 }
 
+/* On iOS UIKit draws the tab bar (`nativeTabBar.ts`); `IonTabBar` stays in the page to choose each tab's page. */
+html.native-tab-bar ion-tabs ion-tab-bar {
+  display: none;
+}
+
 /* `.badge()` draws the system red capsule. */
 ion-tab-button ion-badge {
   background: var(--matched-red);
@@ -131,7 +136,7 @@ ion-router-outlet > .ion-page.columns > .ion-page.columns-detail ion-header.head
  * From 672 to 991 px the floating tab bar stays under the columns, and a conversation in the detail column keeps it,
  * so the composer rises above the bar. From 992 px the bar is hidden (`Columns.css`).
  */
-ion-split-pane:not(.split-pane-visible) ion-tabs:has(> ion-tab-bar:not(.tab-bar-hidden)) .columns-detail ion-footer.composer ion-toolbar:last-of-type {
+html:not(.native-tab-bar) ion-split-pane:not(.split-pane-visible) ion-tabs:has(> ion-tab-bar:not(.tab-bar-hidden)) .columns-detail ion-footer.composer ion-toolbar:last-of-type {
   padding-bottom: calc(var(--matched-tab-bar-height) + var(--ios26-floating-safe-area-bottom));
 }
 
@@ -295,6 +300,18 @@ ion-title.stacked-title-large .stacked-title {
  */
 .ion-page:not(:has(ion-footer)) > ion-content.ios:not(.content-fullscreen):has(.agenda-month) {
   --padding-bottom: calc(94px + var(--ios26-floating-safe-area-bottom));
+}
+
+/*
+ * With UIKit's tab bar (`nativeTabBar.ts`) the bottom safe area reaches the bar's top: 83 pt on iPhone 16, where the
+ * two rules above give 82 and 116 px with the floating bar. The agenda keeps its 34 px above the bar.
+ */
+html.native-tab-bar .ion-page:not(:has(ion-footer)) > ion-content.ios:not(.content-fullscreen) {
+  --padding-bottom: var(--ion-safe-area-bottom, 0px);
+}
+
+html.native-tab-bar .ion-page:not(:has(ion-footer)) > ion-content.ios:not(.content-fullscreen):has(.agenda-month) {
+  --padding-bottom: calc(var(--ion-safe-area-bottom, 0px) + 34px);
 }
 
 /* `ContentUnavailableView`: the icon, a title2 bold title and subheadline text, centred in the page. */
@@ -731,6 +748,29 @@ ion-content ion-fab.ios:not(.ios-theme-disabled) ion-fab-button {
 
 ion-content ion-fab.ios:not(.ios-theme-disabled).fab-vertical-bottom {
   bottom: calc(var(--ios26-floating-safe-area-bottom) + var(--matched-tab-bar-height) + 16px);
+}
+
+/* With UIKit's tab bar the web view's bottom safe area ends at the bar's top (`nativeTabBar.ts`). */
+html.native-tab-bar ion-content ion-fab.ios:not(.ios-theme-disabled).fab-vertical-bottom {
+  bottom: calc(var(--ion-safe-area-bottom, 0px) + 16px);
+}
+
+/*
+ * The theme pads full-screen content, and the fade behind its bar, by 60 px and the floating safe area below the bar.
+ * With UIKit's tab bar the bottom safe area already reaches the bar's top, so a page without a footer is padded by that
+ * safe area. Pages with a footer, the conversation, keep the theme's padding.
+ */
+html.native-tab-bar .ion-page:not(:has(ion-footer)) > ion-content.ios:not(.ios-theme-disabled).content-fullscreen:not(:has(.ion-content-scroll-host)) {
+  --padding-bottom: var(--ion-safe-area-bottom, 0px);
+}
+
+html.native-tab-bar .ion-page:not(:has(ion-footer)) > ion-content.ios:not(.ios-theme-disabled).content-fullscreen .ion-content-scroll-host {
+  margin-bottom: calc(var(--ion-safe-area-bottom, 0px) * -1);
+  padding-bottom: var(--ion-safe-area-bottom, 0px);
+}
+
+html.native-tab-bar .ion-page:not(:has(ion-footer)) > ion-content.content-fullscreen::part(background)::after {
+  height: var(--ion-safe-area-bottom, 0px);
 }
 
 ion-content ion-fab.ios:not(.ios-theme-disabled).fab-horizontal-end {

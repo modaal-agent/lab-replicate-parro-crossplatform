@@ -20,14 +20,19 @@ export interface ShellTab {
   /** The tab's first page. */
   href: string;
   icon: string;
+  /**
+   * The SF Symbol of the native tab bar (`nativeTabBar.ts`): the fill variant of `RootTabView.swift`'s symbol, which
+   * SwiftUI's tab bar draws; `calendar` has no fill variant.
+   */
+  symbol: string;
 }
 
 /** The four tabs. `matched` draws filled icons, as `native-swift/`'s tab bar draws its SF Symbols (spec 001 §13.3). */
 export const shellTabs: ShellTab[] = [
-  { id: 'home', title: 'Home', href: '/home', icon: isMatched ? home : homeOutline },
-  { id: 'calendar', title: 'Calendar', href: '/calendar', icon: isMatched ? calendar : calendarOutline },
-  { id: 'chat', title: 'Chat', href: '/chat', icon: isMatched ? chatbubble : chatbubbleOutline },
-  { id: 'settings', title: 'Settings', href: '/settings', icon: isMatched ? settings : settingsOutline },
+  { id: 'home', title: 'Home', href: '/home', icon: isMatched ? home : homeOutline, symbol: 'house.fill' },
+  { id: 'calendar', title: 'Calendar', href: '/calendar', icon: isMatched ? calendar : calendarOutline, symbol: 'calendar' },
+  { id: 'chat', title: 'Chat', href: '/chat', icon: isMatched ? chatbubble : chatbubbleOutline, symbol: 'bubble.left.fill' },
+  { id: 'settings', title: 'Settings', href: '/settings', icon: isMatched ? settings : settingsOutline, symbol: 'gearshape.fill' },
 ];
 
 /** The tab a path is in. */

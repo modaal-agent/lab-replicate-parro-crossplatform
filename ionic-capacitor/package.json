@@ -17,6 +17,7 @@
     "@capacitor/core": "8.5.2",
     "@capacitor/ios": "^8.5.2",
     "@capacitor/keyboard": "^8.0.5",
+    "@capgo/capacitor-native-navigation": "^8.3.1",
     "@ionic/react": "^9.0.0",
     "@ionic/react-router": "^9.0.0",
     "@rdlabo/ionic-theme-ios26": "^9.2.0",
