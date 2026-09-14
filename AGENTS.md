@@ -98,15 +98,14 @@ Habits to avoid (common LLM-isms):
   The slug names the feature and the rest names what that commit does, so the subject after the
   bracket does not repeat the slug. No spec in play, no prefix — do not invent one.
 
-## Specs are an append-only decision ledger
+## Specs are a decision record
 
-- **A spec is amended by addition, never by revision.** While the feature is being worked on, add
-  what was measured, what a phase actually landed and what the plan became — as new lines, new
-  paragraphs or new sections. Do not rewrite or delete a line that is already there, not to fix a
-  path a later change moved, not to correct a decision since superseded, not to tidy. Revising in
-  place destroys the record of what was decided and when.
-- **An addition that supersedes an existing claim names it**, by section, and the superseded section
-  takes a line pointing forward to the addition. Both then read as one document.
+- **While the feature is being worked on, a spec may be edited in place** to keep the plan current.
+  Where later work overturns an important earlier decision, leave a short note saying what it
+  replaced and why.
+- **Once the feature is done, a spec is amended by addition.** An addition that supersedes an
+  existing claim names it by section, and the superseded section takes a line pointing forward to
+  the addition.
 - **A closed spec may take a follow-up file beside it** instead of an appended section —
   `specs/001-<slug>/followup-<topic>.md`. The rule inside it is the same: additions only, and it
   names by section what it supersedes.
@@ -129,8 +128,8 @@ Habits to avoid (common LLM-isms):
 - **Sources read for a spec are listed in a DISCOVERY.md entry** as a table: the source, whether it
   was fetched or seen only in a search result, and what was taken from it.
 - **A discovery that changes a spec is written in both files.** The DISCOVERY.md entry records what
-  was found and names the spec section; the spec takes the change as an addition, under
-  §"Specs are an append-only decision ledger".
+  was found and names the spec section; the spec takes the change under §"Specs are a decision
+  record".
 - **A user's answer is recorded in their words** when it is short, and the entry names the question
   it answers.
 
