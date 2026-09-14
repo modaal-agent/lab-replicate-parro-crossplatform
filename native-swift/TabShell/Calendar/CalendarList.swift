@@ -2,6 +2,7 @@ import SwiftUI
 
 /// `IMG_0211.PNG`: a week strip above an agenda grouped by month and week.
 struct CalendarList: View {
+  @Binding var selection: CalendarEvent.ID?
   private let calendar = Fixture.calendar
   private let months = Agenda.months(events: Fixture.events, today: Fixture.today)
   private let weeks = Agenda.weekStarts(
@@ -16,7 +17,7 @@ struct CalendarList: View {
           ForEach(months) { month in
             MonthPill(date: month.start)
             ForEach(month.weeks) { week in
-              WeekSection(week: week, today: Fixture.today)
+              WeekSection(week: week, today: Fixture.today, selection: $selection)
             }
           }
         }
@@ -42,9 +43,6 @@ struct CalendarList: View {
     .navigationSubtitle(Fixture.subtitle)
     // A large title below the navigation bar is covered by the week strip's scroll edge effect.
     .toolbarTitleDisplayMode(.inlineLarge)
-    .navigationDestination(for: CalendarEvent.self) { event in
-      PlaceholderDetail(title: event.title, systemImage: "calendar")
-    }
   }
 
   /// Selects `day` in the week strip and scrolls the agenda to it, or to the next day it lists.
@@ -72,9 +70,23 @@ private struct MonthPill: View {
   }
 }
 
+/// The page an event card opens, or, in the detail column before a card is selected, a prompt.
+struct EventDetail: View {
+  let eventID: CalendarEvent.ID?
+
+  var body: some View {
+    if let event = Fixture.events.first(where: { $0.id == eventID }) {
+      PlaceholderDetail(title: event.title, systemImage: "calendar")
+    } else {
+      ContentUnavailableView("Select an event", systemImage: "calendar")
+    }
+  }
+}
+
 private struct WeekSection: View {
   let week: AgendaWeek
   let today: Date
+  @Binding var selection: CalendarEvent.ID?
 
   var body: some View {
     VStack(alignment: .leading, spacing: 10) {
@@ -98,8 +110,10 @@ private struct WeekSection: View {
                 }
             }
             ForEach(day.events) { event in
-              NavigationLink(value: event) {
-                EventCard(event: event)
+              Button {
+                selection = event.id
+              } label: {
+                EventCard(event: event, isSelected: selection == event.id)
               }
               .buttonStyle(.plain)
             }
@@ -137,6 +151,7 @@ private struct DayLabel: View {
 
 private struct EventCard: View {
   let event: CalendarEvent
+  let isSelected: Bool
 
   var body: some View {
     HStack(spacing: 12) {
@@ -165,7 +180,14 @@ private struct EventCard: View {
     .padding(.leading, 10)
     .padding(.trailing, 12)
     .frame(maxWidth: .infinity, alignment: .leading)
-    .background(.tint.opacity(0.1), in: .rect(cornerRadius: 16, style: .continuous))
+    .background(.tint.opacity(isSelected ? 0.25 : 0.1), in: .rect(cornerRadius: 16, style: .continuous))
+    .overlay {
+      if isSelected {
+        RoundedRectangle(cornerRadius: 16, style: .continuous)
+          .strokeBorder(.tint, lineWidth: 2)
+      }
+    }
     .contentShape(.rect(cornerRadius: 16, style: .continuous))
+    .accessibilityAddTraits(isSelected ? .isSelected : [])
   }
 }

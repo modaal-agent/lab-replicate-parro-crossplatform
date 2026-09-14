@@ -333,6 +333,8 @@ shows the detail in its detail column. On a compact-width window `NavigationSpli
 stack, so the phone layout stays the same as phase 1; phase 3 checks that with the phase 1
 screenshots.
 
+**Added 2026-09-14:** §18.1 lists what phase 3 changed, including the changes these two did not name.
+
 ### 3.3 Appearance
 
 **Added 2026-09-13:** phase 1 uses `navigationSubtitle(_:)`, so the fallback in the Header item below
@@ -399,6 +401,8 @@ marked as a change toward the iOS system idiom or as a gap.
 **Added 2026-09-13:** §13.8 splits phase 2's fidelity row by variant, and adds the cost of `matched`,
 the web bundle, and build time and app size per variant.
 
+**Added 2026-09-14:** phase 3's measurements are §18.2 and §18.3.
+
 Both builds are measured the same way. Each phase appends its results below this table, with the
 device or simulator, OS version, window size in points, toolchain versions and commit (AGENTS.md
 §"Two builds of one shell").
@@ -429,6 +433,9 @@ with their text unchanged. Sections that cite §10.3 for phases 6 and 7 refer to
 **Added 2026-09-13, in §10.3:** §13.6 D17 adds `@capgo/capacitor-native-navigation` to phase 7, tried after
 `stay-liquid` and before a hand-written plugin. §13.10 O7 amends the requirements of phases 6 and 7,
 and limits phase 7 to the `matched` variant.
+
+**Added 2026-09-14:** phase 3's results are §18; the window widths phase 4 requires (§10.2 O4) are in
+§18.2.
 
 Every commit subject carries `[001-four-tab-shells]`. Each phase ends with its §5 measurements
 appended, and needs its own go-ahead.
@@ -1764,6 +1771,9 @@ This supersedes the screenshot paths named in §11.2, §12.4, §13.1, §13.7, §
 **Added 2026-09-14:** §17.4 changes when `v<N>` goes up and merges `native-swift-v2` into
 `native-swift-v1`. The `v<N>` values in use are now `v1` only.
 
+**Added 2026-09-14:** §18.5 adds the `device` values `ipad`, `ipadlandscape` and `ipadnarrow`, and the
+state tokens `event`, `sidebar` and `draft`.
+
 ```
 screenshots/<build>[-<style>][-<appearance>][-<device>]-v<N>/<surface>[-<state>].png
 ```
@@ -1821,6 +1831,8 @@ and the rule "A new round is a new folder".
 `native-swift-v2` row, the names of `native-swift-v2` in the `ionic-capacitor-stock-v1` row, and the
 second bullet below.
 
+**Added 2026-09-14:** §18.5 lists the three folders phase 3 adds.
+
 All four were taken in the `iPhone 16 (iOS 26.5)` simulator, `70D15E5B-3D95-4290-B3E9-970F68617BE8`,
 393 × 852 pt, portrait, at 1179 × 2556 px, with Xcode 26.6 (17F113) on macOS 26.6.2 (25G83). The section
 in the last column lists the rest of the toolchain.
@@ -1870,3 +1882,127 @@ the files of the two folders are not remakes of the same screens.
   different trees: `Chat/ChatList.swift` had 227 lines at `f88d70e` and 248 after the chat change (§12.4).
 - The 8 files moved from `screenshots/native-swift-v2/` with the same `shasum -a 256`, and the folder was
   removed. Every folder in `screenshots/` is at `v1`.
+
+## 18. Phase 3 results: the wide layout of `native-swift/` (added 2026-09-14)
+
+From the user on 2026-09-14, after `242ad0d` (DISCOVERY.md, entry "Phase 3: iterating on the wide layout of
+`native-swift/`"): "please take phase 3 - native-swift ipad/wide layout. iterate t achive high fidelity UI,
+apply best UX/design practices, save screenshots."
+
+Measured on the working tree on top of `242ad0d`, in which `native-swift/` is unchanged since `b28c7d2`. The
+iteration took rounds w1 to w10; DISCOVERY.md records what each round showed and what changed after it. Rounds
+w7 and w9 tried a change and removed it, so the code at w10 is the code at w6 and w8. `ionic-capacitor/` is
+not changed; its wide layout is phase 4.
+
+### 18.1 What landed, against §3.1, §3.2 and D2
+
+- **`xcodegen.yml`:** `TARGETED_DEVICE_FAMILY: '1,2'` (`:47`) and `UISupportedInterfaceOrientations~ipad`
+  with the four orientations (`:37`), as §3.1 states.
+- **`RootTabView.swift`:** `.tabViewStyle(.sidebarAdaptable)` (`:71`), and a `NavigationSplitView` in each
+  `Tab` in place of the `NavigationStack` (`:24`, `:34`, `:52`, `:63`), as §3.2 states. The four selections
+  are `@State` in `RootTabView`, outside the split views.
+- **The lists** take a `selection` binding, and each tab's detail moves from `navigationDestination(for:)` to
+  the split view's detail column:
+  - Home, Chat and Settings: `List(selection:)` (`HomeList.swift:14`, `ChatList.swift:81`,
+    `SettingsList.swift:73`), with the rows unchanged as `NavigationLink(value:)`. Chat's selection is the
+    chat's id; the `ChatRoute` type is removed.
+  - Calendar: the agenda stays a `ScrollView`; the event cards become `Button`s that set the selection
+    (`CalendarList.swift:114`), and a selected card takes a 25 % accent fill and a 2 pt accent border
+    (`:183`).
+  - Detail views: `HomeDetail` (`HomeList.swift:72`), `EventDetail` (`CalendarList.swift:74`) and
+    `SettingsDetail` (`SettingsList.swift:118`); `ChatDetail` takes an optional id. With no selection the
+    detail column shows "Select a group or a page", "Select an event", "Select a chat" or "Select a setting"
+    in a `ContentUnavailableView`; the Chat detail column is empty while there are no chats
+    (`ChatDetail.swift:20`).
+- **Changes that §3.2 did not name, each found in a round (DISCOVERY.md):**
+
+  | change | where | round | why |
+  | --- | --- | --- | --- |
+  | a `LabelStyle` that tints each row icon, and `.foregroundStyle(.tint)` on "Mark all as read" | `HomeList.swift:49`, `:60`, `:94` | w2, w3 | in `List(selection:)` the icons and the button drew in the primary colour on iPhone; `listItemTint` did not change the icons |
+  | `toolbar(removing: .sidebarToggle)` on each list | `RootTabView.swift:79` | w4 | each split view added a "Hide Sidebar" button beside the tab view's "Toggle sidebar" |
+  | `navigationSplitViewColumnWidth(min: 320, ideal: 375, max: 420)` on each list | `RootTabView.swift:80` | w4 | the default list column was about 320 pt and cut event titles |
+  | the tab bar hidden in a conversation only in compact width | `ChatDetail.swift:56` | w4 | `.toolbar(.hidden, for: .tabBar)` hid the tab bar at the top of the iPad window while a chat was open |
+  | bubbles at most 520 pt wide, by a spacer of `max(60, width − 520)` | `ChatDetail.swift:7`, `:34`, `:37` | w4 | bubbles ran across the detail column, about 830 pt; a `frame(maxWidth:)` on the bubble would give it a flexible frame that the `HStack` sizes before the spacer |
+  | `preferredCompactColumn` bound for Calendar, set to `.detail` on a selection, and the selection cleared when compact width returns to the list | `RootTabView.swift:34`, `:43`, `:46` | w5 | on iPhone a tapped event card opened nothing: a selection set by a `Button` does not push the detail of a collapsed split view |
+  | an empty Chat detail column while there are no chats | `ChatDetail.swift:20` | w6 | "Select a chat" stood beside the list's own empty state |
+
+### 18.2 Measurements (§5, phase 3)
+
+| measure | value | how |
+| --- | --- | --- |
+| devices | `iPad Pro 13-inch (M5)` on iOS 26.5, `7A47789D-1FBC-45E2-821B-8209177A6C67`, 1032 × 1376 pt; `iPhone 16 (iOS 26.5)`, `70D15E5B-3D95-4290-B3E9-970F68617BE8`, 393 × 852 pt | `xcrun simctl list devices` |
+| toolchain | Xcode 26.6 (17F113), iOS 26.5 SDK, Swift 6.3.3, XcodeGen 2.45.4, macOS 26.6.2 (25G83) | `xcodebuild -version`, `swift --version`, `sw_vers` |
+| size of the wide-layout change | 7 files, 160 insertions, 44 deletions in `native-swift/` | `git diff --stat b28c7d2 -- native-swift` on the working tree |
+| app source | 14 Swift files, 1629 lines; 1518 before | `wc -l` |
+| navigation primitives | `TabView` with `.sidebarAdaptable`; four `NavigationSplitView`s; `List(selection:)` in three tabs. Code beside them: the Calendar compact column, two `onChange` modifiers (`RootTabView.swift:43`–`48`); the bubble width, a constant, a `@State` width, an `onGeometryChange` and a spacer length (`ChatDetail.swift:7`, `:12`, `:34`, `:37`, `:122`); the icon label style, 9 lines (`HomeList.swift:94`–`102`). No code reads the window width or the size class to choose a layout; `horizontalSizeClass` is read only to hide the tab bar in a conversation and to clear the Calendar selection | the files in §18.1 |
+| window width at which the layout changes | regular at 672 pt and wider, compact at 666 pt and narrower, the same when narrowing and when widening; the window width moved in steps of 6 pt | `iPad Pro 13-inch (M5)` portrait, window height 1376 pt, resized by XCUITest drags on the window's bottom trailing corner; regular read as the presence of the tab bar's "Toggle sidebar" button, compact as the presence of the bottom tab bar |
+| narrowest window | 375 pt | the same drags |
+| clean Debug build | 6.08 s real; 5.47 s at `242ad0d` | `/usr/bin/time -p xcodebuild … build` with a new `-derivedDataPath`, `iPhone 16 (iOS 26.5)` destination |
+| clean Release build | 5.00 s real; 5.12 s at `242ad0d` | the same with `-configuration Release`, run directly after the Debug build |
+| app size, simulator build | Debug `.app` 2156 KiB, of which `TabShell.debug.dylib` 1,938,304 bytes; Release `.app` 1444 KiB, of which `TabShell` 1,307,040 bytes. At `242ad0d`: 1940 KiB, 1,719,856 bytes; 1308 KiB, 1,169,328 bytes | `du -sk`, `ls -l` |
+| warnings | one per build, from `appintentsmetadataprocessor`, as in §11.2; no Swift compiler warnings | `grep -c warning:` |
+| compact width unchanged | 10 screens retaken on `iPhone 16 (iOS 26.5)` at round w10 have 0 pixels different from `screenshots/native-swift-v1/` below the top 162 px (the status bar): `home`, `home-detail`, `calendar`, `calendar-selected`, `chat-empty`, `chat-list`, `chat-group`, `chat-direct`, `chat-child`, `settings` | `imgdiff.swift` in the session scratchpad; a pixel differs when R, G or B differs by more than 8 |
+
+The Debug and Release times at `242ad0d` were taken on this machine on 2026-09-14 before the first edit of phase
+3. The iPhone screens are not saved again: they have the same pixels as `native-swift-v1`.
+
+### 18.3 State across a resize (§5)
+
+Taken at round w10 on a new install, by XCUITest, from the window at 1032 pt to a compact-width window and back
+to 1032 pt with SpringBoard's "Zoom" window control:
+
+| tab | state at 1032 pt | at compact width | back at 1032 pt |
+| --- | --- | --- | --- |
+| Home | "Group 6/7/8 B" selected, its detail shown | at 567 pt: the group's detail on screen with a back button | the group selected and its detail shown |
+| Calendar | "Charity market" selected | at 596 pt: the event's detail on screen with a back button | the event selected and its detail shown |
+| Chat | three chats, "Group 6/7/8 B" open, "Draft kept across a resize" typed and not sent | at 586 pt: the conversation on screen with the draft in the composer | the conversation and the draft |
+
+- The tab selected at 1032 pt is the tab selected back at 1032 pt, in all three. At compact width the driver
+  did not read which tab the bottom tab bar marks as selected; the screenshots in §18.5 show the detail of the
+  tab that was selected.
+- The software keyboard covers the window's resize corner: with the draft's field focused, the drag left the
+  window at 1032 pt. The Chat row is taken after switching to Home and back to Chat, which ends the field's
+  focus.
+- The scroll position was not measured.
+
+### 18.4 Behaviour in regular width
+
+- **Portrait, 1032 pt:** the tabs are a floating bar at the top with a "Toggle sidebar" button; the list column
+  is about 375 pt; the detail column fills the rest.
+- **The sidebar in portrait:** "Toggle sidebar" opens the tabs as a sidebar over the content, which dims; a tap
+  on the dimmed content, the sidebar's button or a tab closes it. The Home badge shows as "1" on the sidebar
+  row.
+- **Landscape, 1376 pt:** the tabs are the bar at the top until "Toggle sidebar" is tapped; the sidebar then
+  stands as a column beside the list column and the detail, and does not dim them.
+- **`defaultAdaptableTabBarPlacement(.sidebar)` was tried and removed (round w7).** The modifier is in the iOS
+  26.5 SDK for iOS 18.0 and later (SwiftUI `:23015`, `:23021`). With it, the sidebar opened over the dimmed
+  content at every launch in portrait. Without it the sidebar is one tap on "Toggle sidebar" away. Phase 5
+  tries `defaultTabBarPlacement(_:)` (iOS 27.0, §1.4) on iPhone Duo.
+- **Open: the tab bar over the navigation bars after the sidebar overlay (rounds w8, w9).** In portrait at
+  1032 pt, once the sidebar has been shown over the content and closed, the detail's and the list column's
+  navigation bars move from y 86 and 150 pt to y 42 pt, under the tab bar at the top, and stay there until the
+  window changes size: after a rotation to landscape and back they are at 86 and 150 pt again. It happens
+  whichever way the sidebar is closed, on a new install, and with `toolbar(removing: .sidebarToggle)` removed.
+  The iOS 26.5 SDK has no modifier that reads or sets whether the sidebar is shown, so the app has no hook to
+  lay the columns out again. Not tried: a `TabView` without `NavigationSplitView` in the tabs, and the iOS
+  27.0 simulator runtime.
+
+### 18.5 Screenshots
+
+All taken at round w10 on the working tree on top of `242ad0d`, with the status bar overridden to 9:41, by
+`XCUIScreen.main.screenshot()` in the XCUITest driver (session scratchpad, not committed). They are the
+first `native-swift/` screenshots with a `device` part (§17.1):
+
+| folder | files | device part | round | working tree on top of | added in |
+| --- | --- | --- | --- | --- | --- |
+| `native-swift-ipad-v1` | 12: `home`, `home-detail`, `home-sidebar`, `calendar`, `calendar-event`, `chat-empty`, `chat-list`, `chat-group`, `chat-group-typing`, `chat-group-sent`, `settings`, `settings-detail` | `ipad`: `iPad Pro 13-inch (M5)` on iOS 26.5, portrait, the window zoomed to 1032 × 1376 pt; 2064 × 2752 px | w10 | `242ad0d` | the commit that adds this section |
+| `native-swift-ipadlandscape-v1` | 4: `home-detail`, `calendar-event`, `calendar-event-sidebar`, `chat-group-sent` | `ipadlandscape`: the same device in landscape, 1376 × 1032 pt; 2752 × 2064 px, stored rotated by the driver and turned upright with `sips -r 270` | w10 | `242ad0d` | the same |
+| `native-swift-ipadnarrow-v1` | 3: `home-detail`, `calendar-event`, `chat-group-draft` | `ipadnarrow`: the same device in portrait, the window narrowed to compact width, 567 pt for `home-detail`, 596 pt for `calendar-event`, 586 pt for `chat-group-draft`; the home screen around the window is in the picture; 2064 × 2752 px | w10 | `242ad0d` | the same |
+
+- **New state tokens:** `event`, an event card opened (`calendar-selected` stays the iPhone name for a day
+  selected in the week strip); `sidebar`, the tabs' sidebar shown; `draft`, text typed in the composer and not
+  sent. `settings-detail` names a Settings row's page as `home-detail` names a Home row's.
+- **`home-sidebar` is the last portrait screenshot** of the tour: after it the columns' navigation bars lie
+  under the tab bar (§18.4), and the rotation to landscape that follows restores them.
+- **Not saved:** a landscape Settings screenshot. The tour's shot for it showed the Home tab, the same bytes as
+  `home-detail` (`shasum -a 256`), and was removed before this section was written.

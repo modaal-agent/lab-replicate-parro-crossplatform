@@ -1,18 +1,27 @@
 import SwiftUI
 
-/// A conversation (spec 001 §12.1): the chat's messages in bubbles above a composer.
+/// A conversation (spec 001 §12.1): the chat's messages in bubbles above a composer. With no chat
+/// selected, in the detail column of a regular-width window, a prompt.
 struct ChatDetail: View {
-  let chatID: ChatThread.ID
+  /// A bubble's widest, so that lines stay readable in a wide detail column.
+  private static let maxBubbleWidth: CGFloat = 520
+
+  let chatID: ChatThread.ID?
   @Environment(ShellModel.self) private var model
+  @Environment(\.horizontalSizeClass) private var horizontalSizeClass
+  @State private var contentWidth: CGFloat = 0
   @State private var draft = ""
   @State private var position = ScrollPosition(edge: .bottom)
   @FocusState private var isComposerFocused: Bool
 
   var body: some View {
-    if let chat = model.chat(id: chatID) {
+    if let chatID, let chat = model.chat(id: chatID) {
       conversation(chat)
+    } else if model.chats.isEmpty {
+      // The list column already shows the empty state; a second prompt beside it has nothing to select.
+      Color.clear
     } else {
-      ContentUnavailableView("No chat", systemImage: "bubble.left")
+      ContentUnavailableView("Select a chat", systemImage: "bubble.left")
     }
   }
 
@@ -20,9 +29,12 @@ struct ChatDetail: View {
     ScrollView {
       LazyVStack(spacing: 0) {
         ForEach(MessageRow.rows(for: chat.messages)) { row in
-          MessageRowView(row: row, showsSenders: chat.kind == .group)
+          MessageRowView(
+            row: row, showsSenders: chat.kind == .group,
+            minSpacerLength: max(60, contentWidth - Self.maxBubbleWidth))
         }
       }
+      .onGeometryChange(for: CGFloat.self) { $0.size.width } action: { contentWidth = $0 }
       // 14 pt leaves the 4 pt tail tip 10 pt from the screen edge.
       .padding(.horizontal, 14)
       .padding(.bottom, 8)
@@ -40,7 +52,8 @@ struct ChatDetail: View {
     .navigationTitle(chat.title)
     .navigationSubtitle(chat.subtitle)
     .navigationBarTitleDisplayMode(.inline)
-    .toolbar(.hidden, for: .tabBar)
+    // On a compact-width window the conversation covers the tab bar; beside the list the tabs stay.
+    .toolbar(horizontalSizeClass == .compact ? .hidden : .automatic, for: .tabBar)
     .toolbar {
       ToolbarItem(placement: .topBarTrailing) {
         Avatar(initials: chat.initials, symbol: chat.symbol, color: chat.color, size: 36)
@@ -105,6 +118,8 @@ struct MessageRow: Identifiable {
 private struct MessageRowView: View {
   let row: MessageRow
   let showsSenders: Bool
+  /// The space kept free beside a bubble: 60 pt, or more where that would make the bubble too wide.
+  let minSpacerLength: CGFloat
 
   private let avatarSize: CGFloat = 28
   private let avatarSpacing: CGFloat = 8
@@ -127,7 +142,7 @@ private struct MessageRowView: View {
       }
       HStack(alignment: .bottom, spacing: avatarSpacing) {
         if message.isOutgoing {
-          Spacer(minLength: 60)
+          Spacer(minLength: minSpacerLength)
         } else if showsSenders {
           if row.endsRun, let sender = message.sender {
             Avatar(initials: sender.initials, color: sender.color, size: avatarSize)
@@ -137,7 +152,7 @@ private struct MessageRowView: View {
         }
         MessageBubble(message: message, hasTail: row.endsRun)
         if !message.isOutgoing {
-          Spacer(minLength: 60)
+          Spacer(minLength: minSpacerLength)
         }
       }
       if let receipt = row.receipt {

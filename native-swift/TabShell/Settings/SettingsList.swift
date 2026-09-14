@@ -67,8 +67,10 @@ struct SettingsList: View {
   ]
   private static let about: [SettingsRoute] = [.whatsNew, .downloads]
 
+  @Binding var selection: SettingsRoute?
+
   var body: some View {
-    List {
+    List(selection: $selection) {
       Section {
         ForEach(Self.general) { route in
           link(to: route)
@@ -95,9 +97,6 @@ struct SettingsList: View {
     }
     .navigationTitle("Settings")
     .navigationSubtitle(Fixture.subtitle)
-    .navigationDestination(for: SettingsRoute.self) { route in
-      PlaceholderDetail(title: route.title, systemImage: route.systemImage)
-    }
   }
 
   private func link(to route: SettingsRoute) -> some View {
@@ -111,6 +110,19 @@ struct SettingsList: View {
       } else {
         SettingsLabel(route: route)
       }
+    }
+  }
+}
+
+/// The page a Settings row opens, or, in the detail column before a row is selected, a prompt.
+struct SettingsDetail: View {
+  let route: SettingsRoute?
+
+  var body: some View {
+    if let route {
+      PlaceholderDetail(title: route.title, systemImage: route.systemImage)
+    } else {
+      ContentUnavailableView("Select a setting", systemImage: "gearshape")
     }
   }
 }

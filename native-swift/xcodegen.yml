@@ -34,12 +34,17 @@ targets:
         - UIInterfaceOrientationPortrait
         - UIInterfaceOrientationLandscapeLeft
         - UIInterfaceOrientationLandscapeRight
+        UISupportedInterfaceOrientations~ipad:
+        - UIInterfaceOrientationPortrait
+        - UIInterfaceOrientationPortraitUpsideDown
+        - UIInterfaceOrientationLandscapeLeft
+        - UIInterfaceOrientationLandscapeRight
     settings:
       base:
         PRODUCT_BUNDLE_IDENTIFIER: dev.modaal.lab.tabshell
         CODE_SIGN_STYLE: Automatic
-        # iPhone only until phase 3 (spec 001 D2).
-        TARGETED_DEVICE_FAMILY: '1'
+        # iPhone and iPad from phase 3 (spec 001 D2).
+        TARGETED_DEVICE_FAMILY: '1,2'
         SWIFT_STRICT_CONCURRENCY: complete
         ASSETCATALOG_COMPILER_APPICON_NAME: AppIcon
         ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME: AccentColor

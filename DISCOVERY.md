@@ -633,3 +633,85 @@ bullet "`native-swift/` has two versions".
   the Chat list built from different trees; §17.4 names the round of each file.
 - The header comment of `ionic-capacitor/src/styles/matched/index.css` now names only
   `screenshots/native-swift-v1/`.
+
+## 2026-09-14 — Phase 3: iterating on the wide layout of `native-swift/`
+
+- **From the user, after `242ad0d`:** "please take phase 3 - native-swift ipad/wide layout. iterate t achive
+  high fidelity UI, apply best UX/design practices, save screenshots."
+- **Simulators:** `iPad Pro 13-inch (M5)` on iOS 26.5, `7A47789D-1FBC-45E2-821B-8209177A6C67`, 1032 × 1376 pt,
+  booted for this phase; `iPhone 16 (iOS 26.5)` for the compact-width check. A third simulator, `iPhone 18 Pro`
+  on iOS 27.0, was already booted and was not used. Xcode 26.6 (17F113), XcodeGen 2.45.4.
+- **Before the change** (tree at `242ad0d`, `TARGETED_DEVICE_FAMILY: '1'`): the app runs on the iPad in a
+  390 × 844 pt window (`axe describe-ui`, application frame). Clean builds on that tree: Debug 5.47 s, Release
+  5.12 s (`/usr/bin/time -p`, new `-derivedDataPath`). A first attempt, with the timing output piped to
+  `tail`, printed no timings; the second wrote them to files.
+- **iPadOS 26.5 opens the app in a window.** The first launch drew TabShell in a 635 pt wide window at x = 199 pt,
+  in compact width, with window controls at its top leading corner. `axe describe-ui` reports frames relative
+  to the window.
+- **AXe 1.7.1 input does not reach the iPad simulators on iOS 26.5.** `axe tap` by label and by coordinates,
+  and `axe button home`, printed success and changed nothing on `iPad Pro 13-inch (M5)`, before and after
+  `xcrun simctl shutdown` and `boot`, and on `iPad Air 11-inch (M4)` (iOS 26.5, booted for the test and shut
+  down after). `axe tap` on `iPhone 16 (iOS 26.5)` in the same session worked. `axe drag` stops with
+  "FBSimulatorHIDEvent does not support touch move events."
+- **XCUITest drives the iPad instead.** A project in the session scratchpad (not committed) has a host app
+  and a UI test bundle that drives `dev.modaal.lab.tabshell` by bundle identifier:
+  - `springboard.buttons["Zoom-button"]`, after a tap on the window's collapsed controls, makes the window
+    1032 × 1376 pt; SpringBoard also lists `Close-button` and `Minimize-button`.
+  - `press(forDuration:thenDragTo:)` from 5 pt inside the window's bottom trailing corner resizes the window.
+    A drag of 6 pt changed nothing; each resize also moves the window's origin. With the software keyboard up,
+    the drag did not resize the window.
+  - `XCUIDevice.shared.orientation = .landscapeLeft` rotates the device. `XCUIScreen.main.screenshot()` in
+    landscape is stored rotated a quarter turn; `sips -r 270` turns it upright.
+  - The tab bar's sidebar button has the label "Toggle sidebar"; with the sidebar shown it is "Hide Sidebar",
+    identifier `ToggleSidebar`. A query by the identifier `ToggleSideBar`, read from an earlier element dump,
+    matched nothing.
+  - `xcodebuild test` stayed running about 10 minutes after a failed test; `-collect-test-diagnostics never`
+    was used afterwards.
+- **The window width at which the layout changes**, in `iPad Pro 13-inch (M5)` portrait, window height
+  1376 pt, read from `app.windows.firstMatch.frame` after each drag; "regular" means the tab bar's "Toggle
+  sidebar" button exists, "compact" that the bottom tab bar exists:
+  - Narrowing in drags of 12 pt, each of which changed the width by 6 pt: 702, 696, 690, 684, 678 and 672 pt
+    regular; 666, 660, 654, 648, 642, 636 and 630 pt compact.
+  - Widening in the same drags: 636 to 666 pt compact; 672, 678, 684 and 690 pt regular.
+  - The switch lies between 666 and 672 pt in both directions. A first run with drags to absolute widths
+    (`testResize`) gave 715 pt regular, 661 pt compact, and a narrowest window of 375 pt. A second run with
+    absolute widths from 760 pt gave widths alternating between about 500 and 905 pt and was not used.
+- **Rounds.** The compact-width check in each round retook screens on `iPhone 16 (iOS 26.5)` with AXe and
+  compared them with `screenshots/native-swift-v1/` by `imgdiff.swift` (session scratchpad), below the top
+  162 px.
+
+  | round | what the screenshots or checks showed | change |
+  | --- | --- | --- |
+  | w1 | on iPhone, `home` differed in 0.419 % of pixels: in `List(selection:)` the row icons and "Mark all as read" drew in the primary colour instead of the accent colour. `home-detail` differed in the Home badge only, because the v1 script had tapped "Mark all as read" first; retaken that way it matched | `.listItemTint(Color.accentColor)`, and `.foregroundStyle(.tint)` on the button (w2) |
+  | w2 | `home` still differed in the icon column (x 93–175 px): `listItemTint` did not change the icons | a `LabelStyle` that sets `.foregroundStyle(.tint)` on the icon, in place of `listItemTint` (w3); `home` then matched |
+  | w3 | on the zoomed iPad window: the tabs as a bar at the top with "Toggle sidebar"; each list column carried a second button, "Hide Sidebar"; the list column was about 320 pt and cut "Book week opening assembly…" to "Book week opening asse…"; opening a chat hid the tab bar; bubbles ran about 830 pt wide; the keyboard showed a "Type English and Dutch" tip after sending | `toolbar(removing: .sidebarToggle)` and `navigationSplitViewColumnWidth(min: 320, ideal: 375, max: 420)` on each list; the conversation hides the tab bar only in compact width; bubbles at most 520 pt (w4) |
+  | w4 | on iPhone, a tapped event card opened nothing (no back button, no placeholder text in `axe describe-ui`) | `preferredCompactColumn` bound for the Calendar split view (w5) |
+  | w5 | on iPhone, the card opens its detail, back returns to a screen equal to `calendar`, and the same card opens it again; on iPad, "Select a chat" stood beside the list's "Your chats will appear here" | an empty detail column while there are no chats (w6) |
+  | w6 | 10 iPhone screens equal to `native-swift-v1` | none |
+  | w7 | `.defaultAdaptableTabBarPlacement(.sidebar)` on the `TabView`: in portrait the sidebar opened over the dimmed content at every launch; after it closed, the tab bar at the top lay over the list column's navigation bar and its "Home" title; in landscape, with the sidebar shown, the sidebar, the list and the detail stood side by side | removed (w8, the w6 code), for the overlay at every launch |
+  | w8 | the tour showed the same overlap after it opened and closed the sidebar, without the modifier. `testOverlay` on a new install (`xcrun simctl uninstall`, then `install`): before the overlay the detail's navigation bar is at y 86 pt and the list's at y 150 pt; after the overlay closes by a tap on the dimmed content, by the sidebar's button or by a tab in the sidebar, both are at y 42 pt, under the tab bar, in two passes, 1.5 s and 5 s after, and after switching to Calendar | none. The overlap named in the w7 row has this cause, not the modifier |
+  | w9 | `toolbar(removing: .sidebarToggle)` removed as a trial: the same y values in every step; after a rotation to landscape and back to portrait, the bars are at y 86 and 150 pt again | restored (w10, the w8 code) |
+  | w10 | 10 iPhone screens equal to `native-swift-v1`; the state and screenshot runs below | none |
+
+- **`defaultAdaptableTabBarPlacement(_:)` is available on iOS.** Its declaration at SwiftUI `:23021` of the iOS
+  26.5 simulator SDK is in an extension marked `@available(iOS 18.0, *)` (`:23015`). An earlier read in this
+  phase printed the ranges `:19955`–`:19975` and `:23018`–`:23050` one after the other and took the
+  `@available(visionOS 2.0, *)` and `@available(iOS, unavailable)` lines at `:19972`–`:19973`, which belong to
+  `extension SwiftUICore.CustomHoverEffect` (`hoverEffectGroup`), for the modifier's own.
+  `TabViewCustomization`'s `subscript(sidebarVisibility:)` (`:19625`) sets whether one tab is listed in the
+  sidebar.
+- **State across a resize, round w10, on a new install:** Home with "Group 6/7/8 B" selected, narrowed to
+  567 pt, shows the group's detail with a back button; Calendar with "Charity market" selected, at 596 pt, shows
+  the event's detail; Chat with "Group 6/7/8 B" open and a draft typed, at 586 pt, shows the conversation with
+  the draft. Back at 1032 pt, each has its selection and its detail. Spec 001 §18.3.
+- **Screenshots, round w10:** 12 files in `screenshots/native-swift-ipad-v1/` (3436 KiB), 4 in
+  `native-swift-ipadlandscape-v1/` (1228 KiB), 3 in `native-swift-ipadnarrow-v1/` (8156 KiB; each file holds
+  the home screen wallpaper around the narrowed window). `shasum -a 256` finds no two equal files among them.
+  - The copy script took the landscape Settings screenshot as `settings-detail.png`; it showed the Home tab
+    with the same SHA-256 as `home-detail.png`, because the tour switches to Home before rotating. The file was
+    deleted from `screenshots/native-swift-ipadlandscape-v1/` before it was committed.
+  - A background script in zsh that used the glob qualifier `(N)` stopped at "no matches found" before
+    rotating the landscape screenshots and before the clean builds; both were run again by hand.
+- **Clean builds at round w10:** Debug 6.08 s, Release 5.00 s; Debug `.app` 2156 KiB, Release `.app` 1444 KiB;
+  one `warning:` line per build, from `appintentsmetadataprocessor`.
+- **Results and the open overlap:** spec 001 §18.

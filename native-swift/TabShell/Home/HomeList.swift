@@ -7,10 +7,11 @@ enum HomeRoute: Hashable {
 
 /// `IMG_0210.PNG`: the groups of this school year, the actions, and the news row.
 struct HomeList: View {
+  @Binding var selection: HomeRoute?
   @Environment(ShellModel.self) private var model
 
   var body: some View {
-    List {
+    List(selection: $selection) {
       Section {
         ForEach(model.groups) { group in
           NavigationLink(value: HomeRoute.group(group.id)) {
@@ -45,6 +46,7 @@ struct HomeList: View {
         } label: {
           Label("Mark all as read", systemImage: "checkmark.circle")
         }
+        .foregroundStyle(.tint)
         .disabled(model.unreadCount == 0)
       }
 
@@ -54,6 +56,8 @@ struct HomeList: View {
         }
       }
     }
+    // A list with a selection draws its row icons and buttons in the primary colour.
+    .labelStyle(TintedIconLabelStyle())
     .navigationTitle("Home")
     .navigationSubtitle(Fixture.subtitle)
     .toolbar {
@@ -61,14 +65,18 @@ struct HomeList: View {
         Button("Search", systemImage: "magnifyingglass") {}
       }
     }
-    .navigationDestination(for: HomeRoute.self) { route in
-      destination(for: route)
-    }
   }
+}
 
-  @ViewBuilder
-  private func destination(for route: HomeRoute) -> some View {
+/// The page a Home row opens, or, in the detail column before a row is selected, a prompt.
+struct HomeDetail: View {
+  let route: HomeRoute?
+  @Environment(ShellModel.self) private var model
+
+  var body: some View {
     switch route {
+    case nil:
+      ContentUnavailableView("Select a group or a page", systemImage: "house")
     case .group(let id):
       PlaceholderDetail(title: model.group(id: id)?.name ?? "Group", systemImage: "person.3")
     case .previousYears:
@@ -79,6 +87,16 @@ struct HomeList: View {
       PlaceholderDetail(title: "Privacy preferences", systemImage: "hand.raised")
     case .news:
       PlaceholderDetail(title: "Parro news", systemImage: "megaphone")
+    }
+  }
+}
+
+private struct TintedIconLabelStyle: LabelStyle {
+  func makeBody(configuration: Configuration) -> some View {
+    Label {
+      configuration.title
+    } icon: {
+      configuration.icon.foregroundStyle(.tint)
     }
   }
 }

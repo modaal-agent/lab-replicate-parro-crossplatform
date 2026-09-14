@@ -33,14 +33,11 @@ enum ChatFilter: CaseIterable, Identifiable {
   }
 }
 
-/// A chat row's navigation value. The conversation reads the chat from `ShellModel` by id, so it
-/// shows messages sent after the row was tapped.
-struct ChatRoute: Hashable {
-  let id: ChatThread.ID
-}
-
-/// `IMG_0212.PNG`: filter chips, the chat list or its empty state, and "+" to add a chat.
+/// `IMG_0212.PNG`: filter chips, the chat list or its empty state, and "+" to add a chat. The selection
+/// is a chat's id, and the conversation reads the chat from `ShellModel`, so it shows messages sent
+/// after the row was selected.
 struct ChatList: View {
+  @Binding var selection: ChatThread.ID?
   @Environment(ShellModel.self) private var model
   @State private var filter: ChatFilter?
 
@@ -66,9 +63,6 @@ struct ChatList: View {
           Button("Search", systemImage: "magnifyingglass") {}
         }
       }
-      .navigationDestination(for: ChatRoute.self) { route in
-        ChatDetail(chatID: route.id)
-      }
   }
 
   @ViewBuilder
@@ -84,8 +78,8 @@ struct ChatList: View {
         "No \(filter.title.lowercased())s", systemImage: filter.systemImage,
         description: Text("Chats that match this filter will appear here."))
     } else {
-      List(visibleChats) { chat in
-        NavigationLink(value: ChatRoute(id: chat.id)) {
+      List(visibleChats, selection: $selection) { chat in
+        NavigationLink(value: chat.id) {
           ChatRow(chat: chat)
         }
         // The wider leading inset leaves room for the unread dot, as in Messages.
