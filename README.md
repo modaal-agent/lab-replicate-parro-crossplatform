@@ -16,7 +16,7 @@ The plan — the screens, the scope, the phases and what is compared — is
 | `_assets/` | the reference screenshots, one per screen |
 | `ionic-capacitor/` | the Ionic + Capacitor build (added with its first commit) |
 | `native-swift/` | the SwiftUI build (added with its first commit) |
-| `screenshots/` | screenshots taken of the builds, one folder per build, styling variant and round; spec 001 §17 gives the folder and file names |
+| `screenshots/` | screenshots taken of the builds, one folder per build, styling variant and round; spec 001 §17 gives the folder and file names. `index-<device>.html` shows one device's screenshots of `native-swift` and `ionic-capacitor` side by side or split (§17.5) |
 | `specs/NNN-slug/spec.md` | the plan, the measurements and the decisions behind a change |
 | `DISCOVERY.md` | the append-only log of findings, side effects, sources and decisions, in order |
 | `.github/workflows/ci.yml` | the `rules` job: `AGENTS.md` and `CLAUDE.md` are byte-identical |

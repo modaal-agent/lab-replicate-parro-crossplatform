@@ -1798,6 +1798,9 @@ state tokens `event`, `sidebar` and `draft`.
 
 **Added 2026-09-14:** §20.6 adds the first `v2` folders, five `ionic-capacitor-matched` folders.
 
+**Added 2026-09-14:** §17.5 adds files at the root of `screenshots/`, beside the folders: `index-<device>.html` pages
+and the files that build them.
+
 ```
 screenshots/<build>[-<style>][-<appearance>][-<device>]-v<N>/<surface>[-<state>].png
 ```
@@ -1914,6 +1917,35 @@ the files of the two folders are not remakes of the same screens.
   different trees: `Chat/ChatList.swift` had 227 lines at `f88d70e` and 248 after the chat change (§12.4).
 - The 8 files moved from `screenshots/native-swift-v2/` with the same `shasum -a 256`, and the folder was
   removed. Every folder in `screenshots/` is at `v1`.
+
+### 17.5 Index pages (added 2026-09-14)
+
+From the user on 2026-09-14, after `0756c07` (DISCOVERY.md, entry "Screenshot index pages, one per device"): "Please
+create screenshots/index-<platform>.html page that lists every surface the screenshot is available for as a row in
+table."
+
+Files at the root of `screenshots/`, beside the folders:
+
+| file | written by | holds |
+| --- | --- | --- |
+| `build-index.sh` | hand | reads each folder name as §17.2 says, writes `manifest.js`, and creates `index-<device>.html` for a device value that has no page |
+| `manifest.js` | `build-index.sh` | each folder, its file names and each PNG's pixel size from the IHDR chunk; the §17.1 part values that are not device values |
+| `index-<device>.html` | `build-index.sh`, then hand | the device value in `<body data-device>`, the window setup with the sections that record it, and optional `data-left` and `data-right` |
+| `viewer.js`, `viewer.css` | hand | the page layout and behaviour shared by every `index-<device>.html` |
+
+- **`<device>`** is the §17.1 `device` value, or `iphone` for folders without one. Pages: `iphone`, `ipad`,
+  `ipadlandscape`, `ipadmedium`, `ipadnarrow`, `ipadduoinner`, `ipadduohalf`, `ipadduoportrait`.
+- **Rows:** one per file name in any folder of the page's device, ordered by surface (`home`, `calendar`, `chat`,
+  `settings`), then by name. A column without that file shows a placeholder naming the folder.
+- **Columns:** a `native-swift` choice on the left and an `ionic-capacitor` choice on the right, each a folder or a
+  folder prefix. A prefix takes each screen from the highest version that has it (§17.2). The defaults are the page's
+  `native-swift` prefix and its `ionic-capacitor-matched` prefix. `index-ipadmedium.html` sets the left column to
+  `native-swift-ipad`, because `native-swift` has no `ipadmedium` folder (§19.6).
+- **View switch:** side by side, or split: the right screenshot drawn over the left one and clipped to the right of a
+  divider, moved by dragging with a mouse or pen, by touching the divider, or with the arrow keys, Home and End. The URL
+  keeps the view and both choices as `?mode=split&left=…&right=…`.
+- **`manifest.js` lists the folders present when `build-index.sh` last ran.** The pages load it with `<script src>`,
+  which works from `file://`.
 
 ## 18. Phase 3 results: the wide layout of `native-swift/` (added 2026-09-14)
 

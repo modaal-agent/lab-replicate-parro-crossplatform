@@ -1437,3 +1437,71 @@ exists. Steps 1 to 8 need no iOS 27.1 SDK.
 | bars on the side (iOS 27.1 SDK) | `TabView` and navigation bars are system bars | the tab bar is a `UITabBarController`; headers are `ion-toolbar` | steps 6, 9, 10 |
 | asymmetric insets | SwiftUI safe areas | `env()` per side in 3 rules, bottom arithmetic removed in phase 7 | step 3 |
 | fold region | `ReservedRegion`, iOS 27.1 | no web API | steps 5, 11 |
+
+## 2026-09-14 — Screenshot index pages, one per device
+
+From the user, after `0756c07`:
+
+> Please create screenshots/index-<platform>.html page that lists every surface the screenshot is available for as a row
+> in table.
+> Platform is ipad, ipad-narrow, ipad-horizontal, iphone etc.
+> If you can do a procedural thing (eg create .xml files with an XML styleshteet to render the styled page, or any other
+> simialr way - a JS SPA web page - to share the styling across multiple data files).
+> Rows should list the native iPhone/iPad reference on the left, and the Capacitor variant on the right, as two columns.
+> Each table should have a switch that allows to toggle between side-by-side and a splitview where you can drag a
+> vertical divider line between two halves, revealing one or another in a single view.
+
+Spec 001 §17.5 lists the files and what the pages show.
+
+**Sources**
+
+| source | fetched or search only | taken from it |
+| --- | --- | --- |
+| https://developer.chrome.com/docs/web-platform/deprecating-xslt, "Removing XSLT for a more secure browser" | fetched, through a summarizing fetch | published 2025-10-29; "Chrome 143 (Dec 2, 2025): Official deprecation of the API"; "Chrome 158 (Nov 17, 2026): XSLT stops functioning on Stable releases"; the summary found nothing on `file://` pages |
+| spec 001 §17.1, §17.2, §18.5, §19.1, §19.6, §20.6; this file's entry "iPhone Duo: what a Capacitor app can adopt before the device ships" | read in the repository | the folder name parts, how the versions of a prefix combine, and the window setup, round and window size written into each page's description |
+
+**Decisions**
+
+- **HTML pages that load shared files, in place of XML with an XSLT stylesheet.** Chrome 158 stops XSLT on Stable on
+  2026-11-17 (source above). Each `index-<device>.html` holds its device value and description, and loads `viewer.css`,
+  `manifest.js` and `viewer.js` with `<link>` and `<script src>`. Loading a data file with `fetch()` was not tried.
+- **Page names use the §17.1 `device` values:** `index-ipadnarrow.html` and `index-ipadlandscape.html` for the request's
+  "ipad-narrow" and "ipad-horizontal", `index-iphone.html` for the folders without a device part, and one page each for
+  `ipad`, `ipadmedium`, `ipadduoinner`, `ipadduohalf` and `ipadduoportrait`.
+- **The right column is a chosen `ionic-capacitor` folder or prefix, `matched` by default;** `stock` and each version
+  are in the list. A prefix takes each screen from its highest version that has it (§17.2):
+  `ionic-capacitor-matched-ipadnarrow` shows `home-detail` from `-v2`.
+- **`index-ipadmedium.html` starts its left column at `native-swift-ipad`,** since `native-swift` has no `ipadmedium`
+  folder (§19.6). Round n5 in this file compared the same pair.
+- **Rows are file names, so different states take separate rows:** `native-swift-ipadnarrow-v1/chat-group-draft` and
+  `ionic-capacitor-*-ipadnarrow-*/chat-group-sent`; `native-swift-ipadduohalf-v1/chat-empty` and
+  `ionic-capacitor-matched-ipadduohalf-v1/chat-group`. The side without the file shows "No <name>.png in <folder>".
+- **Images use `loading="lazy"`,** so a page requests the images near the viewport first.
+
+**Checks** (working tree on top of `0756c07`; Darwin 25.6.0; `/bin/bash` 3.2.57; Node 20.19.5; Firefox 155.0.1)
+
+- **`build-index.sh`, first run under `/bin/bash` 3.2.57:** `node` failed to load `manifest.js` with "SyntaxError:
+  Unexpected identifier 'ionic'". `quote_list` wrote `["native-swift "ionic-capacitor"]`, and `od -An -tu1 -j16 -N8`
+  printed a second, empty line, for which `awk` printed another `0,0`: `[2064,27520,0]`. Fixed with a loop that quotes
+  each value and `awk 'NF { … }'`.
+- **Second run:** `node` loads `manifest.js` with 25 folders and 149 PNG files, the count
+  `find screenshots -name '*.png' | wc -l` gives; the sizes are 2064 × 2752, 2752 × 2064 and 1179 × 2556 px.
+  `node --check screenshots/viewer.js` passes. The eight pages the first run created with a placeholder description were
+  deleted and written again with their descriptions.
+- **Firefox 155.0.1 `--headless --no-remote --profile <new profile in the session scratchpad> --screenshot`, from
+  `file://`:**
+  - `index-ipadnarrow.html` at 1400 × 1800: the device links, the description, the toolbar with "Left
+    native-swift-ipadnarrow-v1", "Right ionic-capacitor-matched-ipadnarrow, v2 then v1" and "4 screens", and the
+    placeholder "No calendar-event.png in ionic-capacitor-matched-ipadnarrow, v2 then v1". The image cells showed alt
+    text and no image. The same in `index-ipadmedium.html?mode=split` at 1400 × 1800 and `index-iphone.html?mode=split`
+    at 420 × 1800. `user_pref("dom.image-lazy-loading.enabled", false)` in the profile's `user.js` did not change it.
+  - `eager.html` in the session scratchpad, which loads the same files through `<base href>` and sets every
+    `img.loading` to `eager` after `viewer.js` runs: the screenshots drew for `iphone` at 420 × 1800, with the screen
+    name above two columns, and for `ipadduohalf` at 1400 × 1800, with 3 rows, two of them with a placeholder.
+  - `harness.html` in the session scratchpad, `ipadmedium` in split view, with `setPointerCapture` and
+    `hasPointerCapture` stubbed because synthetic pointer events have no active pointer: 10 `keydown` ArrowLeft on the
+    first divider set `--pos` to 30% and `aria-valuetext` to "30% native-swift-ipad-v1"; `pointerdown` at 80% of the
+    second split's width and `pointermove` at 90% set it to 90%. The screenshot showed `native-swift-ipad-v1` left of the
+    divider and `ionic-capacitor-matched-ipadmedium-v2` right of it.
+  - Not tested: the pages in a browser window, and dragging with a real mouse, pen or touch.
+- **Side effects:** a Firefox profile in the session scratchpad; the default Firefox profile was not used.
