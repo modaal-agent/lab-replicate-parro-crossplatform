@@ -1114,3 +1114,326 @@ renderer at 161.8 % CPU before the run.
 - **Commit.** Asked whether phase 7 goes in one commit or in two (the code, project files and screenshots, then the spec
   and DISCOVERY.md), the user answered: "Make sure all reflections, discoveries and measurmenets are in, then commit as a
   single commit."
+
+## 2026-09-14 — iPhone Duo: what a Capacitor app can adopt before the device ships
+
+From the user on 2026-09-14, after `63b55e9`: "Do a fresh round of exploration. Combine with results from this repo.
+Form a strategy apps using Capacitor can adopt today to be able to effectively support iPhone Duo's split screen and its
+control layout from day one. Referense representative screenshots - include side-by side screenshots of a Capacitor
+build and a native one. Can we derive any recommendations based on our iPad experience only, or iPhone round also taught
+us something? Write as a DISCOVERY entry. List external references you analyzed."
+
+Nothing in this entry ran on iPhone Duo or on its SDK. Spec 001 §1.5 and §1.8 hold what was read on 2026-09-13; this
+entry adds what was published or found since, a simulator round on the iPad in windows of iPhone Duo's sizes, and the
+rounds of phases 3, 4 and 7 read again for iPhone Duo.
+
+### Machine state
+
+- `xcrun simctl list devicetypes | grep -i -E 'duo|fold'` prints nothing: no iPhone Duo simulator.
+- Installed: Xcode 26.6 (17F113), selected; Xcode 27.0 RC (27A266a) at `/Volumes/DATA01/DISTR/Xcode/Xcode_27_RC.app`
+  with the iOS 27.0 SDK; simulator runtimes iOS 18.6, 26.5 (23F77), 27.0 (24A434). No Xcode 27.1.
+- In the iOS 27.0 SDK of Xcode 27.0 RC, `grep -rn -i` over `UIKit.framework/Headers` finds no `reservedRegion`,
+  `verticalBar` or `UIArrangement`, and over `WebKit.framework/Headers` no `segment`, `fold`, `posture`, `reservedRegion`
+  or `division`. `WKWebView.h:730` declares `obscuredContentInsets` for iOS 26.0 and `:660`
+  `setMinimumViewportInset:maximumViewportInset:` for iOS 15.5.
+
+### External sources
+
+"Fetched" means read through WebFetch's summary of the page; quotes are from those summaries. Timestamps are the ones
+the summaries give.
+
+| source | how | what was taken |
+| --- | --- | --- |
+| [Apple Newsroom, "Apple unveils iPhone Duo"](https://www.apple.com/newsroom/2026/09/apple-unveils-iphone-duo/) | fetched | 7.6-inch inner and 5.4-inch outer display, "Both displays share the same aspect ratio"; "iPhone Duo will be available with iOS 27.1"; "Split View allows users to open two apps side by side on iPhone for the first time", and two windows of one app; "app navigation and controls now appear on the side to maximize vertical space for content"; pre-orders Friday 16 October, available Friday 23 October; from $1,999 |
+| [developer.apple.com/iphone-duo](https://developer.apple.com/iphone-duo/) | fetched | six tech talks (111461 to 111466); "Preparing your app for iPhone Duo" and Xcode 27.1 beta still "Coming later this month"; group labs 16 and 17 September; Q&A sessions on 23 September for Photos & Camera, SwiftUI and UIKit, none for web content |
+| [App Store Connect screenshot specifications](https://developer.apple.com/help/app-store-connect/reference/app-information/screenshot-specifications) | fetched | the 6.9" row lists iPhone Duo with 1398 × 2034 px (outer display) and 2007 × 2853 px (inner display), portrait and landscape; at 3x, 466 × 678 pt and 669 × 951 pt |
+| [Tech talk 111466, "Design for iPhone Duo"](https://developer.apple.com/videos/play/tech-talks/111466/) | fetched | 3:42 "focus on two sizes classes: compact and regular", layout margins and safe area insets; 5:07 toolbars, tab bars and controls "along the side of the device", collapsing into an overflow menu when there is not enough room; 7:34 split views or a two-column layout on the inner display; 9:28 system components move interactive elements away from the centre when the device is partly folded |
+| [Tech talk 111461, "Prepare your app for iPhone Duo"](https://developer.apple.com/videos/play/tech-talks/111461/) | fetched | 0:30 an app runs without recompiling; the iOS 27 SDK extends it left of the status bar; the iOS 27.1 SDK reaches the screen edge and lays navigation and toolbar buttons out vertically; 2:46 the inner display is regular in both size classes and does not honour supported orientations; 4:16 take the screen from the window scene, not the main screen; 5:01 `NavigationSplitView`, `UISplitViewController`, `TabView`, `UITabBarController` adapt in every pose; 6:06 and 7:30 safe areas and layout margins "are often asymmetric on iPhone Duo, so handle each side independently and test in Split View"; 8:08 `ReservedRegion` and `UIViewReservedRegion`, iOS 27.1 |
+| [Tech talk 111462, "Raise the bar with iPhone Duo"](https://developer.apple.com/videos/play/tech-talks/111462/) | fetched | 0:28 bars move to the side and stay horizontal on the inner display in portrait; 2:00 "Rebuild your app against the latest SDKs, then use bars provided by navigation containers"; 2:39 "Content from a custom bars (UINavigationBar, UITabBar, UIToolbar) won't be considered. Prefer UINavigationController and UITabBarController, which manage their own bars"; 12:23 `toolbarVerticalCompressionBehavior(.prefersToolbarItems)`, UIKit `navigationItem.verticalBarCompressionBehavior`; 14:47 `toolbarVerticalBehavior(.disabled)`, UIKit `preferredVerticalBarBehavior` |
+| [Tech talk 111463, "Strike a pose with adaptive layouts on iPhone Duo"](https://developer.apple.com/videos/play/tech-talks/111463/) | fetched | the division region is active only when folded and has zero width when flat; the system moves alerts, action sheets, menus and popovers; "Continuously scrolling content like articles and feeds shouldn't displace"; whether the division is also a safe-area inset is not stated |
+| [Tech talk 111464, "Leverage multiple displays and scenes on iPhone Duo"](https://developer.apple.com/videos/play/tech-talks/111464/) | fetched | 2:59 "All apps participate in multitasking on iPhone Duo, where two apps sit side by side", with size classes and scene geometry; 3:38 apps that support multiple instances on iPad do so on iPhone Duo, new windows only on the inner display |
+| [HIG, "Designing for iPhone Duo"](https://developer.apple.com/design/human-interface-guidelines/designing-for-iphone-duo) | fetched | WebFetch returned only the page title, as on 2026-09-13 |
+| [Safari 27 Release Notes](https://developer.apple.com/documentation/safari-release-notes/safari-27-release-notes) | fetched | WebFetch returned only the page title |
+| [WebKit blog, "News from WWDC26: WebKit in Safari 27 beta"](https://webkit.org/blog/17967/news-from-wwdc26-webkit-in-safari-27-beta/) | fetched | the summary finds no item on folds, viewport segments, safe areas, window resizing or iPhone Duo; the `WKWebView` additions are DOM node cloning, JavaScript object references and form submission callbacks |
+| [WebKit/standards-positions#327, "Viewport Segments CSS and JS API"](https://github.com/WebKit/standards-positions/issues/327) | fetched | opened 2024-03-06, open, labels "from: Intel", "topic: css", "topic: device apis"; no position label and no comment in the summary |
+| [MacRumors, 2026-09-11, "iPhone Duo Can Do Split View, But Not Like Your iPad"](https://www.macrumors.com/2026/09/11/iphone-duo-split-view-not-like-ipad/) | fetched | third-party: "It's a fixed 50/50 split", the divider on the fold, no resizing |
+| [9to5Mac, 2026-09-12](https://9to5mac.com/2026/09/12/apple-nailed-iphone-duo-split-screen-even-as-ipad-multitasking-feels-convoluted/) | fetched | third-party: an app in one half beside the home screen, app pairs, a video beside an app |
+| [Swiftjective-C, "iPhone Duo: First Developer Good-to-Knows"](https://www.swiftjectivec.com/iphone-duo-first-developer-good-to-knows/) | fetched | "Duo remains an iPhone even when its inner display has regular width and height size classes"; "avoid layout branches based on idiom" |
+| [Blake Crosley, "iPhone Duo for Developers: The 1.42 Problem and the SDK Gap"](https://blakecrosley.com/blog/iphone-duo-for-developers) | fetched | the author's inference from the App Store Connect sizes: inner 669 × 951 pt, outer 466 × 678 pt, "pending Device Hub confirmation"; iOS 27 RC and Xcode 27 RC release notes do not mention iPhone Duo |
+| [Blake Crosley, "Designing for iPhone Duo: What Moves, Splits, and Stays"](https://blakecrosley.com/blog/designing-for-iphone-duo) | fetched | the author quoting talk 111462 at 7:06: items with an icon change to the vertical axis, text-only items stay horizontal; talk 111466 at 5:27: the inner display in portrait is "the only pose where we've kept horizontal bars" |
+| [webmobilefirst.com, "Apple iPhone Duo unfolded"](https://www.webmobilefirst.com/en/devices/apple-iphone-duo-unfolded-2026/) | fetched | third-party, no source given: CSS viewport 890 × 626 px at 3x, 2670 × 1878 px. This disagrees with 951 × 669 pt from Apple's screenshot sizes |
+| [DEV Community, "Apple shipped a foldable iPhone. Safari still can't tell you it folded."](https://dev.to/keishin_nishiura/apple-shipped-a-foldable-iphone-safari-still-cant-tell-you-it-folded-565a) | fetched | third-party, not tested on hardware: Viewport Segments in Chrome and Edge 138+, not in Safari; viewport sizes are estimates; `ResizeObserver` and container queries in place of cached viewport sizes |
+| [iphoneduosupport.com, Capacitor](https://iphoneduosupport.com/frameworks/capacitor/) | fetched | third-party analysis, "Last verified 2026-09-09": "Capacitor & web views has not shipped iPhone Duo support or published guidance for it"; the web view resizes on fold and Split View; reserved regions and hinge angle have no web API; a plugin wrapping the Swift APIs is possible |
+| [apache/cordova-ios#1720](https://github.com/apache/cordova-ios/issues/1720) | fetched | opened 2026-09-10, open, no maintainer reply in the summary: expose reserved regions (type, frame relative to the web view, active state) to web content |
+| [flutter/flutter#192515](https://github.com/flutter/flutter/issues/192515) | fetched | opened 2026-09-09, open, P2: map `.division` to `DisplayFeatureType.fold` and `.occlusion` to `cutout`, inactive regions as `postureFlat` |
+| [ionic-team/capacitor#7961](https://github.com/ionic-team/capacitor/issues/7961) | fetched | the UIScene lifecycle warning, closed with PR #8536 |
+| `gh search issues "iPhone Duo"` and `"foldable"` in `ionic-team/capacitor`, `ionic-team/ionic-framework`, `Cap-go/capacitor-native-navigation`, `ionic-team/capacitor-plugins` | command | no issue mentions iPhone Duo; "foldable" returned `capacitor#7961` and `ionic-framework#30466` ("feat: ios 26 style support"), neither about a fold |
+| `gh search code "UIViewReservedRegion"` | command | agent skill repositories and a transcript mirror; no Capacitor or Cordova plugin |
+| Searches "Ionic Capacitor blog iPhone Duo 2026", "Capacitor iPhone Duo WKWebView safe area", "Safari 27 release notes WebKit iOS 27 safe area foldable" | search results only | no Ionic or Capacitor post on iPhone Duo in the results; safe-area results were older Capacitor issues (#2149, #2100); Safari 27 results named no fold or safe-area item |
+| Macworld, TechCrunch, CNN, AppleInsider, cmarix, Medium, codiot, Blueshark Labs pages in the results | search results only | not fetched and not used |
+
+### Local sources
+
+| source | what was taken |
+| --- | --- |
+| `ionic-capacitor/ios/App/App/Info.plist:27–45`, `ios/App/App/SceneDelegate.swift` | a scene manifest with `UIApplicationSupportsMultipleScenes` false and `SceneDelegate`; `native-swift/xcodegen.yml:31–32` also sets it false |
+| `node_modules/@capacitor/ios/Capacitor/Capacitor/CAPSceneDelegateProxy.swift:12` | Capacitor 8.5.2 ships a scene delegate proxy |
+| `ionic-capacitor/index.html:11–12` | `viewport-fit=cover`, so `env(safe-area-inset-*)` carries the web view's insets |
+| `ionic-capacitor/src/lib/layout.ts:7`, `:16`, `:47–55` | `columnsQuery` 672 px, `menuQuery` 992 px; `watchWindowed()` sets `windowed` while `innerWidth` equals neither `screen.width` nor `screen.height` |
+| `src/styles/matched/index.css:48–49`, `:777` | the only three rules in `src/` that read `--ion-safe-area-left` or `-right`; the same file reads `--ion-safe-area-bottom` on 13 lines |
+| `node_modules/@ionic/core/components/*.js` | `safe-area-left` or `-right` in `ion-card`, `ion-fab`, `ion-item-divider`, `ion-item-options`, `ion-menu`, `ion-tab-bar` and five shared chunks |
+| `NativeNavigationPlugin.swift:1959–1974`, `:1980–2006` | `currentInsets()` reports `left` and `right` from the bridge view's `safeAreaInsets` and `bottom` as the tab bar's height, and writes them to `--cap-native-navigation-*` |
+| `NativeNavigationPlugin.swift:219`, `:1242`, `:1697`, `:2371` | label mode "auto" treats `userInterfaceIdiom == .phone` as compact; the default is "labeled", which this app uses |
+| `NativeNavigationPlugin.swift:1722` | `UIScreen.main.scale` for an image renderer |
+| `node_modules/@capacitor/keyboard/ios/Sources/KeyboardPlugin/Keyboard.m` (8.0.5) `:82–91`, `:233–245`, `:268–280` | `isIPad` is `userInterfaceIdiom == UIUserInterfaceIdiomPad`; only then the plugin measures the keyboard's overlap as the web view's bottom in screen coordinates minus `UIScreen.mainScreen` height less the keyboard, and ignores heights under 20 % of that screen height. With the phone idiom it reports the keyboard frame's height |
+
+### Rounds d1 to d5: both builds in iPad windows of iPhone Duo's sizes
+
+An iPhone Duo simulator is not installed, so the two builds ran in windows of iPhone Duo's sizes on `iPad Pro 13-inch
+(M5)` on iOS 26.5 (`7A47789D-1FBC-45E2-821B-8209177A6C67`), with Xcode 26.6 (17F113) on macOS 26.6.2 (25G83), the status
+bar at 9:41. The builds are the ones installed there: `dev.modaal.lab.tabshell` (`native-swift/`) and
+`dev.modaal.lab.tabshell.matched` (phase 7's final build). `xcrun simctl get_app_container` and `ls -l`: `TabShell.app`'s
+files are dated 2026-09-14 02:10:42, with `TabShell.debug.dylib` 1,938,144 bytes (§18.2 gives 1,938,304 for phase 3's
+clean Debug build), and `native-swift/` is unchanged since `1a4b99f`; `App.app`'s `App` is dated 12:22:53, phase 7's
+final build of 12:22:45. The working tree is on `63b55e9`. The driver is phase 4's XCUITest project in the
+session scratchpad with two new files, `Duo.swift` (`testDuo`) and `Portrait.swift` (`testPortrait668`,
+`testHalfTabs`); `duo-test.sh` and `duo-run.sh` run them. The windows are resized by dragging their bottom trailing
+corner. The iPad does not reproduce the phone idiom, the bars on the side, the fold, or the Split View divider.
+
+- **d1** (13:02:20–13:07:44, `testDuo`, passed in both): the resize loop stopped within 8 pt of the target and gave
+  929 × 642 pt for 951 × 669 and 674 × 958 for 669 × 951. Its Split View step tapped the back button before the
+  portrait window, which cleared `native-swift/`'s Home selection. `testDuo` was changed to stop within 4 pt, take the
+  compact list, and open the Home row again; d1's screenshots are not kept.
+- **d2** (13:08:24–13:15:32, passed in both, 210.4 s and 209.4 s): the window sizes and what the driver's notes and the
+  screenshots show.
+
+  | window | `native-swift/` | `ionic-capacitor` `matched` |
+  | --- | --- | --- |
+  | inner display, landscape: 946 × 669 pt (`native-swift/`), 958 × 669 pt (`matched`) | the tabs as the floating bar at the top with "Toggle sidebar"; the list panel beside the detail; Home's "Group 6/7/8 B" selected | no menu; columns 375 and 563 pt; the plugin's `UITabBarController` bar at the top without a sidebar button; the same row selected |
+  | the same, Chat | the chat list beside the conversation | the chat list beside the conversation |
+  | Split View half, 475 × 669 pt, Home list | one column, grouped rows; no tab bar in the screenshot or in `app.tabBars`, and `tab("Chat")` printed "tab not found: Chat" | one column, grouped rows; the UIKit bar at the bottom, 475 × 72 pt at y 723 pt |
+  | Split View half, Home row opened | the detail pushed with a back button labelled "Home"; no tab bar | the detail pushed; the bar at the bottom |
+  | Split View half, a conversation | not taken: no tab to switch to Chat | the conversation with the composer, no tab bar, the back button after the window controls (`windowed`, §19.2) |
+  | inner display, portrait: 674 × 958 pt in both | regular width: the top bar with "Toggle sidebar", the list and the detail | columns 375 and 279 pt, the detail's title cut to "Group 6/…", the placeholder text in two lines |
+
+- **d3** (13:17:14, `testHalfTabs` on `native-swift/`, passed, 67.3 s): launched, turned to landscape, resized to
+  475 × 669 pt without opening a row. The tab bar is at the bottom, 475 × 72 pt at y 723 pt, the frame `matched`'s has
+  in d2, and "Chat" switches to the Chat tab's empty state. At 475 × 992.5 pt the bar is at y 920.5 pt. So in d2 the
+  missing bar followed the path to the window, from 946 pt with a Home row selected and its detail shown, and not the
+  window's size. `native-swift/` hides the bar only in a conversation at compact width (`ChatDetail.swift:56`); the
+  cause was not looked for further. §18.4 records another state of `TabView` with `NavigationSplitView` that lasts
+  until the window changes size.
+
+- **The resize loop could not reach 669 pt.** From 674 pt a 5 pt drag did not move the window, as §18.2 found the
+  width moving in steps of 6 pt. `testPortrait668` steps the window from about 686 pt in 6 pt drags.
+
+- **d4** (13:18:26–13:21:30, `testPortrait668` with 6 pt drags, passed in both): from 674 × 958 pt neither a 12 pt
+  widening nor four 6 pt drags moved the window; both builds kept the layout of the 674 pt row above.
+- **d5** (13:21:33–13:24:29, 12 pt drags from a window dragged to 700 pt, passed in both): the widths were 708, 702, 696,
+  then 674 and 674 again. At a window height of 958 pt the corner does not narrow the window below 674 pt, so a
+  669 × 951 pt window was not made on this iPad. `matched`'s columns at those widths: 375 + 313, 375 + 307, 375 + 301,
+  375 + 279 pt; `native-swift/` showed "Toggle sidebar" at each.
+- **669 pt was measured in a taller window before.** With the window 1376 pt high, `native-swift/` is compact at 666 pt
+  and regular at 672 pt (spec 001 §18.2), and `matched` shows its phone layout at 669 pt and columns at 675 pt (§19.3,
+  round m4). On the iPad the two builds therefore agree at 669 pt: both compact. On iPhone Duo's inner display in
+  portrait, 669 pt by Apple's screenshot size, talk 111461 gives regular width, which `native-swift/` follows and
+  `(min-width: 672px)` does not. The iPad cannot show that difference.
+
+### Screenshots side by side
+
+Copied from rounds d2 and d3 with `magick -auto-orient` (landscape shots turned upright, orientation `TopLeft`), into
+folders of spec 001 §17.1 with three new `device` values: `ipadduoinner`, the iPad window at the inner display's size
+in landscape; `ipadduohalf`, a 475 × 669 pt window, one Split View half; `ipadduoportrait`, the portrait window next to
+669 pt. Each image shows the whole iPad screen with the window on the home screen.
+
+**Compact width: iPhone 16, 393 × 852 pt** (`native-swift-v1/home.png` added at that path in `f6f36dc`,
+`ionic-capacitor-matched-v2/home.png` in `63b55e9`; the outer display, 466 × 678 pt, and a Split View half are compact
+too). The UIKit tab bar of phase 7 against SwiftUI's (§20.4, round n1).
+
+| `native-swift/` | `ionic-capacitor` `matched` |
+| --- | --- |
+| ![native-swift, Home, iPhone 16](screenshots/native-swift-v1/home.png) | ![matched, Home, iPhone 16](screenshots/ionic-capacitor-matched-v2/home.png) |
+
+**The inner display in landscape: 946 × 669 and 958 × 669 pt** (round d2). Both show the tabs at the top and the list
+beside the detail; `native-swift/` adds "Toggle sidebar".
+
+| `native-swift/` | `ionic-capacitor` `matched` |
+| --- | --- |
+| ![native-swift, Home detail, 946 x 669 pt](screenshots/native-swift-ipadduoinner-v1/home-detail.png) | ![matched, Home detail, 958 x 669 pt](screenshots/ionic-capacitor-matched-ipadduoinner-v1/home-detail.png) |
+| ![native-swift, conversation, 946 x 669 pt](screenshots/native-swift-ipadduoinner-v1/chat-group.png) | ![matched, conversation, 958 x 669 pt](screenshots/ionic-capacitor-matched-ipadduoinner-v1/chat-group.png) |
+
+**One Split View half: 475 × 669 pt** (rounds d2 and d3). Top row, round d2, after narrowing from the inner display's
+size with a Home row selected: no tab bar in `native-swift/`, the UIKit bar at the bottom in `matched`. Bottom row:
+`native-swift/` launched into the window (d3) with the bar at the bottom; `matched`'s conversation (d2) with the bar
+hidden and the back button after the window controls.
+
+| `native-swift/` | `ionic-capacitor` `matched` |
+| --- | --- |
+| ![native-swift, Home, 475 x 669 pt, round d2](screenshots/native-swift-ipadduohalf-v1/home.png) | ![matched, Home, 475 x 669 pt, round d2](screenshots/ionic-capacitor-matched-ipadduohalf-v1/home.png) |
+| ![native-swift, Chat empty, 475 x 669 pt, round d3](screenshots/native-swift-ipadduohalf-v1/chat-empty.png) | ![matched, conversation, 475 x 669 pt, round d2](screenshots/ionic-capacitor-matched-ipadduohalf-v1/chat-group.png) |
+
+**The inner display in portrait: 674 × 958 pt, the narrowest window at that height** (round d2). Both regular width and
+two columns; `matched`'s detail column is 279 pt and its title is cut. At 669 pt on iPhone Duo `matched` would show one
+column (d5 above).
+
+| `native-swift/` | `ionic-capacitor` `matched` |
+| --- | --- |
+| ![native-swift, Home detail, 674 x 958 pt](screenshots/native-swift-ipadduoportrait-v1/home-detail.png) | ![matched, Home detail, 674 x 958 pt](screenshots/ionic-capacitor-matched-ipadduoportrait-v1/home-detail.png) |
+
+| folder | files | round | window | pixels |
+| --- | --- | --- | --- | --- |
+| `native-swift-ipadduoinner-v1` | `home-detail`, `chat-group` | d2 | 946 × 669 pt, landscape | 2752 × 2064 px |
+| `ionic-capacitor-matched-ipadduoinner-v1` | `home-detail`, `chat-group` | d2 | 958 × 669 pt, landscape | 2752 × 2064 px |
+| `native-swift-ipadduohalf-v1` | `home` (d2), `chat-empty` (d3) | d2, d3 | 475 × 669 pt, landscape | 2752 × 2064 px |
+| `ionic-capacitor-matched-ipadduohalf-v1` | `home`, `chat-group` | d2 | 475 × 669 pt, landscape | 2752 × 2064 px |
+| `native-swift-ipadduoportrait-v1` | `home-detail` | d2 | 674 × 958 pt, portrait | 2064 × 2752 px |
+| `ionic-capacitor-matched-ipadduoportrait-v1` | `home-detail` | d2 | 674 × 958 pt, portrait | 2064 × 2752 px |
+
+- Sizes in bytes (`stat -f %z`): `native-swift-ipadduoinner-v1` 6,302,806, `-ipadduohalf-v1` 8,291,459,
+  `-ipadduoportrait-v1` 3,065,712; `ionic-capacitor-matched-ipadduoinner-v1` 6,126,833, `-ipadduohalf-v1` 8,389,546,
+  `-ipadduoportrait-v1` 2,973,177; 35,149,533 bytes for 10 files, from 2,973,177 to 4,211,526 bytes each. `du -sk` over
+  the same folders gave 36508 KiB right after the copies and 34344 KiB after the commit. The home screen's wallpaper
+  around the window keeps each file at 3 to 4 MB; `-depth 8` with PNG compression level 9 made one file 2 % smaller,
+  and the copies were left as `magick -auto-orient` wrote them. `shasum -a 256` over the 149 PNG files under
+  `screenshots/`: no two equal.
+- Rounds d1, d4 and d5 and the rest of d2 and d3 stay in `duo/shots/` in the session scratchpad.
+
+### Tools and side effects
+
+- `windowControl("Zoom-button")` printed "no Zoom-button" whenever the window was smaller than the screen: the driver
+  taps the collapsed window controls at y 54 pt (`p4-driver/DriverUITests/Driver.swift:53`), and the windows of these
+  tests started at y 126 or 151 pt. Each test after d1 started from the window the previous test left.
+- A corner drag of 5 or 6 pt did not move the window (d2, d4); drags of 12 pt did (d5).
+- `XCUIScreen.main.screenshot()` stores landscape screenshots as 2064 × 2752 px with orientation `LeftBottom`, as in
+  phases 3 and 4.
+- The iPad simulator is left in portrait with `dev.modaal.lab.tabshell.matched`'s window at 674 × 958 pt; both
+  simulators keep their status bar override. No build was made and nothing under `ionic-capacitor/` or `native-swift/`
+  changed; `git status --short` lists only the six new folders under `screenshots/` and this file.
+- Session scratchpad: `p4-driver/DriverUITests/Duo.swift`, `Portrait.swift`, `duo-test.sh`, `duo-run.sh`, `duo-copy.sh`
+  (not used: the copies were made with inline `magick` commands), `duo/` with logs, notes, trees and screenshots, and
+  this entry's draft.
+
+### What the rounds of this repository say for iPhone Duo
+
+iPhone Duo reports the phone idiom (Swiftjective-C) and, on the inner display, regular width and height (talk 111461 at
+2:46), with bars and insets on one side (Newsroom; talk 111462 at 0:28). The iPad rounds covered regular-width windows
+and resizing; the iPhone rounds covered safe areas inside a native container. Items from both lists apply.
+
+**From the iPad rounds (phases 3, 4 and 7 on `iPad Pro 13-inch (M5)`):**
+
+1. **A width breakpoint gives a different layout from the size class on the inner display in portrait.**
+   `ionic-capacitor/` shows columns from 672 px (`layout.ts:7`) because `native-swift/` changed size class between 666
+   and 672 pt in an iPad window (spec 001 §18.2), and a CSS pixel is a point (§19.5). The inner display in portrait is
+   669 pt wide by Apple's screenshot size, or 626 px by webmobilefirst; both are under 672, so the web build shows its
+   phone layout there, while talk 111461 gives that display regular width. On the iPad both builds are compact at 669 pt
+   (§18.2, §19.3), so iPad testing does not show this; rounds d4 and d5 could not make a 669 pt window 958 pt high.
+2. **Ionic's menu breakpoint lies above the inner display's width in landscape.** `menuQuery` is 992 px (§19.1); 951 pt
+   gives `ionic-capacitor/` two columns and a bottom tab bar, and `native-swift/` a top tab bar with "Toggle sidebar"
+   (round d2). With the iOS 27.1 SDK the native bars move to the side (talk 111462 at 0:28).
+3. **Folding and unfolding crosses 672 px each time,** from 466 pt on the outer display to 951 or 669 pt on the inner
+   one. Each crossing mounts a new router outlet (`App.tsx:138`, §19.2), and state that is not in the path or in
+   `ShellModel` starts again (§19.4): the draft needed `src/model/Drafts.tsx`, and scroll positions were not measured.
+   `native-swift/` kept the selection and the draft across the same resize (§18.3).
+4. **A comparison of the web view's size with `screen` misfires in Split View.** `watchWindowed()` (`layout.ts:47–55`)
+   sets `windowed` while `innerWidth` differs from `screen.width` and `screen.height`, because iPadOS draws window
+   controls over the web view and reports `env(safe-area-inset-left)` 0 (§19.5). A Split View half on iPhone Duo is
+   narrower than the screen, so the class and `Columns.css`'s 72 px leading padding would apply; none of the sources
+   above says whether iPhone Duo draws window controls. Talk 111461 at 4:16 tells native code to take the screen from
+   the window scene.
+5. **UIKit's containers adapt inside a Capacitor app.** In phase 7 at 816 pt the `UITabBarController` of
+   `@capgo/capacitor-native-navigation` became the floating bar at the top without JavaScript for it (round n5), and it
+   took the window's tint, which needed `AccentColor` in the App target (§20.2). Talk 111461 at 5:01 lists
+   `UITabBarController` among the containers that adapt in every pose; talk 111462 at 2:39 says custom bars are not
+   considered. `ion-tab-bar` and `ion-toolbar` are HTML in the web view and are not UIKit bars.
+
+**From the iPhone rounds (passes 2a and 2b, phase 7 on `iPhone 16 (iOS 26.5)`):**
+
+6. **CSS that computes offsets from a safe-area inset breaks when the inset's size changes.** The theme's
+   `max(10px, safe-area − 12px)` plus fixed pixels assumed the 34 pt home indicator. Inside the tab controller the inset
+   was 83 pt: "+" stood 49 pt too high and Settings ended 87 pt above the bar (rounds n2, n8), and 41 CSS lines replaced
+   the arithmetic with the inset itself (§20.2, §20.4). On iPhone Duo the side with the bars, the status bar and the
+   Dynamic Island takes an inset (Newsroom; talk 111461 at 6:06), and talk 111461 at 7:30 shows `left * 2` as the error
+   to avoid. `matched` reads the left or right inset in three rules (`index.css:48–49`, `:777`) and the bottom inset on
+   13 lines.
+7. **A native container around the web view changes the web view's insets and colours.** The plugin moves the web view
+   into the selected tab's controller and back when hidden (`NativeNavigationPlugin.swift:998–1015`, `:909–925`). The
+   bottom inset went from 34 to 83 pt, and the keyboard's background from dark to light grey because the container takes
+   the web view's opaque background (round q1, `:795–804`). `currentInsets()` (`:1959–1974`) reports the tab bar as a
+   bottom height; a bar on the side has no term in it.
+8. **UIKit bars match the native build; CSS bars do not.** The native bar matched `native-swift-v1`'s capsule, glyphs,
+   label weight and badge (round n1); pass 2b's CSS bar differed in the glyphs and label weight, and SF Symbols and glass
+   lensing are not available to web content (§15.6). On iPhone Duo UIKit lays out the vertical bars (talk 111462), with
+   icon items vertical and text items horizontal (Crosley, quoting 7:06).
+9. **The phone rules apply below 672 px.** `App.tsx:132` hides the native bar in a conversation below 672 px and from
+   992 px. A Split View half (about 475 pt) and the outer display (466 pt) are compact and get those rules; the inner
+   display in portrait gets them too (item 1).
+10. **What a native bar cost.** Phase 7: 154 lines written by hand, no Swift, the first build 7 min 26 s after the start,
+    142 tool calls in 33.2 minutes (§20.5).
+
+### Strategy for a Capacitor app, before Xcode 27.1
+
+Each step names the evidence above it rests on and how to check it on this machine before an iPhone Duo simulator
+exists. Steps 1 to 8 need no iOS 27.1 SDK.
+
+**In web code, now:**
+
+1. **Choose the layout from the size class, not from the window width.** Send
+   `traitCollection.horizontalSizeClass` and `verticalSizeClass` from native code to the web view as classes on the root
+   element (for example `size-regular`, `size-compact`), updated from `registerForTraitChanges`, and key the columns and
+   the tab placement to them; keep a width media query only for a browser. Evidence: items 1 and 9; talk 111466 at 3:42.
+   Check: log the class the web view receives in the iPad window steps of §18.2 (regular at 672 pt, compact at
+   666 pt), then in the iPhone Duo simulator's inner display in portrait (step 9).
+2. **Keep navigation state out of components that remount at a layout change.** Keep the route, each tab's selection,
+   drafts and scroll offsets in the URL or a store, and do not key the router outlet to the layout (`App.tsx:138`), or
+   restore state after it remounts. Evidence: item 3. Check: phase 4's `testState` across 672 pt with a scrolled list.
+3. **Use each safe-area inset as the space it takes, per side.** Remove arithmetic that assumes an inset's size, such as
+   `max(10px, safe-area − 12px)`, and give leading and trailing content `env(safe-area-inset-left)` and `-right` on their
+   own. Evidence: item 6; talk 111461 at 6:06 and 7:30. Check: `grep -rn 'safe-area' src` and read each expression.
+4. **Remove heuristics that compare the web view with `screen`.** `watchWindowed()` is one (`layout.ts:47–55`). Evidence:
+   item 4. Check: in a 475 pt window the leading bar content starts after the window controls on the iPad (round d2,
+   `ionic-capacitor-matched-ipadduohalf-v1/chat-group.png`), and in the iPhone Duo simulator's Split View it must not
+   move unless iPhone Duo draws such controls.
+5. **Do not depend on fold state in the web view.** No web API reports it: `WebKit.framework/Headers` of the iOS 27.0 SDK
+   has no fold or segment symbol, Viewport Segments is Chromium-only with WebKit's standards position open (#327), and
+   the Safari 27 sources above list nothing. Lists and feeds do not need it (talk 111463).
+
+**In native code, now (Xcode 26.6 or 27.0):**
+
+6. **Let UIKit own the tab bar.** Draw it with a `UITabBarController`, as phase 7 does with
+   `@capgo/capacitor-native-navigation` 8.3.1, and set the accent colour at app level (`AccentColor` and
+   `ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME`). Talk 111462 at 2:00 and 2:39: only bars of navigation containers
+   take the side placement. Evidence: items 5, 7, 8. Cost: item 10. The iOS 27.1 behaviour of this plugin's controller is
+   not known (step 10).
+7. **Keep the UIScene lifecycle and one scene.** Capacitor 8.5.2's template has `SceneDelegate` and
+   `UIApplicationSupportsMultipleScenes` false (`Info.plist:27–45`); talk 111464 at 2:59 says all apps take part in
+   Split View. A second window is a second `CAPBridgeViewController` and web view; enable multiple scenes only after
+   testing plugins with two bridges.
+8. **Test in iPad windows of iPhone Duo's sizes.** On `iPad Pro 13-inch (M5)`: 951 × 669 pt in landscape (the inner
+   display), about 475 × 669 pt (a Split View half; the divider's width is not published), 669 × 951 pt in portrait, and
+   466 × 678 pt (the outer display). Round d2's `testDuo` resizes the window by its corner; at a height of 958 pt the
+   window stops at 674 pt wide (d5). Test each size both after launching into it and after resizing into it with a row
+   selected: `native-swift/` showed its tab bar at 475 × 669 pt in the first case and none in the second (d2, d3). The
+   iPad does not reproduce the side bars, the fold, the phone idiom, or regular width below 672 pt.
+
+**When Xcode 27.1 beta ships:**
+
+9. **Build with the iOS 27.1 SDK and run the iPhone Duo simulator in Device Hub** (talk 111461). Read, in each pose and
+   in Split View: `innerWidth` and `innerHeight`, the four `env(safe-area-inset-*)` values, the plugin's
+   `--cap-native-navigation-*` values, and where the tab bar is drawn.
+10. **Check the plugin's `UITabBarController` with vertical bars.** If the bar goes to the side, the web view needs the
+    side inset and `currentInsets()` (`:1959–1974`) needs a term for it; if it stays at the bottom, the plugin is where
+    the change goes. HTML headers (`ion-toolbar`) stay horizontal; where they collide with the side region,
+    `preferredVerticalBarBehavior` on the bridge view controller keeps UIKit's bars horizontal (talk 111462 at 14:47).
+11. **Bridge reserved regions only for controls near the fold.** `UIViewReservedRegion` (iOS 27.1) with `.division` and
+    `.occlusion`, sent as CSS variables and an event the way `updateInsetsAndNotify()` sends insets (`:1980–2006`), in the
+    shape proposed in cordova-ios#1720 and flutter#192515. A scrolling list does not need it.
+12. **Spec 001 phase 5** measures steps 9 to 11 on both builds.
+
+| iPhone Duo behaviour | `native-swift/` at `63b55e9` | `ionic-capacitor` `matched` at `63b55e9` | route for a Capacitor app |
+| --- | --- | --- | --- |
+| layout by size class on the inner display | `NavigationSplitView` and `TabView(.sidebarAdaptable)` switch by size class (§18) | columns by `(min-width: 672px)`, menu by 992 px (§19) | step 1 |
+| Split View half, compact | one column, detail pushed (round d2) | one column below 672 px (round d2) | already follows width; step 4 |
+| state across fold and unfold | kept across a resize (§18.3) | kept for path, selection and drafts; component state restarts (§19.4) | step 2 |
+| bars on the side (iOS 27.1 SDK) | `TabView` and navigation bars are system bars | the tab bar is a `UITabBarController`; headers are `ion-toolbar` | steps 6, 9, 10 |
+| asymmetric insets | SwiftUI safe areas | `env()` per side in 3 rules, bottom arithmetic removed in phase 7 | step 3 |
+| fold region | `ReservedRegion`, iOS 27.1 | no web API | steps 5, 11 |
