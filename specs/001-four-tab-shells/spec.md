@@ -373,6 +373,10 @@ and no screen uses are removed in the same phase (D6).
 
 ### 4.3 Navigation structure
 
+**Added 2026-09-14:** §19.1 supersedes the phase 4 paragraph below: the columns change at 672 px, the
+menu shows from 992 px, Ionic's `lg`, and the tab bar stays from 672 to 991 px. §19.2 lists what phase 4
+landed.
+
 Phase 2: `IonTabs` holding an `IonRouterOutlet` and an `IonTabBar slot="bottom"` with four
 `IonTabButton`s; routes `/home`, `/calendar`, `/chat`, `/settings`, each with a `/:id` detail route
 pushed in the same outlet.
@@ -402,6 +406,8 @@ marked as a change toward the iOS system idiom or as a gap.
 the web bundle, and build time and app size per variant.
 
 **Added 2026-09-14:** phase 3's measurements are §18.2 and §18.3.
+
+**Added 2026-09-14:** phase 4's measurements are §19.3 and §19.4.
 
 Both builds are measured the same way. Each phase appends its results below this table, with the
 device or simulator, OS version, window size in points, toolchain versions and commit (AGENTS.md
@@ -436,6 +442,8 @@ and limits phase 7 to the `matched` variant.
 
 **Added 2026-09-14:** phase 3's results are §18; the window widths phase 4 requires (§10.2 O4) are in
 §18.2.
+
+**Added 2026-09-14:** phase 4's results are §19; §19.1 amends the phase 4 row's layout and §10.2 O4.
 
 Every commit subject carries `[001-four-tab-shells]`. Each phase ends with its §5 measurements
 appended, and needs its own go-ahead.
@@ -547,6 +555,10 @@ and each superseded section carries a line pointing here.
   SDK has no `ArrangementView`, and no installed Xcode has an iPhone Duo device type (§10.5).
 
 ### 10.2 Open questions
+
+**Added 2026-09-14:** §19.1 amends O4: the columns change at the width phase 3 records, as O4 states,
+and `ion-split-pane`'s `when` is `lg`, 992 px, because the menu, the list and the detail do not fit at
+672 px.
 
 - **O1 — Ionic React.** D5 stands, and phase 2's requirement "§9 O1 answered" is met.
 - **O2 — Dark mode is in scope, as its own phase:** phase 6 in §10.3. This supersedes "light mode" in
@@ -1774,6 +1786,9 @@ This supersedes the screenshot paths named in §11.2, §12.4, §13.1, §13.7, §
 **Added 2026-09-14:** §18.5 adds the `device` values `ipad`, `ipadlandscape` and `ipadnarrow`, and the
 state tokens `event`, `sidebar` and `draft`.
 
+**Added 2026-09-14:** §19.6 adds the `device` value `ipadmedium`, and `ionic-capacitor` folders with the
+`device` values of §18.5.
+
 ```
 screenshots/<build>[-<style>][-<appearance>][-<device>]-v<N>/<surface>[-<state>].png
 ```
@@ -1805,6 +1820,10 @@ Examples:
 **Added 2026-09-14:** §17.4 supersedes "`v<N>` counts the committed rounds" in the "Versions" rule
 and the rule "A new round is a new folder".
 
+**Added 2026-09-14:** §19.6 records one exception to "A new round is a new folder", at the user's answer:
+the four files of `native-swift-ipadlandscape-v1` had their PNG orientation changed in place from
+`LeftBottom` to `TopLeft`, with their image data unchanged.
+
 - **Separators and order.** Parts are joined with `-` in the order of the pattern. Values use lowercase
   ASCII letters and digits; the build names are the only values that contain a `-`. No value appears in
   the lists of two parts. A folder name is read by removing `-v<N>` from the end, matching a build name at
@@ -1832,6 +1851,8 @@ and the rule "A new round is a new folder".
 second bullet below.
 
 **Added 2026-09-14:** §18.5 lists the three folders phase 3 adds.
+
+**Added 2026-09-14:** §19.6 lists the eight folders phase 4 adds.
 
 All four were taken in the `iPhone 16 (iOS 26.5)` simulator, `70D15E5B-3D95-4290-B3E9-970F68617BE8`,
 393 × 852 pt, portrait, at 1179 × 2556 px, with Xcode 26.6 (17F113) on macOS 26.6.2 (25G83). The section
@@ -1989,6 +2010,10 @@ to 1032 pt with SpringBoard's "Zoom" window control:
 
 ### 18.5 Screenshots
 
+**Added 2026-09-14:** §19.6 records that the four files of `native-swift-ipadlandscape-v1`, as committed
+in `1a4b99f`, carried the PNG orientation `LeftBottom` over pixels `sips -r 270` had turned upright, so the
+"`ipadlandscape`" row below holds for the pixels only; phase 4 set their orientation to `TopLeft` in place.
+
 All taken at round w10 on the working tree on top of `242ad0d`, with the status bar overridden to 9:41, by
 `XCUIScreen.main.screenshot()` in the XCUITest driver (session scratchpad, not committed). They are the
 first `native-swift/` screenshots with a `device` part (§17.1):
@@ -2006,3 +2031,233 @@ first `native-swift/` screenshots with a `device` part (§17.1):
   under the tab bar (§18.4), and the rotation to landscape that follows restores them.
 - **Not saved:** a landscape Settings screenshot. The tour's shot for it showed the Home tab, the same bytes as
   `home-detail` (`shasum -a 256`), and was removed before this section was written.
+
+## 19. Phase 4 results: the wide layout of `ionic-capacitor/` (added 2026-09-14)
+
+From the user on 2026-09-14, after phase 3 was reported: "Please commit and take phase 4". Phase 3 was committed as
+`1a4b99f` (DISCOVERY.md, entry "Phase 4: iterating on the wide layout of `ionic-capacitor/`").
+
+Measured on the working tree on top of `1a4b99f`, in which `ionic-capacitor/` is unchanged since `187bd6e` apart from
+two lines of `src/styles/matched/index.css` changed in `f6f36dc`. Round names are those of the DISCOVERY.md entry: e, t
+and d on `iPad Pro 13-inch (M5)` with `stock`, m with `matched`, x the probe build, b and p on `iPhone 16 (iOS 26.5)`.
+
+### 19.1 Two widths in place of one (amends §4.3 and §10.2 O4)
+
+- **Question**, asked before the first edit: §4.3 shows the `IonMenu` column, hides the `IonTabBar` and lays each tab
+  out as two columns at one width, which §10.2 O4 sets to the width `native-swift/` changes size class at, 672 px
+  (§18.2). At 672 px the three columns do not fit:
+  - `stock`'s menu is at least 270 px (`--side-min-width: 270px` and `--side-max-width: 28%` in
+    `@ionic/core/dist/collection/components/split-pane/split-pane.ios.css`);
+  - `matched`'s theme sets the menu to 360 px (`--ios26-menu-width` in
+    `@rdlabo/ionic-theme-ios26/src/styles/default-variables.scss:22`);
+  - `native-swift/`'s list column is 320 to 420 pt (`RootTabView.swift:80`).
+  That leaves `stock` an 82 px detail column beside a 320 px list, and `matched` less than 320 px for the list.
+- **Answer:** "Menu from 992 px (Recommended)", the first of four options. Its text: list and detail columns from
+  672 px, where `native-swift/` switches; the bottom tab bar stays from 672 to 991 px; from 992 px, Ionic's default
+  `lg`, the `IonSplitPane` shows the `IonMenu` column and the tab bar is hidden.
+- **This supersedes** §4.3's phase 4 paragraph, which puts all three changes at one breakpoint, and amends §10.2 O4:
+  the columns change at 672 px as O4 states; the split pane's `when` is `lg`, 992 px.
+- The layouts, by window width:
+
+  | width | menu | tab bar | a tab's list and detail |
+  | --- | --- | --- | --- |
+  | below 672 px | none | bottom | one column, the detail pushed over the list, as phase 2 |
+  | 672 to 991 px | none | bottom | two columns |
+  | 992 px and wider | a column at the leading edge | hidden | two columns |
+
+### 19.2 What landed, against §4.3 and §13.10 O7
+
+Line numbers are those of the final code: the working tree of rounds m8 and p7 and of the clean builds in §19.3.
+
+- **`ios/App/App.xcodeproj/project.pbxproj`:** `TARGETED_DEVICE_FAMILY = "1,2"` in both App configurations, as §14.1
+  said phase 4 would set it back. `Info.plist` already lists the four iPad orientations.
+- **The widths** (`src/lib/layout.ts`): `columnsQuery = '(min-width: 672px)'` (`:7`), `menuWhen = 'lg'` (`:13`),
+  `useColumns()` through `useSyncExternalStore` and `matchMedia` (`:22`).
+- **Routes** (`src/App.tsx`): below 672 px the nine routes of phase 2 (`phoneRoutes`, `:76`); from 672 px one route
+  per tab, `/home/*`, `/calendar/*`, `/chat/*`, `/settings/*` (`columnRoutes`, `:89`), whose view item Ionic's router
+  reuses while the path below it changes. The outlet takes `key={columns ? 'columns' : 'phone'}` (`:138`), so a window
+  crossing 672 px mounts a new outlet, which starts from the current path.
+- **The split pane and the menu** (`App.tsx:111–117`): `IonSplitPane contentId="tabs" when="lg"` holds `TabMenu` and a
+  `div` with `id="tabs"` and the `ion-page` class around `IonTabs`. `TabMenu` (`src/components/TabMenu.tsx`) lists the
+  four tabs as `IonItem`s with `routerDirection="none"` to the page each tab showed last (`useTabPaths`,
+  `src/lib/tabs.ts:41`), and has no swipe gesture. `Columns.css:15` hides the tab bar while the split pane shows the
+  menu.
+- **Columns** (`src/components/Columns.tsx:11`): an `IonPage` with two `div.ion-page` children in a CSS grid of 375 px
+  and the rest (`Columns.css:5`). `src/pages/TabColumns.tsx` has one component per tab that picks the detail from the
+  path with `matchPath`, or `NoSelection` (`Columns.tsx:21`). The path comes from `useViewPath()`, which reads the
+  route's `*` parameter: a hidden tab's view keeps its own match in Ionic's router, while `useLocation()` gives the
+  path of the tab on screen (§19.4, rounds t4, d1, d2).
+- **Window controls** (`src/lib/layout.ts`, `watchWindowed()`, called from `Shell` in `App.tsx`): the root element takes
+  the `windowed` class while `innerWidth` differs from both `screen.width` and `screen.height`. `Columns.css` then
+  gives the first toolbar of the leading pane's own header 72 px of leading padding: the page's `> ion-header` below
+  672 px, the list column's `> ion-header` from 672 to 991 px, and the menu's header from 992 px (§19.5).
+- **The screens split into a list or detail and its page:** `HomeList` (`HomePage.tsx:33`), `CalendarList`
+  (`CalendarPage.tsx:46`), `ChatList` (`ChatPage.tsx:65`), `SettingsList` (`SettingsPage.tsx:22`), `Conversation`
+  (`ConversationPage.tsx:41`), and `Placeholder` with one wrapper per row type (`PlaceholderPage.tsx:17–52`). The
+  phone pages wrap them in `IonPage` (`HomePage.tsx:21`, …, `PlaceholderPage.tsx:57–84`).
+- **Selection:** `rowSelection()` (`layout.ts:48`) adds the `selected` class and `aria-current="page"` to the row
+  whose path the detail column shows (`HomePage.tsx:60`, `:110`, `CalendarPage.tsx:133`, `ChatPage.tsx:171`,
+  `SettingsPage.tsx:58`).
+- **Drafts:** `src/model/Drafts.tsx` keeps a conversation's draft when the window crosses 672 px (`:15`, `:25`).
+- **Other shared changes:** `EmptyState`'s text is optional; `Columns.css:24` pads the footer for the home indicator
+  while the tab bar is hidden; the bubble cap in `ConversationPage.css`; `setupTests.ts`'s `matchMedia` mock gains
+  `addEventListener` and `removeEventListener`.
+- **`stock`** (`src/styles/stock/index.css:8`, `:13`): a hairline between the columns and `--ion-color-light` behind a
+  selected row or tab.
+- **`matched`** (`src/styles/matched/index.css`, section "Wide layout" from `:67`), with the values of §19.5:
+  - the list column 395 px (`:79`); the list panel 10 px inside it, below the floating safe area, 26 px corners, no
+    safe-area insets inside (`:84`); the detail column's toolbar on the page background (`:100`);
+  - Home and Settings rows without the grouped cards (`:105`); a selected row in a capsule (`:116`); a selected chat
+    across the panel (`:126`); a selected event with a 25 % accent fill and a 2 pt accent border (`:139`);
+  - the composer above the floating tab bar from 672 to 991 px (`:134`);
+  - the menu: a 280 px column (`:148`) out of the theme's overlay (`:154`), its card from x 10 px (`:161`), no header
+    (`:168`), rows 44 px with a capsule on the selected tab (`:178`, `:185`), its icon and label in the accent
+    (`:189`, `:197`; the label's selector carries `.item`, specificity (0,2,3), above the (0,2,0) of the label style
+    Ionic injects at run time, `.item .sc-ion-label-ios-h`), the count as plain text (`:202`);
+  - in a window smaller than the screen, the leading inline title and the menu's first tab after the window controls
+    (`:213`, `:217`);
+  - the bubble cap, `max(68px, 100% - 512px)` (`:765`, `:769`).
+
+### 19.3 Measurements (§5, §13.10 O7, phase 4)
+
+| measure | value | how |
+| --- | --- | --- |
+| devices | `iPad Pro 13-inch (M5)` on iOS 26.5, `7A47789D-1FBC-45E2-821B-8209177A6C67`, 1032 × 1376 pt; `iPhone 16 (iOS 26.5)`, `70D15E5B-3D95-4290-B3E9-970F68617BE8`, 393 × 852 pt | `xcrun simctl list devices` |
+| toolchain | as §14.3 and §15.3: Node 24.21.0, `@ionic/react` 9.0.3, Capacitor 8.5.2, `@rdlabo/ionic-theme-ios26` 9.2.0, Vite 8.3.0, TypeScript 5.9.3; Xcode 26.6 (17F113), iOS 26.5 SDK; XcodeGen 2.45.4 for the driver; macOS 26.6.2 (25G83) | `npm ls --depth=0`, the same output as after pass 2b (`diff` of the two lists prints nothing); `xcodebuild -version` |
+| size of the wide-layout change, shared files | 11 changed files, 284 insertions, 142 deletions, of which `project.pbxproj` 2 and 2; 7 new files, 339 lines: `components/Columns.css` 37, `components/Columns.tsx` 27, `components/TabMenu.tsx` 46, `lib/layout.ts` 54, `lib/tabs.ts` 53, `model/Drafts.tsx` 46, `pages/TabColumns.tsx` 76 | `git diff --stat 1a4b99f -- ionic-capacitor ':!ionic-capacitor/src/styles'`; `wc -l` over `git ls-files --others --exclude-standard` |
+| size of the wide-layout change, `src/styles/stock/` | `index.css`: 12 insertions, 2 deletions | `git diff --numstat 1a4b99f` |
+| size of the wide-layout change, `src/styles/matched/` | `index.css`: 161 insertions, 3 deletions | the same |
+| npm packages added | none; `package.json` and `package-lock.json` unchanged | `npm ls --depth=0` against the list saved after pass 2b; `git diff --stat 1a4b99f` over the two files prints nothing |
+| navigation primitives | `IonSplitPane` with `when="lg"` and `IonMenu`; `IonTabs` with `IonRouterOutlet` and `IonTabBar` as in phase 2; routes ending in `/*`. Code beside them: the two layouts' route lists and the keyed outlet (`App.tsx`), `Columns` and the four column components (103 lines), `useColumns` and `watchWindowed` (`layout.ts`), `useTabPaths` (`tabs.ts`), the draft store (`Drafts.tsx`, 46 lines), `rowSelection` | the files in §19.2 |
+| window width at which the columns change | `stock` (rounds t3, t6): two columns at 673 pt and wider, the phone layout at 667 pt and narrower. `matched` (round m4): two columns at 675 pt, the phone layout at 669 pt. The same narrowing and widening in both; the width moved in steps of 6 pt, so the change lies between 669 and 673 pt | `iPad Pro 13-inch (M5)` portrait, window height 1376 pt, XCUITest drags on the window's corner, rounds t3 (`stock`, the build of t2), t6 (`stock`, the build of 10:39) and m4 (`matched`, 10:41), whose builds differ from the final code in the `.columns-list > ion-header` selector and, for `matched`, the menu label selector, neither of which sets a width; columns read from the frames of the web view's `main` elements |
+| window width at which the menu shows | `stock` widening (round t6): no menu and the tab bar at 990 pt, the menu and no tab bar at 996 pt; the next 12 pt drag took the window to 1032 pt, the screen's width, from which a 12 pt drag does not move the corner. `matched` (round m4): widening, no menu at 991 pt and the menu at 997 pt; narrowing from 996 pt with the menu, no menu at 990 pt. `stock` (round t9): widening, no menu at 991 pt and the menu at 997 pt; narrowing from 996 pt with the menu, no menu at 990 pt. In both variants the change lies between 991 and 996 pt | the same drags; the narrowing steps start from a window dragged back to about 1000 pt (m4: 996 pt); the menu read as the menu's "Calendar" link in the window's upper part within 330 pt of its leading edge |
+| narrowest window | 375 pt, the phone layout | round t3 |
+| CSS pixel | one point | round x1, §19.5 |
+| web bundle, `stock` | `dist/` 3088 KiB, 19 files. `index-*.js` 1,401.35 kB (gzip 314.38 kB), `index-*.css` 66.58 kB (gzip 8.85 kB), `index-legacy-*.js` 1,468.55 kB, `polyfills-legacy-*.js` 76.52 kB. §15.3: 3068 KiB, 1,395.52 kB, 64.56 kB | `du -sk dist`, `find dist -type f`, `vite build` output |
+| web bundle, `matched` | `dist/` 6276 KiB, 205 files. `index-*.js` 1,438.24 kB (gzip 325.40 kB), `index-*.css` 366.70 kB (gzip 27.29 kB), `index-legacy-*.js` 1,807.49 kB, `polyfills-legacy-*.js` 76.98 kB. §15.3: 6252 KiB, 1,430.59 kB, 362.03 kB | the same |
+| app size, simulator build | `stock`: Debug `.app` 8084 KiB, Release `.app` 7940 KiB (`public/` 3088 KiB, `Frameworks/` 4480 KiB, `App` binary 154,448 bytes). `matched`: Debug 11320 KiB, Release 11176 KiB (`public/` 6276 KiB, `Frameworks/` 4480 KiB, `App` binary 154,464 bytes). §15.3: `stock` 8064 and 7920 KiB, `matched` 11296 and 11152 KiB | `du -sk`, `stat -f %z` |
+| build times, one run each | `stock`: clean web build 4.55 s real (Vite 3.23 s), `npx cap sync ios` 0.54 s, clean Debug `xcodebuild` 5.86 s, clean Release 4.65 s. `matched`: 4.75 s (Vite 3.66 s), 0.73 s, 9.15 s, 6.34 s. `matched`'s four steps ran first. The one-minute load average was 8.07 before the first step and 10.61 at its highest, before `matched`'s Release build; the busiest process before the run was Visual Studio Code's renderer at 43.2 % CPU. §15.3's run had 2.86 to 7.08, so these times are not compared with §15.3's | `p4-measure.sh` in the session scratchpad, on 2026-09-14 from 11:14:58, after round m7 and before round m8, on the working tree with the menu label selector (§19.2): `/usr/bin/time -p`, `rm -rf dist` before each web build, a new `-derivedDataPath` for each `xcodebuild`, simulator `iPhone 16 (iOS 26.5)`, `sysctl -n vm.loadavg` before each step |
+| warnings | ESLint: 2 `react-refresh/only-export-components`, at `ShellModel.tsx:97` as before and at `Drafts.tsx:25`; `tsc --noEmit` none; Xcode: one line per build in both variants, `appintentsmetadataprocessor`'s "Metadata extraction skipped. No AppIntents.framework dependency found."; `vite build`, both variants: 20 `lightningcss` lines and the warning about a chunk over 500 kB, as §15.3 | `npx eslint src`, `npx tsc --noEmit`, the build logs of `p4-measure.sh` |
+| tests | `npx vitest run`: 1 of 1 passed; `setupTests.ts`'s `matchMedia` mock gains `addEventListener` and `removeEventListener`, which `useColumns` calls | |
+| phone layout unchanged | `stock`, round p6 (final code): 12 of 15 screens retaken on `iPhone 16 (iOS 26.5)` have 0 pixels different from round b0 below the top 162 px; `child-sent` (0.095 %) and `list-after` (0.128 %) differ only in the send times, the minutes the two rounds sent their messages in; `group-sent` (26.762 %) has a date line "Today 11:03" above the sent message, because it was sent more than an hour after the 09:41 message before it (`messageRows.ts:4`, `:23`), and b0 sent at 10:02. Round p4, on the code before the selector change, had `group-sent` at 0 pixels, sent at 10:40. `matched`, round p7 (final code): 13 of 16 screens with 0 pixels different; `chat-child-sent` (0.097 %) and `chat-list-after` (0.118 %) differ only in the send times; `chat-group-sent` (27.847 %) has the date line above the sent message for the same reason as `stock`'s `group-sent`. Round p6, on the build before the menu label selector, gave the same three files 0.094 %, 0.093 % and 27.848 % | `p4-iphone.sh`: the pass 2 screenshot scripts on the installed build, `imgdiff.swift` against round b0 at `1a4b99f` below the top 162 px |
+
+### 19.4 State across a resize (§5)
+
+Taken at rounds t7 (`stock`, the build of 10:39), m5 (`matched`, 10:41) and m7 (`matched`, 11:04), by XCUITest, as
+§18.3. Those builds differ from the final code in the `.columns-list > ion-header` selector (t7, m5) and the menu label
+selector (m5, m7), which `testState` does not read. The window goes from 1032 pt to about 820 pt (816 pt in each
+round), then below 672 pt (`stock` 598 pt, `matched` 605 pt in m5 and 598 pt in m7), and back to 1032 pt with
+SpringBoard's "Zoom" window control. Only the Chat tab is read at about 820 pt.
+
+| tab | state at 1032 pt | at about 820 pt (two columns, tab bar) | below 672 pt (phone layout) | back at 1032 pt |
+| --- | --- | --- | --- | --- |
+| Home | "Group 6/7/8 B" selected, its placeholder shown | not read | `stock`: the tab bar's Home selected, the group's placeholder with its title and a back button. `matched` (m7): the same | `stock`: the placeholder and title in the detail column, no back button. `matched` (m5, m7): the same |
+| Calendar | "Charity market" selected | not read | `stock`: the tab bar's Calendar selected, the event's placeholder with its title and a back button. `matched` (m7): the same | `stock`: the placeholder and title in the detail column, no back button. `matched` (m7): the same |
+| Chat | three chats, "Group 6/7/8 B" open, "Draft kept across a resize" typed and not sent | both: the list and the conversation, the draft in the field, the tab bar's Chat selected | both: the conversation pushed, the draft in the field; `stock` shows the tab bar, `matched` hides it in a conversation as on iPhone (`matched/index.css:875`) | `stock` (t7) and `matched` (m5): the list and the conversation, the draft in the field. `matched` (m7): no conversation and no message field, because the driver's back button at 598 pt closed the conversation, and `useDraft` removes a draft when its conversation closes without a layout change (`Drafts.tsx:29–35`) |
+
+- **Round m5** could not read `matched`'s Home and Calendar below 672 pt: with the tab bar hidden in the conversation
+  the driver found no "Home" or "Calendar" to tap, and the "back at 1032 pt" Calendar row read the Chat tab.
+  `testState` now taps the back button when no tab is hittable. Round m7: at 598 pt the driver noted no tab in the
+  conversation, tapped the back button, and read the Chat list with the tab bar's Chat selected; the Home and Calendar
+  rows below 672 pt and back at 1032 pt are from m7.
+- **The draft across a tab switch** (round d2, `stock`, the build of 10:39): typed at 1032 pt, the draft is in the field after
+  the menu's Home and Chat, and after the menu's Settings and Chat; it stays at 816 pt after the resize, which does not
+  cross 672 px. A switch through the tab bar at 816 pt was not exercised: the software keyboard hides the tab bar, and
+  the driver found no "Home" to tap.
+- **Before the fix in `TabColumns.tsx`** (round t4, the build of t2): Home's and Calendar's selections were kept at
+  598 pt and back at 1032 pt; the draft was gone before the first resize, after the menu's Home and Chat. Round d1
+  showed the draft gone after each switch through the menu at 1032 pt; §19.2 names the cause.
+- **Not measured: scroll positions and the Calendar week strip's selected day.** Each crossing of 672 px mounts a new
+  outlet (`App.tsx:138`, §19.2), which renders the pages again from the path, so state held in a page's component and
+  not in the path or in `ShellModel` starts again. `testState` does not scroll or select a day in the week strip, and
+  no round checked this.
+- The software keyboard covers the window's resize corner, as in §18.3; the Chat row is taken after switching tabs
+  ends the field's focus.
+
+### 19.5 Behaviour and fidelity in the wide layout
+
+- **A CSS pixel is one point.** A probe added to the copied web assets of a `stock` build (round x1, bundle
+  `dev.modaal.lab.tabshell.probe`, removed afterwards) reported `innerWidth × innerHeight` equal to the window's size in
+  points in each state: 1032 × 1376, 821 × 1376, 610 × 1376, and 1376 × 1032 in landscape. `(min-width: 672px)` and
+  `lg` therefore compare with the window width in points, as §18.2's widths do.
+- **Where the layouts differ from `native-swift/` by the answer in §19.1:**
+  - From 672 to 1032 pt in portrait, `native-swift/` shows the tabs as a bar at the top with a "Toggle sidebar" button
+    (§18.4). `ionic-capacitor/` shows the bottom tab bar from 672 to 991 pt, and the menu column from 992 pt, which
+    includes the zoomed portrait window of 1032 pt.
+  - In landscape, 1376 pt, `native-swift/` shows the bar at the top until "Toggle sidebar" is tapped;
+    `ionic-capacitor/` shows the menu column.
+  - The overlap §18.4 records as open has no counterpart: the menu has no overlay state.
+- **`stock`, Ionic's defaults** (rounds t1, t2, t8): the menu is `ion-split-pane`'s side pane at 28 % of the
+  window; in round t8 the list column starts at 288 pt at 1032 pt and at 385 pt at 1376 pt, with the `IonHeader` title "TabShell"; the tab bar from 672 to
+  991 pt is Ionic's full-width bottom bar; a selected row or tab takes `--ion-color-light`.
+- **`matched`, against `native-swift/`.** Positions and colours of `native-swift/` read from pixel rows and columns of
+  `screenshots/native-swift-ipad-v1/home-detail.png`, `chat-group-sent.png` and
+  `native-swift-ipadlandscape-v1/calendar-event-sidebar.png` (2 px per pt); those of `matched` from round m3's
+  `m3-p-home-detail.png`, `m3-p-chat-group-sent.png` (1032 pt) and `m3-l-calendar-event.png` (1376 pt, turned upright
+  with `magick -auto-orient`). Round m3's build differs from the final code in the `.columns-list > ion-header`
+  selector, which applies in a window smaller than the screen, and in the menu label selector, whose result the
+  "selected tab" row reads from round m8's `m8-p-home-detail.png`. A colour run is pixels within 2 levels of the
+  run's first pixel; positions are in points from the window's top leading corner.
+
+  | element | `native-swift/` | `matched` | result |
+  | --- | --- | --- | --- |
+  | list panel | x 10–385 pt in portrait without the sidebar, x 290–665 pt beside the sidebar; fill (249,248,248) | x 290–665 pt beside the menu at 1032 and 1376 pt; fill (249,248,248) | matched, to the layout with the sidebar |
+  | detail column | from 675 pt beside the sidebar, its title centred over it | from 675 pt, the title centred over it | matched |
+  | sidebar panel | x 10–280 pt; fill (250,250,250); fill from y 33 pt (column x 50 pt) | x 10–280 pt; fill (255,255,255); fill from y 41.5 pt | position matched; fill 5 levels lighter; top 8.5 pt lower |
+  | "Toggle sidebar" button | in the sidebar's top trailing corner, x 232–257 pt, y 45–63 pt | none (the menu has no hidden state) | gap |
+  | tab rows | selected Calendar capsule y 139.5–182.5 pt in landscape; 44 pt from one row to the next | selected Calendar capsule y 90.5–134.5 pt in landscape; Home y 46.5–90.5 pt; 44 pt per row | row height matched; rows 49 pt higher, where native has the toggle button's row |
+  | selected tab | capsule x 26–264 pt, (220,220,219); icon and label (209,60,99) | capsule x 26.5–263.5 pt, (220,220,220); icon (209,60,99); label (0,0,0) in round m3; label (209,60,99) in round m8, after the selector change in §19.2 (the darkest pixel of rows y 66, 68 and 70 pt between x 80 and 150 pt) | matched |
+  | other tabs' icons | outlined (crop of the landscape screenshot) | filled, as `shellTabs` gives `matched` (`tabs.ts`) | gap |
+  | Home count | grey text at the capsule's trailing end (crop) | grey text x 234–237.5 pt, darkest pixel (138,138,142) | matched, read from crops |
+  | selected Home row | capsule x 26–369 pt in the 10–385 pt panel, (220,220,220) | capsule x 306–649 pt in the 290–665 pt panel, (220,220,220), y 297–349 pt | matched: 16 pt from each panel edge in both |
+  | selected chat row | filled across the panel | (220,220,220) across the panel, x 290–665 pt | matched |
+- **Window controls.** In a window smaller than the screen, iPadOS draws its window controls over the window's top
+  leading corner, about 22 to 60 pt from the leading edge (round t2, 605 pt: over the conversation's back button). The
+  probe of round x1 read `env(safe-area-inset-top)` 32 px, left 0, right 0 and bottom 20 px in every state, full screen
+  or narrowed, and `screen` 1032 × 1376 throughout. `watchWindowed()` (`layout.ts`) sets `windowed` on the root element
+  while `innerWidth` equals neither `screen.width` nor `screen.height` (a comparison of areas also set it on iPhone
+  while the software keyboard shortened the web view, round p3), and `Columns.css` starts the leading pane's top bar
+  at 72 px; `matched` also moves its inline large title and the menu's first tab. In `stock`'s round t8 and `matched`'s
+  rounds m3 and m6 (m6's build differs from m8's in the menu label selector only), the list column's title at 816 and
+  827 pt and the back button at 605 and 594 pt start after the window controls. No screenshot was taken of a window
+  from 992 to 1031 pt, where the menu's first tab moves down.
+
+### 19.6 Screenshots
+
+All taken at rounds t8 (`stock`) and m8 (`matched`) on the working tree on top of `1a4b99f`, the final code, with the status bar
+overridden to 9:41, by `XCUIScreen.main.screenshot()` in the XCUITest driver of the session scratchpad. Landscape
+screenshots were turned upright with `magick -auto-orient`, which rotates the pixels by the PNG's orientation and sets
+the orientation to `TopLeft`.
+
+| folder | files | device part | round | working tree on top of | added in |
+| --- | --- | --- | --- | --- | --- |
+| `ionic-capacitor-stock-ipad-v1`, `ionic-capacitor-matched-ipad-v1` | 11 each: `home`, `home-detail`, `calendar`, `calendar-event`, `chat-empty`, `chat-list`, `chat-group`, `chat-group-typing`, `chat-group-sent`, `settings`, `settings-detail` | `ipad`, as §18.5: portrait, the window zoomed to 1032 × 1376 pt; 2064 × 2752 px | t8, m8 | `1a4b99f` | the commit that adds this section |
+| `ionic-capacitor-stock-ipadlandscape-v1`, `ionic-capacitor-matched-ipadlandscape-v1` | 4 each: `home-detail`, `calendar-event`, `chat-group-sent`, `settings-detail` | `ipadlandscape`, as §18.5; 2752 × 2064 px, orientation `TopLeft` | t8, m8 | `1a4b99f` | the same |
+| `ionic-capacitor-stock-ipadmedium-v1`, `ionic-capacitor-matched-ipadmedium-v1` | 3 each: `home-detail`, `calendar-event`, `chat-group-sent` | `ipadmedium`, new: portrait, the window narrowed to between 672 and 991 pt, 816 pt; the home screen around the window is in the picture; 2064 × 2752 px | t8, m8 | `1a4b99f` | the same |
+| `ionic-capacitor-stock-ipadnarrow-v1`, `ionic-capacitor-matched-ipadnarrow-v1` | 2 each: `home-detail`, `chat-group-sent` | `ipadnarrow`, as §18.5: portrait, the window narrowed below 672 pt, 605 pt (`stock`), 594 pt (`matched`); 2064 × 2752 px | t8, m8 | `1a4b99f` | the same |
+
+- **Sizes** (`du -sk`): the four `stock` folders 13536 KiB, the four `matched` folders 14864 KiB, 40 files in all. No two
+  files have the same SHA-256 across these folders and the `native-swift-ipad*-v1` folders.
+- **`ipadmedium` is a new `device` value** (§17.1): the window setup in which `ionic-capacitor/` shows two columns and
+  the tab bar. `native-swift/` has no such layout (§19.1).
+- **No `home-sidebar`:** the menu has no state that is hidden or shown over the content (§19.5).
+- **The phase 3 landscape screenshots carry a stale orientation.** `magick identify -verbose` prints 2752 × 2064 px and
+  `Orientation: LeftBottom` for each of the four files in `native-swift-ipadlandscape-v1` (`1a4b99f`). Their pixels are
+  upright: `magick … -orient TopLeft` draws the screen upright. `sips -r 270` in phase 3 rotated the pixels and kept the
+  orientation, so a viewer that applies the orientation turns them a quarter turn. §18.5 records them as turned upright.
+- **Their orientation is changed in place,** as an exception to §17.2's "A new round is a new folder", at the user's
+  answer "Please update the screenshots (the orientation tag) in place." Each file stores the orientation twice, as
+  EXIF tag `0x0112` (SHORT 8) in the `eXIf` chunk and as `<tiff:Orientation>8</tiff:Orientation>` in the XMP `iTXt`
+  chunk. `p4-orient.py` in the session scratchpad set both to 1 and recomputed the two chunks' CRCs. Per file: the
+  size is unchanged, `cmp -l` counts 10 bytes changed, the SHA-256 of the `IDAT` data is unchanged, `magick compare
+  -metric AE` against the committed file counts 0 pixels, and `magick identify` prints 2752 × 2064 and `TopLeft`.
+  After the change no PNG under `screenshots/` has an orientation other than `TopLeft` or `Undefined`. The XMP
+  `exif:PixelXDimension` 2064 and `exif:PixelYDimension` 2752 still give the portrait size; the EXIF chunk gives
+  2752 × 2064; they were left as they are.
+
+  | file | SHA-256 at `1a4b99f` (first 16) | SHA-256 after (first 16) |
+  | --- | --- | --- |
+  | `home-detail.png` | `6d98eeb5e541f0a5` | `6630546cf859a096` |
+  | `calendar-event.png` | `92adf18d4acfbcad` | `c1a6d3d32f8e0aec` |
+  | `calendar-event-sidebar.png` | `74a733fa6dcc6356` | `821a8acfa17a1d41` |
+  | `chat-group-sent.png` | `bf69dea9abec07b3` | `912da00950c6a196` |

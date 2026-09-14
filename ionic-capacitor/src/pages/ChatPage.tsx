@@ -30,6 +30,7 @@ import EmptyState from '../components/EmptyState';
 import { LargeTitle, StackedTitle, TabHeader } from '../components/Headers';
 import { chatPreview, subtitle, today, type ChatThread } from '../fixtures/fixture';
 import { listTimestamp } from '../lib/dates';
+import { rowSelection } from '../lib/layout';
 import { isMatched } from '../lib/variant';
 import { useShell } from '../model/ShellModel';
 import './ChatPage.css';
@@ -50,6 +51,18 @@ const filters: ChatFilter[] = [
 
 /** `IMG_0212.PNG`: filter chips, the chat list or its empty state, and "+" to add a chat. */
 export default function ChatPage() {
+  return (
+    <IonPage>
+      <ChatList />
+    </IonPage>
+  );
+}
+
+/**
+ * The Chat screen's header, chips, list and "+", in a page or in the list column (spec 001 §19). `selectedPath` is
+ * the conversation the detail column shows.
+ */
+export function ChatList({ selectedPath }: { selectedPath?: string }) {
   const { chats, addChat } = useShell();
   const [filterId, setFilterId] = useState<string>();
   const filter = filters.find((candidate) => candidate.id === filterId);
@@ -76,7 +89,7 @@ export default function ChatPage() {
     body = (
       <IonList>
         {visibleChats.map((chat) => (
-          <ChatItem key={chat.id} chat={chat} />
+          <ChatItem key={chat.id} chat={chat} selectedPath={selectedPath} />
         ))}
       </IonList>
     );
@@ -108,7 +121,7 @@ export default function ChatPage() {
   if (isMatched) {
     // `ChatList.swift` keeps the title and the chips on screen while the list scrolls (`.inlineLarge`, `safeAreaBar`).
     return (
-      <IonPage>
+      <>
         <IonHeader>
           <IonToolbar>
             <StackedTitle title="Chat" subtitle={subtitle} large />
@@ -120,12 +133,12 @@ export default function ChatPage() {
           {body}
           <AddChatButton onClick={addChat} />
         </IonContent>
-      </IonPage>
+      </>
     );
   }
 
   return (
-    <IonPage>
+    <>
       <TabHeader title="Chat" buttons={searchButton} />
       <IonContent fullscreen>
         <LargeTitle title="Chat">
@@ -136,7 +149,7 @@ export default function ChatPage() {
 
         <AddChatButton onClick={addChat} />
       </IonContent>
-    </IonPage>
+    </>
   );
 }
 
@@ -150,11 +163,12 @@ function AddChatButton({ onClick }: { onClick: () => void }) {
   );
 }
 
-function ChatItem({ chat }: { chat: ChatThread }) {
+function ChatItem({ chat, selectedPath }: { chat: ChatThread; selectedPath?: string }) {
   const last = chat.messages.at(-1);
+  const href = `/chat/${chat.id}`;
   return (
     // `matched` shows the chevron `ChatList.swift`'s `NavigationLink` draws.
-    <IonItem className="chat-item" routerLink={`/chat/${chat.id}`} detail={isMatched}>
+    <IonItem {...rowSelection(href, selectedPath, 'chat-item')} routerLink={href} detail={isMatched}>
       <ChatAvatar slot="start" initials={chat.initials} icon={chat.icon} color={chat.color} />
       <IonLabel className="ion-text-wrap">
         <h2>{chat.title}</h2>

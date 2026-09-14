@@ -1,5 +1,15 @@
 /*
  * Styles only the `stock` variant loads, through the `@style` alias (spec 001 §13.4, D13).
- * `stock` takes Ionic's default iOS styles (D16), so this file is empty. The colour variables
- * both variants use are in `src/theme/variables.css`; each screen's layout CSS sits beside it.
+ * `stock` takes Ionic's default iOS styles (D16). The colour variables both variants use are in
+ * `src/theme/variables.css`; each screen's layout CSS sits beside it.
  */
+
+/* The wide layout (spec 001 §19): the hairline `ion-split-pane` draws between its panes, between the two columns. */
+.columns-list {
+  border-inline-end: 0.55px solid var(--ion-item-border-color, var(--ion-border-color, #c8c7cc));
+}
+
+/* The row whose page the detail column shows, and the current tab in the menu, in Ionic's light colour. */
+ion-item.selected {
+  --background: var(--ion-color-light);
+}

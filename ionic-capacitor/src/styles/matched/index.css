@@ -63,6 +63,161 @@ ion-tab-button ion-badge {
   color: #fff;
 }
 
+/*
+ * ---- Wide layout (spec 001 §19): the panels of `native-swift/`'s split views ----
+ * Positions and colours are read from `screenshots/native-swift-ipad-v1/` and `native-swift-ipadlandscape-v1/`.
+ */
+
+:root {
+  /* The panel fill and the selected capsule. */
+  --matched-panel: #f9f8f8;
+  --matched-selected: #dcdcdc;
+  --matched-panel-shadow: 0 0 12px rgba(0, 0, 0, 0.08);
+}
+
+/* A 375 px list panel with 10 px on each side: the panel lies at x 10–385 pt beside a detail from 395 pt. */
+.ion-page.columns {
+  grid-template-columns: 395px minmax(0, 1fr);
+}
+
+/* The panel starts where the menu card starts and ends 10 px above the window's bottom; inside it no safe area. */
+.ion-page.columns > .ion-page.columns-list {
+  --ion-safe-area-top: 0px;
+  --ion-safe-area-bottom: 0px;
+  margin: calc(var(--ios26-floating-safe-area-top) + 6px) 10px 10px;
+  overflow: hidden;
+  border-radius: 26px;
+  background: var(--matched-panel);
+  box-shadow: var(--matched-panel-shadow);
+}
+
+ion-router-outlet > .ion-page.columns > .ion-page.columns-list ion-header.header-ios ion-toolbar.ios:not(.ios-theme-disabled),
+ion-router-outlet > .ion-page.columns > .ion-page.columns-list ion-content.ios {
+  --background: var(--matched-panel);
+}
+
+/* The detail column keeps the page's background; the grouped-background rule below matches the columns' page. */
+ion-router-outlet > .ion-page.columns > .ion-page.columns-detail ion-header.header-ios ion-toolbar.ios:not(.ios-theme-disabled) {
+  --background: var(--ion-background-color, #fff);
+}
+
+/* Home and Settings in the panel: rows on the panel without the grouped cards. */
+.columns-list ion-list.list-inset.ios:not(.ios-theme-disabled) {
+  background: transparent;
+}
+
+.columns-list ion-list.list-inset ion-item {
+  --background: transparent;
+  --border-width: 0;
+  --inner-border-width: 0;
+}
+
+/* The selected row: a capsule 16 px inside the panel, with its label in the accent colour. */
+.columns-list ion-list.list-inset ion-item.selected {
+  --background: var(--matched-selected);
+  border-radius: 999px;
+}
+
+.columns-list ion-item.selected ion-label {
+  color: var(--ion-color-primary);
+}
+
+/* The selected chat fills the panel's width. */
+.columns-list ion-item.chat-item.selected {
+  --background: var(--matched-selected);
+}
+
+/*
+ * From 672 to 991 px the floating tab bar stays under the columns, and a conversation in the detail column keeps it,
+ * so the composer rises above the bar. From 992 px the bar is hidden (`Columns.css`).
+ */
+ion-split-pane:not(.split-pane-visible) ion-tabs:has(> ion-tab-bar:not(.tab-bar-hidden)) .columns-detail ion-footer.composer ion-toolbar:last-of-type {
+  padding-bottom: calc(var(--matched-tab-bar-height) + var(--ios26-floating-safe-area-bottom));
+}
+
+/* The selected event: a 25 % accent fill and a 2 pt accent border (`CalendarList.swift:183`). */
+ion-item.agenda-event.selected::part(inner) {
+  background: rgba(var(--ion-color-primary-rgb), 0.25);
+  box-shadow: inset 0 0 0 2px var(--ion-color-primary);
+}
+
+/*
+ * The menu, from 992 px: a column beside the page. The split pane opts out of the theme in `App.tsx`, and the menu
+ * leaves the theme's overlay. Its card lies at x 10–280 pt, as the sidebar panel of native.
+ */
+ion-split-pane {
+  --side-width: 280px;
+  --side-min-width: 280px;
+  --side-max-width: 280px;
+}
+
+ion-split-pane.split-pane-visible > ion-menu.menu-pane-visible.ios:not(.ios-theme-disabled) {
+  position: relative;
+  top: auto;
+  left: auto;
+  z-index: auto;
+}
+
+ion-split-pane ion-menu.ios:not(.ios-theme-disabled) ion-content::part(scroll) {
+  margin-right: 0;
+  margin-left: 10px;
+  border-radius: 26px;
+}
+
+/* No title above the tabs. */
+ion-menu ion-header {
+  display: none;
+}
+
+ion-menu ion-list.ios {
+  padding: 8px 0;
+  background: transparent;
+}
+
+/* Rows 44 pt apart; the selected tab in a capsule 16 pt inside the card, in the accent colour. */
+ion-menu ion-item {
+  --background: transparent;
+  --min-height: 44px;
+  margin: 0 16px;
+  border-radius: 999px;
+}
+
+ion-menu ion-item.selected {
+  --background: var(--matched-selected);
+}
+
+ion-menu ion-item.selected ion-icon {
+  color: var(--ion-color-primary);
+}
+
+/*
+ * Ionic's label style `.item .sc-ion-label-ios-h { color: var(--color) }` (`@ionic/core`, `ion-item_8.entry.js:397`)
+ * has specificity (0,2,0); `.item` gives this selector (0,2,3).
+ */
+ion-menu ion-item.item.selected ion-label {
+  color: var(--ion-color-primary);
+}
+
+/* The unread count as plain secondary text. */
+ion-menu ion-item ion-badge {
+  background: transparent;
+  color: var(--matched-secondary-label);
+  font-size: 17px;
+  font-weight: 400;
+}
+
+/*
+ * In a window smaller than the screen (`Columns.css`): the leading pane's inline large title starts after the window
+ * controls, and the menu's first tab lies below them. The menu has no header in `matched`.
+ */
+html.windowed ion-split-pane:not(.split-pane-visible) ion-toolbar:first-of-type ion-title.stacked-title-large {
+  padding-inline-start: 72px;
+}
+
+html.windowed ion-split-pane.split-pane-visible ion-menu ion-list.ios {
+  padding-top: 52px;
+}
+
 /* ---- Navigation bars ---- */
 
 /* No hairline under the bar; the bar takes the page's background. */
@@ -602,13 +757,16 @@ ion-toolbar ion-buttons[slot='end'] .chat-avatar ion-icon {
   justify-content: flex-end;
 }
 
-/* `HStack(spacing: 8)` also puts 8 px between the bubble and the 60 px spacer. */
+/*
+ * `HStack(spacing: 8)` also puts 8 px between the bubble and the spacer, whose length is `max(60, width - 520)`
+ * (`ChatDetail.swift:34`).
+ */
 .message-line.incoming {
-  padding-right: 68px;
+  padding-right: max(68px, 100% - 512px);
 }
 
 .message-line.outgoing {
-  padding-left: 68px;
+  padding-left: max(68px, 100% - 512px);
 }
 
 .message-bubble {

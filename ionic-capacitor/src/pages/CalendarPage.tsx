@@ -21,6 +21,7 @@ import WeekStrip from '../components/WeekStrip';
 import { events, subtitle, today } from '../fixtures/fixture';
 import { agendaMonths, dayAnchor, weekStarts, type AgendaDay } from '../lib/agenda';
 import { formatMonth, formatTimeRange, formatWeekdayShort, isSameDay, startOfDay, weekTitle } from '../lib/dates';
+import { rowSelection } from '../lib/layout';
 import { isMatched } from '../lib/variant';
 import './CalendarPage.css';
 
@@ -31,6 +32,18 @@ const eventDays = new Set(events.map((event) => startOfDay(event.start).getTime(
 
 /** `IMG_0211.PNG`: a week strip above an agenda grouped by month and week. */
 export default function CalendarPage() {
+  return (
+    <IonPage>
+      <CalendarList />
+    </IonPage>
+  );
+}
+
+/**
+ * The Calendar screen's header and agenda, in a page or in the list column (spec 001 §19). `selectedPath` is the
+ * page the detail column shows.
+ */
+export function CalendarList({ selectedPath }: { selectedPath?: string }) {
   const content = useRef<HTMLIonContentElement>(null);
   const [selectedDay, setSelectedDay] = useState(today);
 
@@ -54,7 +67,7 @@ export default function CalendarPage() {
   };
 
   return (
-    <IonPage>
+    <>
       {/*
         The week strip is a second toolbar in the fixed header, so it stays on screen while the agenda
         scrolls to the selected day; a large title would scroll away with it.
@@ -90,7 +103,7 @@ export default function CalendarPage() {
                     <IonNote>{weekTitle(week.start)}</IonNote>
                   </IonItem>
                   {week.days.map((day) => (
-                    <DayItems key={day.date.getTime()} day={day} />
+                    <DayItems key={day.date.getTime()} day={day} selectedPath={selectedPath} />
                   ))}
                 </Fragment>
               ))}
@@ -98,11 +111,11 @@ export default function CalendarPage() {
           ))}
         </IonList>
       </IonContent>
-    </IonPage>
+    </>
   );
 }
 
-function DayItems({ day }: { day: AgendaDay }) {
+function DayItems({ day, selectedPath }: { day: AgendaDay; selectedPath?: string }) {
   const isToday = isSameDay(day.date, today);
   if (day.events.length === 0) {
     return (
@@ -112,23 +125,26 @@ function DayItems({ day }: { day: AgendaDay }) {
       </IonItem>
     );
   }
-  return day.events.map((event, index) => (
-    <IonItem
-      key={event.id}
-      className="agenda-item agenda-event"
-      id={index === 0 ? dayAnchor(day.date) : undefined}
-      routerLink={`/calendar/${event.id}`}
-    >
-      <DayLabel date={day.date} isToday={isToday} hidden={index > 0} />
-      <IonLabel className="ion-text-wrap">
-        <h2>{event.title}</h2>
-        <p>{event.isAllDay ? 'All day' : formatTimeRange(event.start, event.end)}</p>
-      </IonLabel>
-      <IonBadge slot="end" color="light" aria-label={`Teacher ${event.organizerInitials}`}>
-        {event.organizerInitials}
-      </IonBadge>
-    </IonItem>
-  ));
+  return day.events.map((event, index) => {
+    const href = `/calendar/${event.id}`;
+    return (
+      <IonItem
+        key={event.id}
+        {...rowSelection(href, selectedPath, 'agenda-item agenda-event')}
+        id={index === 0 ? dayAnchor(day.date) : undefined}
+        routerLink={href}
+      >
+        <DayLabel date={day.date} isToday={isToday} hidden={index > 0} />
+        <IonLabel className="ion-text-wrap">
+          <h2>{event.title}</h2>
+          <p>{event.isAllDay ? 'All day' : formatTimeRange(event.start, event.end)}</p>
+        </IonLabel>
+        <IonBadge slot="end" color="light" aria-label={`Teacher ${event.organizerInitials}`}>
+          {event.organizerInitials}
+        </IonBadge>
+      </IonItem>
+    );
+  });
 }
 
 function DayLabel({ date, isToday, hidden = false }: { date: Date; isToday: boolean; hidden?: boolean }) {

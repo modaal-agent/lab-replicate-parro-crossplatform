@@ -38,13 +38,14 @@ ion-buttons[slot='end'] .chat-avatar {
   gap: 8px;
 }
 
+/* At most 520 px from the bubble's side of the list, as `ChatDetail.swift` caps its bubbles (spec 001 §18.1). */
 .message-line.incoming {
-  padding-right: 60px;
+  padding-right: max(60px, 100% - 520px);
 }
 
 .message-line.outgoing {
   justify-content: flex-end;
-  padding-left: 60px;
+  padding-left: max(60px, 100% - 520px);
 }
 
 .message-avatar-space {

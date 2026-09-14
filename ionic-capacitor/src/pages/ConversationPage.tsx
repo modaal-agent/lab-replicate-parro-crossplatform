@@ -11,7 +11,7 @@ import {
   IonToolbar,
 } from '@ionic/react';
 import { add, arrowUpCircle, chatbubbleOutline } from 'ionicons/icons';
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useRef } from 'react';
 import { useParams } from 'react-router-dom';
 import ChatAvatar from '../components/ChatAvatar';
 import EmptyState from '../components/EmptyState';
@@ -20,15 +20,28 @@ import SunflowerDrawing from '../components/SunflowerDrawing';
 import { today, type ChatMessage } from '../fixtures/fixture';
 import { dayName, formatTime } from '../lib/dates';
 import { messageRows, type MessageRow } from '../lib/messageRows';
+import { useDraft } from '../model/Drafts';
 import { useShell } from '../model/ShellModel';
 import './ConversationPage.css';
 
-/** A conversation (spec 001 §12.1): the chat's messages in bubbles above a composer. */
+/** A conversation (spec 001 §12.1) as a page pushed over the chat list. */
 export default function ConversationPage() {
   const { chatId = '' } = useParams();
+  return (
+    <IonPage>
+      <Conversation chatId={chatId} backHref="/chat" />
+    </IonPage>
+  );
+}
+
+/**
+ * A conversation's header, messages and composer: in a page, with a back button to `backHref`, or in the detail
+ * column without one (spec 001 §19).
+ */
+export function Conversation({ chatId, backHref }: { chatId: string; backHref?: string }) {
   const { chats, markRead, send } = useShell();
   const chat = chats.find((candidate) => candidate.id === chatId);
-  const [draft, setDraft] = useState('');
+  const [draft, setDraft] = useDraft(chatId);
   const content = useRef<HTMLIonContentElement>(null);
   const messageCount = chat?.messages.length ?? 0;
   const shownCount = useRef(0);
@@ -44,20 +57,22 @@ export default function ConversationPage() {
     shownCount.current = messageCount;
   }, [messageCount]);
 
+  const backButton = backHref ? (
+    <IonButtons slot="start">
+      <IonBackButton defaultHref={backHref} />
+    </IonButtons>
+  ) : null;
+
   if (!chat) {
     return (
-      <IonPage>
+      <>
         <IonHeader>
-          <IonToolbar>
-            <IonButtons slot="start">
-              <IonBackButton defaultHref="/chat" />
-            </IonButtons>
-          </IonToolbar>
+          <IonToolbar>{backButton}</IonToolbar>
         </IonHeader>
         <IonContent>
           <EmptyState icon={chatbubbleOutline} title="No chat" text="This chat is not in the list." />
         </IonContent>
-      </IonPage>
+      </>
     );
   }
 
@@ -71,12 +86,10 @@ export default function ConversationPage() {
   };
 
   return (
-    <IonPage>
+    <>
       <IonHeader>
         <IonToolbar>
-          <IonButtons slot="start">
-            <IonBackButton defaultHref="/chat" />
-          </IonButtons>
+          {backButton}
           <StackedTitle title={chat.title} subtitle={chat.subtitle} />
           {/*
             `ios-theme-disabled` is the theme's opt-out: it keeps the glass capsule from the avatar, which
@@ -122,7 +135,7 @@ export default function ConversationPage() {
           )}
         </IonToolbar>
       </IonFooter>
-    </IonPage>
+    </>
   );
 }
 

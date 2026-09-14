@@ -715,3 +715,225 @@ bullet "`native-swift/` has two versions".
 - **Clean builds at round w10:** Debug 6.08 s, Release 5.00 s; Debug `.app` 2156 KiB, Release `.app` 1444 KiB;
   one `warning:` line per build, from `appintentsmetadataprocessor`.
 - **Results and the open overlap:** spec 001 §18.
+
+## 2026-09-14 — Phase 4: iterating on the wide layout of `ionic-capacitor/`
+
+- **From the user, after phase 3 was reported:** "Please commit and take phase 4". Phase 3 was committed as `1a4b99f`.
+- **The breakpoint question, asked before the first edit** (AskUserQuestion): spec 001 §4.3 shows the `IonMenu` column,
+  hides the tab bar and splits each tab into list and detail at one width, 672 px (§10.2 O4). Three columns do not fit
+  at 672 px: `@ionic/core/dist/collection/components/split-pane/split-pane.ios.css` sets `--side-min-width: 270px` and
+  `--side-max-width: 28%`; `@rdlabo/ionic-theme-ios26/src/styles/default-variables.scss:22` sets
+  `--ios26-menu-width: 360px`; `native-swift/TabShell/RootTabView.swift:80` gives the list column 320 to 420 pt.
+  Options: "Menu from 992 px (Recommended)", "Overlay menu below 992", "Menu from 672, columns 992", "As written, all at
+  672". **Answer:** "Menu from 992 px (Recommended)". Spec 001 §19.1 records what it amends.
+- **Simulators:** `iPhone 16 (iOS 26.5)` `70D15E5B-3D95-4290-B3E9-970F68617BE8` and `iPad Pro 13-inch (M5)` on iOS 26.5
+  `7A47789D-1FBC-45E2-821B-8209177A6C67`, both booted from phase 3. `iPhone 18 Pro` on iOS 27.0 was booted and not used.
+  Xcode 26.6 (17F113), Node 24.21.0 (`nvm use 24`), XcodeGen 2.45.4.
+- **Baseline before the first edit:** both variants built at `1a4b99f` and installed on `iPhone 16 (iOS 26.5)`; the pass
+  2 screenshot scripts in the session scratchpad (`shoot-ionic.sh`, `shoot-matched.sh`) took round b0: 15 `stock` and
+  16 `matched` screenshots.
+- **Sources read:**
+
+  | source | how it was read | what was taken |
+  | --- | --- | --- |
+  | `node_modules/@ionic/react-router/dist/index.js:681–774` | read | a view item for a route whose path ends in `/*` is reused when the path below it changes (`:734`) |
+  | `node_modules/@ionic/react/dist/index.js:1971–2107` (`PageManager`, `IonPage`) | read | an `IonPage` renders `div.ion-page` and calls the outlet's `registerIonPage` in `componentDidMount`; `IonTabs` in a router renders its own `PageManager` |
+  | `node_modules/@ionic/react/dist/index.js:2291–2410`, `:2474–2560` (`IonTabs`, `IonTabBar`) | read | `IonTabs` finds the outlet among its children by type; the tab bar keeps each tab's current `href` |
+  | `node_modules/@ionic/core/dist/collection/components/split-pane/split-pane.js`, `split-pane.ios.css` | read | `when` defaults to `lg`, `(min-width: 992px)`, through `matchMedia`; the main element is found by `contentId` among the direct children |
+  | `node_modules/@ionic/core/dist/collection/components/menu/menu.js` | `grep` | `menu-pane-visible` while the split pane shows the menu |
+  | `node_modules/@ionic/react/css/core.css` | `grep split-pane` | `.split-pane-visible>.ion-page.split-pane-main{position:relative}` |
+  | `node_modules/@ionic/core/dist/collection/components/footer/footer.ios.css:64`, `footer.js:116` | `grep` | a footer's last toolbar is padded for the home indicator only while no bottom `ion-tab-bar` is in the tabs and the keyboard is closed |
+  | `node_modules/@rdlabo/ionic-theme-ios26/src/styles/components/ion-menu.scss`, `ion-tabs.scss`, `default-variables.scss` | read | the theme's menu is absolute with `z-index: 999` and pads the split pane's main content by the menu width; floating tab bar `max-width: 474px` |
+  | `ionic-capacitor/index.html:11–12` | `grep viewport` | `width=device-width, initial-scale=1.0` |
+  | `screenshots/native-swift-ipad-v1/`, `screenshots/native-swift-ipadlandscape-v1/` | viewed; `magick … txt:-` pixel rows and columns | the geometry and colours in spec 001 §19.5 |
+  | `node_modules/@ionic/core/dist/esm/ion-item_8.entry.js:397`, `:474` | `sed -n`, `grep -o` | `labelIosCss`, the label style Ionic injects at run time: `.item .sc-ion-label-ios-h{--color:initial;…;color:var(--color)}` |
+  | `node_modules/@rdlabo/ionic-theme-ios26/dist/css/` (all `.css` files) | Python scan of each rule | no rule whose selector names `ion-label` or `ion-menu` sets `color` on a menu item's label |
+  | `ionic-capacitor/src/lib/messageRows.ts:4`, `:23`; `src/fixtures/fixture.ts:190–195` | read | `dateGap` of one hour and the date line above a message sent more than an hour after the one before; `nowOnToday()` dates a sent message with the clock time |
+  | `screenshots/native-swift-ipadlandscape-v1/*.png` | Python walk over the PNG chunks | the orientation stored in the `eXIf` chunk (tag `0x0112`) and in the XMP `iTXt` chunk (`tiff:Orientation`) |
+
+- **TypeScript:** `npx tsc --noEmit` rejected `id` on `IonTabs` (`Property 'id' does not exist`); the split pane's main
+  element is a `div` with `id="tabs"` and the `ion-page` class.
+- **XCUITest reads the web content on the iPad** (round e1, `testExplore` in the session scratchpad's `p4-driver`):
+  `IonItem` rows with `routerLink` are links labelled with their texts joined ("Group 6/7/8 B 1 unread Teacher JV"),
+  the menu's items are links "Home 1", "Calendar", "Chat", "Settings", and each `ion-content` is an element labelled
+  "main" whose frame gives the column. At 1032 pt the stock menu is 289 pt wide, 28 % of 1032.
+- **Rounds** on `iPad Pro 13-inch (M5)`:
+
+  | round | build | what the screenshots or layout notes showed | change |
+  | --- | --- | --- | --- |
+  | e1 | stock | menu 0–289 pt, list column 288–664 pt, detail 663–1032 pt; "Select a group or a page"; the status bar's "◀ TabShell", because native TabShell was in front before the launch | the tours terminate `dev.modaal.lab.tabshell` first |
+  | t1 | stock | 1032 and 1376 pt as e1 (menu 385 pt in landscape); at ≥992 px the composer lay on the home indicator; landscape bubbles wider than 520 pt; the driver's resize stopped at 915 pt for 820 and 684 pt for 600 | the footer padding rule in `Columns.css`; the bubble cap in `ConversationPage.css` and `matched/index.css`; the driver steps by absolute drags |
+  | m1 | matched, built 10:12:28 before t1's CSS changes | the theme's menu over the list column: the list's subtitle one letter per line, and every row, "New chat", the message field and "Send" not hittable; at 839 pt the window controls over the list's "Chat" title | `ios-theme-disabled` on `IonSplitPane`; the menu `position: relative`, 320 px, no header (matched CSS) |
+  | t2 | stock | the composer above the home indicator; landscape bubbles within 520 pt; 816 pt: two columns and the tab bar; 605 pt: the phone layout with the conversation pushed, the window controls over the back button's label; zoomed back to 1032 pt: menu, list and the same conversation | — |
+
+- **The phase 3 landscape screenshots carry a stale orientation.** `magick identify -verbose` on each of the four files
+  in `screenshots/native-swift-ipadlandscape-v1/` (committed in `1a4b99f`) prints 2752 × 2064 px and `Orientation:
+  LeftBottom`; `native-swift-ipad-v1/home.png` prints `TopLeft`. `magick …/calendar-event-sidebar.png -orient TopLeft`
+  draws the screen upright. The raw XCUITest landscape screenshot (round t1, `t1-l-home-detail.png`) is 2064 × 2752 px
+  with `LeftBottom`. So `sips -r 270` in phase 3 rotated the pixels and left the tag, and a viewer that applies the tag
+  turns those four files a quarter turn; the image viewer of this session did so for a `sips -Z` copy. This corrects
+  the entry "Phase 3: iterating on the wide layout of `native-swift/`" of 2026-09-14, which records the files as turned
+  upright. `magick -strip` does not remove the orientation.
+- **Question:** in the chat report, the four files could have their orientation tag rewritten in place or corrected
+  copies could go in a new `-v2` folder, since spec 001 §17.2 does not allow replacing files in a version. **Answer:**
+  "Please update the screenshots (the orientation tag) in place."
+- **The orientation was changed in place.**
+  - A Python walk over the PNG chunks of each file found the orientation twice: EXIF tag `0x0112`, SHORT, value 8 in the
+    `eXIf` chunk, and `<tiff:Orientation>8</tiff:Orientation>` in the XMP `iTXt` chunk (`XML:com.adobe.xmp`,
+    uncompressed). `sips -g orientation` prints `<nil>` for these PNGs.
+  - `exiftool` and `exiv2` are not installed (`which`). A `magick` rewrite re-encodes `IDAT`, so `p4-orient.py` in the
+    session scratchpad sets both values to 1 and recomputes the two CRCs, after checking every chunk's CRC.
+  - Per file: the size is unchanged; `cmp -l` against the copy saved before counts 10 bytes; the SHA-256 of the `IDAT`
+    data is unchanged; `magick compare -metric AE` counts 0; `magick identify` prints 2752 × 2064 `TopLeft`, EXIF 1.
+    A 20 % `magick -auto-orient` preview of `calendar-event-sidebar.png` shows the screen upright.
+  - `find screenshots -name '*.png' | xargs magick identify -format '%[orientation]'`: all 64 PNGs `TopLeft` or
+    `Undefined` after the change.
+  - The XMP still gives `exif:PixelXDimension` 2064 and `exif:PixelYDimension` 2752, the portrait size; the EXIF chunk
+    gives 2752 × 2064. Left as they are.
+- **Rounds after t2:**
+
+  | round | build | what the screenshots or notes showed | change |
+  | --- | --- | --- | --- |
+  | m2 | matched, web build 10:22:28: the menu fix at 320 px | rows, "New chat", the field and "Send" hittable; the menu a glass card in its own column; the list column still the phone's grouped cards; no highlight on the selected row or chat; at 816 pt the floating tab bar over the composer; at 605 pt the window controls where the back button is | the panel, selection and 280 px sidebar CSS; the composer above the floating bar between 672 and 991 px |
+  | x1 | stock with a probe in the copied web assets, bundle `dev.modaal.lab.tabshell.probe` (`p4-probe-build.sh`) | `innerWidth` × `innerHeight` equal to the window in points: 1032 × 1376, 821 × 1376, 610 × 1376, 1376 × 1032; `env(safe-area-inset-*)` top 32 px, left 0, right 0, bottom 20 px in every state; `screen` 1032 × 1376 throughout | `watchWindowed()` and 72 px of leading padding in a window smaller than the screen |
+  | t3 | stock, `testThreshold`, build of t2 | two columns at 673 pt, the phone layout at 667 pt, narrowing and widening in 6 pt steps; from the zoomed 1032 pt window a 12 pt drag did not move the corner, so the steps across 992 px stayed at 1032 pt; narrowest window 375 pt | the steps across 992 px start from about 968 pt |
+  | t4 | stock, `testState`, build of t2 | Home's and Calendar's selections shown at 598 pt with a back button and at 1032 pt again; the chat draft already gone at 1032 pt, after the menu's Home and Chat ended the field's focus | `testDraftTabs` |
+  | d1 | stock, `testDraftTabs`, build of t2 | at 1032 pt the draft gone after each switch through the menu; at 817 pt the keyboard hid the tab bar, so a switch through the tab bar was not exercised | the fix below |
+
+- **Why a tab switch closed the conversation.** `@ionic/react-router/dist/index.js`:
+  - `renderViewItem` (`:924–947`) renders each view's element inside a route context built from
+    `match || viewItem.routeData.match` (`:931`), so a hidden view keeps its own last match;
+  - `shouldUnmountLeavingView` (`:1570–1589`) keeps the leaving view for a push with direction `none`, and a transition
+    between two routes ending in `/*` skips removal (`:1915–1918`, `:1991–1993`).
+  - `TabColumns.tsx` read `useLocation()`, which gives the current path. The hidden Chat view rendered with `/home`,
+    matched no chat, and replaced `Conversation` with the empty state; `useDraft`'s clean-up then deleted the draft.
+    `useViewPath()` now builds the path from `useParams()['*']`.
+- **iPhone comparisons** (`p4-iphone.sh` in the session scratchpad: the pass 2 scripts on the installed build, then
+  `imgdiff.swift` against round b0 below the top 162 px):
+  - p1 `stock` (build of t2): 13 of 15 screens with 0 pixels different. `list-after` and `child-sent` differ in the
+    send times: 10:03 and 10:02 against 10:22 and 10:21, "Today 10:03" against "Today 10:22" (crops of both images).
+  - p1 `matched` (build of m2) and p2 `matched` (build with the panel CSS): 14 of 16 screens with 0 pixels different;
+    `chat-child-sent` and `chat-list-after` differ in the send times, 10:05 and 10:04 against 10:27 and 10:26.
+  - p3 `stock` and `matched` (build with the first `watchWindowed()`, which compared the web view's area with the
+    screen's): `group-typing` 0.180 % and `chat-group-typing` 0.233 % different, in the header. A crop shows the back
+    button 216 px (72 pt) to the right in p3: the keyboard shrinks `innerHeight` (`@capacitor/keyboard`), so the area
+    test set `windowed` on the iPhone. `watchWindowed()` now compares the width only.
+- **Final code, first pass** (`p4-run-final.sh` in the session scratchpad: builds at 10:39:00 and 10:41:42):
+  - p4 `stock`: 13 of 15 screens with 0 pixels different, `group-typing` among them; `child-sent` and `list-after`
+    differ in the send times (crops: 10:03 and 10:02 against 10:41 and 10:40).
+  - p4 `matched`, and its retake p5: 13 of 16 screens with 0 pixels different; `chat-child-sent` and
+    `chat-list-after` differ in the send times; `chat-group-sent` differs in 27.848 %. Its p4 screenshot has a date line
+    "Today 10:43" above the sent message and the messages above drawn higher. `src/lib/messageRows.ts:4` sets
+    `dateGap` to one hour and `:23` draws a date line above a message sent more than an hour after the one before;
+    `nowOnToday()` (`src/fixtures/fixture.ts:190–195`) dates a sent message with the clock time on the fixture's day.
+    The message before is dated 09:41; b0 sent at 10:03, p4 at 10:43, and stock's p4 at 10:40.
+  - t5 `stock` tour: at 605 pt the back buttons lie after the window controls. At 816 pt the list column's large title
+    "Chat" also moved 72 px: the selector `.columns-list ion-header ion-toolbar:first-of-type` matched the large title's
+    header inside `ion-content` as well → `.columns-list > ion-header`; the tours and the iPhone comparisons are taken
+    again after a rebuild (t8, m6, p6).
+  - d2 `stock`: the draft in the field after the menu's Home and Chat and after Settings and Chat at 1032 pt, and at
+    816 pt after the resize. The keyboard hid the tab bar at 816 pt, so a switch through the tab bar was not exercised.
+    The typed text went in before the existing draft: the driver's tap put the caret at the start.
+  - t6 `stock`, `testThreshold`: two columns at 673 pt, the phone layout at 667 pt, narrowing and widening. Across
+    992 px from 968 pt (resized to 973 pt): no menu at 990 pt, the menu at 996 pt; the next 12 pt drag took the window
+    to 1032 pt, and the eight narrowing steps from there stayed at 1032 pt. `testThreshold` now drags back to about
+    1000 pt before narrowing (round t9). Narrowest window 375 pt.
+  - t7 `stock`, `testState`: at 1032, 816 and 598 pt and back at 1032 pt, the conversation with "Draft kept across a
+    resize" in the field; at 598 pt Home and Calendar each show the selected row's placeholder, its title and a back
+    button, with the tab bar's tab selected; back at 1032 pt the placeholders and titles in the detail column.
+    `selectedTabs()` reads no tab at 1032 pt: the menu's current link has `aria-current` and XCUITest does not report it
+    as selected.
+  - m3 `matched` tour: menu 0–290 pt, list 290–665 pt, detail 675–1032 pt at 1032 pt; detail to 1376 pt in landscape;
+    816 pt two columns and the tab bar; 605 pt the phone layout; zoomed back, the three columns. Screenshots: at 1032 pt
+    the chat sent at 10:53 has a date line "Today 10:53" (`dateGap`, as p4); at 816 pt the "Calendar" title and at
+    605 pt the back button lie after the window controls.
+  - m4 `matched`, `testThreshold`: widening, no menu at 991 pt and the menu at 997 pt; narrowing from 996 pt, no menu at
+    990 pt; two columns at 675 pt and the phone layout at 669 pt, narrowing and widening; narrowest window 375 pt.
+  - m5 `matched`, `testState`: the draft in the field at 1032, 816 and 605 pt and back at 1032 pt. At 605 pt the
+    conversation hides the tab bar, as `matched` does on iPhone (`src/styles/matched/index.css:875`), and the driver
+    noted "tab not found: Home" and "tab not found: Calendar"; the Home and Calendar rows below 672 pt were not read. At
+    816 pt `layout()` listed one `main` frame, 504+421; the screenshot `m5-state-chat-820.png` shows the list and the
+    conversation side by side and the tab bar. `testState` now taps the back button when no tab is hittable (round m7).
+- **Final code, retake** (`p4-retake.sh` in the session scratchpad; `stock` built at 11:00:13, `matched` at 11:04:43,
+  after the `.columns-list > ion-header` selector):
+  - t8 `stock` tour: menu 0–288 pt, list 288–664 pt, detail 663–1032 pt at 1032 pt; menu 385 pt in landscape; 816 pt
+    two columns and the tab bar; 605 pt the phone layout; zoomed back, the three columns. `t8-n-chat-group-sent.png`:
+    at 816 pt the large title "Chat" at the list column's usual inset, and the collapsed top bar's search button and
+    the window controls above it.
+  - p6 `stock`: 12 of 15 screens with 0 pixels different. `child-sent` (0.095 %) and `list-after` (0.128 %) differ in
+    the send times. `group-sent` differs in 26.762 %: side by side (`magick +append`), b0 sent at 10:02 with no date
+    line above the sent message, p6 sent at 11:03 with "Today 11:03" above it and the messages above drawn higher, the
+    `dateGap` case recorded for `matched` p4 above.
+  - m6 `matched` tour: menu 0–290 pt, list 290–665 pt, detail 675–1032 pt at 1032 pt, detail to 1376 pt in landscape;
+    `resize(to: 820)` stopped at 827 pt (two columns, the tab bar) and `resize(to: 600)` at 594 pt (the phone layout),
+    where round m3 stopped at 816 and 605 pt; zoomed back, the three columns.
+  - p6 `matched`: 13 of 16 screens with 0 pixels different; `chat-child-sent` (0.094 %) and `chat-list-after`
+    (0.093 %) differ in the send times; `chat-group-sent` (27.848 %) has the date line, as in p4.
+  - t9 `stock`, `testThreshold` with the narrowing steps from about 1000 pt: widening, no menu at 991 pt and the menu at
+    997 pt; narrowing from 996 pt, no menu at 990 pt. Across 672 px the drags stopped at 675 pt: step 4 of the
+    narrowing and step 8 across 992 px did not move the corner, so t9 did not cross 672 px; t3 and t6 did.
+  - m7 `matched`, `testState` with the back button step, on the 11:04:43 build (`p4-after.sh` in the session
+    scratchpad): the draft in the field at 1032 and 816 pt and in the conversation at 598 pt; there the driver noted
+    "no tab in the conversation at compact width; back button true", and the Chat list showed the tab bar with Chat
+    selected. At 598 pt Home and Calendar each showed the selected row's placeholder, its title and a back button;
+    back at 1032 pt both in the detail column without a back button. Chat at 1032 pt: no conversation and no field,
+    since the back button had closed the conversation (`Drafts.tsx:29–35` removes the draft then). At 816 pt
+    `layout()` again listed one `main` frame, as in m5.
+- **Screenshots copied** (`p4-copy.sh` in the session scratchpad, which maps the tour's `p-`, `l-`, `n-` and `c-`
+  shots to the `ipad`, `ipadlandscape`, `ipadmedium` and `ipadnarrow` folders, turns landscape shots upright with
+  `magick -auto-orient` and stops if a shot is older than the build's `public/index.html`): t8 into the four
+  `ionic-capacitor-stock-ipad*-v1` folders, m6 into the four `ionic-capacitor-matched-ipad*-v1` folders. `magick
+  identify`: portrait 2064 × 2752, landscape 2752 × 2064, all `TopLeft`. `shasum -a 256`: no two files equal across
+  these folders and the `native-swift-ipad*-v1` folders. Contact sheets (`magick +append`) of stock's landscape
+  `settings-detail` (Settings, Notifications open), medium `home-detail` and both narrow files showed the screens the
+  names give.
+- **`matched`'s selected menu label was black.** Pixel rows of round m3's screenshots (colour runs within 2 levels):
+  the selected tab's icon (209,60,99), its label (0,0,0); `native-swift-ipadlandscape-v1/calendar-event-sidebar.png`
+  draws both in (209,60,99). The rule `ion-menu ion-item.selected ion-icon, ion-menu ion-item.selected ion-label
+  { color: var(--ion-color-primary) }` was in the built bundle (`dist/assets/index-CFmh4dPU.css`, rule 1662), and no
+  rule in the bundle set `color` on `ion-label` at a higher specificity. Ionic injects the label's style at run time:
+  `labelIosCss` in `node_modules/@ionic/core/dist/esm/ion-item_8.entry.js:397` begins
+  `.item.sc-ion-label-ios-h,.item .sc-ion-label-ios-h{--color:initial;display:block;color:var(--color);…}`,
+  specificity (0,2,0), above the menu rule's (0,1,3) and below the list rule `.columns-list ion-item.selected
+  ion-label` (0,2,2), whose label m3 draws in the accent. The menu label's selector is now
+  `ion-menu ion-item.item.selected ion-label`, (0,2,3); `matched` is built again and its tour and iPhone comparison
+  taken again as rounds m8 and p7 (`p4-fix.sh` in the session scratchpad). Round m7 runs `testState` on the build
+  before this change, which reads no colours.
+- **Clean builds** (`p4-measure.sh` in the session scratchpad, 11:14:58 to 11:15:35, `matched` then `stock`, on the
+  working tree with the menu label selector; `/usr/bin/time -p`; new derived data per `xcodebuild`; simulator
+  `iPhone 16 (iOS 26.5)`):
+  - `matched`: web build 4.75 s real (Vite 3.66 s), `cap sync` 0.73 s, Debug 9.15 s, Release 6.34 s; `dist/` 6276 KiB,
+    205 files; Debug `.app` 11320 KiB, Release `.app` 11176 KiB.
+  - `stock`: web build 4.55 s (Vite 3.23 s), `cap sync` 0.54 s, Debug 5.86 s, Release 4.65 s; `dist/` 3088 KiB,
+    19 files; Debug `.app` 8084 KiB, Release `.app` 7940 KiB.
+  - Load average (`sysctl -n vm.loadavg`): 8.07 at the start, 10.61 at its highest; `ps -Ao pcpu,comm -r` listed
+    Visual Studio Code's renderer at 43.2 % CPU first.
+  - One Xcode `warning:` line per build, from `appintentsmetadataprocessor`; 20 `lightningcss` lines and the chunk size
+    warning per web build.
+  - Side effect: the run left `dist/` and `ios/App/App/public/` with `stock`'s build; `p4-fix.sh` builds `matched`
+    again. Derived data in `dd-p4-t-*` in the session scratchpad.
+- **After the menu label selector** (`p4-fix.sh` in the session scratchpad; `matched` built at 11:15:49):
+  - m8 `matched` tour: the same layouts as m6; `resize(to: 820)` stopped at 816 pt and `resize(to: 600)` at 594 pt.
+    In `m8-p-home-detail.png` the darkest pixel of rows y 66, 68 and 70 pt between x 80 and 150 pt, the selected
+    "Home" label, is (209,60,99), and no pixel there is darker; in m3 the label was (0,0,0).
+  - `p4-copy.sh matched m8` stopped at its first file with "exists: …/ionic-capacitor-matched-ipad-v1/home.png" and
+    wrote nothing. `git status --porcelain` listed the 20 files of the four `ionic-capacitor-matched-ipad*-v1` folders
+    as untracked, `git ls-files` none, and `cmp` found the 16 portrait files identical to round m6's shots; the four
+    folders were removed and `p4-copy.sh matched m8` copied again. `magick identify`: portrait 2064 × 2752, landscape
+    2752 × 2064, all `TopLeft`; `shasum -a 256`: no two files equal across the `ionic-capacitor-*-ipad*-v1` and
+    `native-swift-ipad*-v1` folders.
+- **Folder sizes** (`du -sk`): the four `ionic-capacitor-stock-ipad*-v1` folders 13536 KiB, 20 files; the four
+  `ionic-capacitor-matched-ipad*-v1` folders 14864 KiB, 20 files.
+- **p7 `matched`** (`p4-fix.sh`, on the 11:15:49 build): 13 of 16 screens with 0 pixels different; `chat-child-sent`
+  (0.097 %) and `chat-list-after` (0.118 %) differ in the send times; `chat-group-sent` (27.847 %) has the date line.
+- **Checks on the final code:** `npx tsc --noEmit` exit 0; `npx eslint src` 0 errors and 2 warnings
+  (`Drafts.tsx:25`, `ShellModel.tsx:97`); `npx vitest run` 1 of 1 passed; `cmp AGENTS.md CLAUDE.md` prints nothing.
+- **Side effects on the machine:**
+  - `dev.modaal.lab.tabshell.probe` was installed on the iPad at 10:27 and uninstalled at 10:43
+    (`xcrun simctl uninstall`).
+  - `dev.modaal.lab.tabshell.stock` (built 11:00:13) and `dev.modaal.lab.tabshell.matched` (built 11:15:49) are
+    installed on `iPhone 16 (iOS 26.5)` and `iPad Pro 13-inch (M5)`.
+  - The iPad's status bar time is overridden to 9:41 (`xcrun simctl status_bar … override --time 9:41` in
+    `p4-retake.sh` and `p4-fix.sh`).
+  - `ionic-capacitor/dist/` and `ionic-capacitor/ios/App/App/public/` hold `matched`'s 11:15:49 web build.
+  - Derived data (`dd-p4-*`), round screenshots, notes and logs are in the session scratchpad.

@@ -2,6 +2,7 @@ import { IonContent, IonIcon, IonItem, IonItemGroup, IonLabel, IonList, IonNote,
 import { help, helpCircleOutline, openOutline } from 'ionicons/icons';
 import type { CSSProperties } from 'react';
 import { LargeTitle, TabHeader } from '../components/Headers';
+import { rowSelection } from '../lib/layout';
 import { isMatched } from '../lib/variant';
 import { aboutSettings, generalSettings, type PageRow } from './rows';
 
@@ -9,6 +10,18 @@ import { aboutSettings, generalSettings, type PageRow } from './rows';
 export default function SettingsPage() {
   return (
     <IonPage>
+      <SettingsList />
+    </IonPage>
+  );
+}
+
+/**
+ * The Settings screen's header and list, in a page or in the list column (spec 001 §19). `selectedPath` is the page
+ * the detail column shows.
+ */
+export function SettingsList({ selectedPath }: { selectedPath?: string }) {
+  return (
+    <>
       <TabHeader title="Settings" />
       <IonContent fullscreen>
         <LargeTitle title="Settings" />
@@ -16,7 +29,7 @@ export default function SettingsPage() {
         <IonList inset>
           <IonItemGroup>
             {generalSettings.map((row) => (
-              <SettingsItem key={row.id} row={row} />
+              <SettingsItem key={row.id} row={row} selectedPath={selectedPath} />
             ))}
           </IonItemGroup>
         </IonList>
@@ -24,7 +37,7 @@ export default function SettingsPage() {
         <IonList inset>
           <IonItemGroup>
             {aboutSettings.map((row) => (
-              <SettingsItem key={row.id} row={row} />
+              <SettingsItem key={row.id} row={row} selectedPath={selectedPath} />
             ))}
             {/* Opens nothing in this shell (spec 001 §2.3). */}
             <IonItem button detail={false}>
@@ -35,13 +48,14 @@ export default function SettingsPage() {
           </IonItemGroup>
         </IonList>
       </IonContent>
-    </IonPage>
+    </>
   );
 }
 
-function SettingsItem({ row }: { row: PageRow }) {
+function SettingsItem({ row, selectedPath }: { row: PageRow; selectedPath?: string }) {
+  const href = `/settings/${row.id}`;
   return (
-    <IonItem routerLink={`/settings/${row.id}`}>
+    <IonItem routerLink={href} {...rowSelection(href, selectedPath)}>
       <SettingsIcon icon={row.icon} filledIcon={row.filledIcon} tileColor={row.tileColor} />
       <IonLabel>
         {row.title}
