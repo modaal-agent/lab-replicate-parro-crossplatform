@@ -1,0 +1,37 @@
+/*
+ * The wide layout (spec 001 §19): the list at the width `native-swift/` gives it (`RootTabView.swift:80`, ideal
+ * 375 pt), and the detail beside it.
+ */
+.ion-page.columns {
+  display: grid;
+  grid-template-columns: 375px minmax(0, 1fr);
+}
+
+.ion-page.columns > .ion-page {
+  position: relative;
+}
+
+/* From 992 px the menu lists the tabs in place of the tab bar. */
+ion-split-pane.split-pane-visible ion-tab-bar {
+  display: none;
+}
+
+/*
+ * Ionic pads a footer for the home indicator only while no bottom tab bar is in the tabs and the keyboard is closed
+ * (`footer.ios.css:64`, `footer.js:116`). The hidden bar is still in the tabs, so this adds the padding; the bar takes
+ * `tab-bar-hidden` while the keyboard is open.
+ */
+ion-split-pane.split-pane-visible ion-tabs:has(ion-tab-bar:not(.tab-bar-hidden)) ion-footer ion-toolbar:last-of-type {
+  padding-bottom: var(--ion-safe-area-bottom, 0);
+}
+
+/*
+ * In a window smaller than the screen, iPadOS draws its window controls over the window's top leading corner, about
+ * 22 to 60 pt from the leading edge (spec 001 §19). `watchWindowed()` in `layout.ts` sets `windowed`. The top bar of
+ * the leading pane, the page below 672 px, the list column below 992 px or the menu, then starts after the controls.
+ */
+html.windowed ion-split-pane:not(.split-pane-visible) ion-router-outlet > .ion-page:not(.columns) > ion-header ion-toolbar:first-of-type,
+html.windowed ion-split-pane:not(.split-pane-visible) .columns-list > ion-header ion-toolbar:first-of-type,
+html.windowed ion-split-pane.split-pane-visible ion-menu ion-header ion-toolbar:first-of-type {
+  --padding-start: 72px;
+}

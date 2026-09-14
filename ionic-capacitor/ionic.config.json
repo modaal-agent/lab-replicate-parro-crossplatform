@@ -1,0 +1,7 @@
+{
+  "name": "TabShell",
+  "integrations": {
+    "capacitor": {}
+  },
+  "type": "react-vite"
+}

@@ -1,0 +1,10 @@
+/* `ion-avatar` sizes and rounds an image; initials and icons need centring and a fill. */
+.chat-avatar {
+  display: flex;
+  flex: none;
+  align-items: center;
+  justify-content: center;
+  background: var(--chat-avatar-color);
+  color: #fff;
+  font-weight: 600;
+}

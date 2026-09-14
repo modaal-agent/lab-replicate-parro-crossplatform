@@ -1,0 +1,31 @@
+/* The agenda's day column: Ionic has no agenda component (spec 001 §13.6 D16). */
+.agenda-day {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  width: 36px;
+  color: var(--ion-color-medium);
+}
+
+.agenda-day.repeated {
+  visibility: hidden;
+}
+
+.agenda-day-weekday {
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.agenda-day-number {
+  font-size: 20px;
+  color: var(--ion-text-color, #000);
+}
+
+.agenda-day.today {
+  color: var(--ion-color-primary);
+}
+
+.agenda-day.today .agenda-day-number {
+  color: var(--ion-color-primary);
+  font-weight: 700;
+}

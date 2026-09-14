@@ -1,0 +1,924 @@
+/*
+ * The `matched` variant (spec 001 §13.1, §13.3, D15): @rdlabo/ionic-theme-ios26 9.2.0, then the rules that move each
+ * screen toward the `native-swift/` screenshots in `screenshots/native-swift-v1/`.
+ * Comments name the Swift file a value is taken from. Selectors that override a theme rule repeat
+ * its `.ios:not(.ios-theme-disabled)` so that they are at least as specific as that rule.
+ */
+@import '@rdlabo/ionic-theme-ios26/dist/css/default-variables.css';
+@import '@rdlabo/ionic-theme-ios26/dist/css/ionic-theme-ios26.css';
+@import '@rdlabo/ionic-theme-ios26/dist/css/md-remove-ios-class-effect.css';
+/* App.tsx imports Ionic's `palettes/dark.system.css`; the theme's README pairs it with this file. */
+@import '@rdlabo/ionic-theme-ios26/dist/css/ionic-theme-ios26-dark-system.css';
+
+:root {
+  /* UIKit's secondary and tertiary label, separator, grouped background, gray 5 and red, light appearance, iOS 26. */
+  --matched-secondary-label: rgba(60, 60, 67, 0.6);
+  --matched-tertiary-label: rgba(60, 60, 67, 0.3);
+  --matched-separator: rgba(60, 60, 67, 0.29);
+  --matched-grouped-background: #f2f2f7;
+  --matched-gray5: #e5e5ea;
+  --matched-red: #ff383c;
+  /* The theme's `api.glass-background` mixin with its default arguments. */
+  --matched-glass-background: rgba(var(--ios26-glass-background-rgb), 0.72);
+  --matched-glass-shadow:
+    inset 0 0 8px 0 rgba(var(--ios26-glass-box-shadow-color-rgb), 0.2),
+    0 0 10px 0 rgba(var(--ios26-glass-box-shadow-color-rgb), 0.82);
+  /* The theme's tab bar: 56 px buttons, 2 px padding and a 0.5 px border on each side. */
+  --matched-tab-bar-height: 61px;
+}
+
+/* Glass: the month capsule (`CalendarList.swift`), the chips (`ChatList.swift`), the composer field (`ChatDetail.swift`). */
+ion-item-divider.agenda-month ion-label,
+.chip-row ion-chip.chip-outline,
+ion-footer.composer ion-textarea.composer-field {
+  border: 0.5px solid rgb(var(--ios26-glass-border-color-rgb));
+  background: var(--matched-glass-background);
+  box-shadow: var(--matched-glass-shadow);
+  -webkit-backdrop-filter: blur(2px) saturate(360%);
+  backdrop-filter: blur(2px) saturate(360%);
+}
+
+/* ---- Tab bar (`RootTabView.swift`) ---- */
+
+/*
+ * Four tabs across the width, 21 px from each edge; the theme narrows the bar by 72 px to leave room for a search
+ * button beside it. Its 2 px padding and 0.5 px border lie outside `width`.
+ */
+ion-tabs ion-tab-bar.ios:not(.ios-theme-disabled)[slot='bottom'] {
+  left: calc(21px + var(--ion-safe-area-left, 0px));
+  width: calc(100% - 47px - var(--ion-safe-area-left, 0px) - var(--ion-safe-area-right, 0px));
+  max-width: none;
+}
+
+/* The conversation hides the bar (spec 001 §12.1, D14). `App.tsx` sets the class from the route. */
+ion-tabs ion-tab-bar.tab-bar-conversation.ios:not(.ios-theme-disabled)[slot='bottom'] {
+  transform: translateY(calc(100% + 40px));
+  transition: transform 300ms ease-in;
+  pointer-events: none;
+}
+
+/* On iOS UIKit draws the tab bar (`nativeTabBar.ts`); `IonTabBar` stays in the page to choose each tab's page. */
+html.native-tab-bar ion-tabs ion-tab-bar {
+  display: none;
+}
+
+/* `.badge()` draws the system red capsule. */
+ion-tab-button ion-badge {
+  background: var(--matched-red);
+  color: #fff;
+}
+
+/*
+ * ---- Wide layout (spec 001 §19): the panels of `native-swift/`'s split views ----
+ * Positions and colours are read from `screenshots/native-swift-ipad-v1/` and `native-swift-ipadlandscape-v1/`.
+ */
+
+:root {
+  /* The panel fill and the selected capsule. */
+  --matched-panel: #f9f8f8;
+  --matched-selected: #dcdcdc;
+  --matched-panel-shadow: 0 0 12px rgba(0, 0, 0, 0.08);
+}
+
+/* A 375 px list panel with 10 px on each side: the panel lies at x 10–385 pt beside a detail from 395 pt. */
+.ion-page.columns {
+  grid-template-columns: 395px minmax(0, 1fr);
+}
+
+/* The panel starts where the menu card starts and ends 10 px above the window's bottom; inside it no safe area. */
+.ion-page.columns > .ion-page.columns-list {
+  --ion-safe-area-top: 0px;
+  --ion-safe-area-bottom: 0px;
+  margin: calc(var(--ios26-floating-safe-area-top) + 6px) 10px 10px;
+  overflow: hidden;
+  border-radius: 26px;
+  background: var(--matched-panel);
+  box-shadow: var(--matched-panel-shadow);
+}
+
+ion-router-outlet > .ion-page.columns > .ion-page.columns-list ion-header.header-ios ion-toolbar.ios:not(.ios-theme-disabled),
+ion-router-outlet > .ion-page.columns > .ion-page.columns-list ion-content.ios {
+  --background: var(--matched-panel);
+}
+
+/* The detail column keeps the page's background; the grouped-background rule below matches the columns' page. */
+ion-router-outlet > .ion-page.columns > .ion-page.columns-detail ion-header.header-ios ion-toolbar.ios:not(.ios-theme-disabled) {
+  --background: var(--ion-background-color, #fff);
+}
+
+/* Home and Settings in the panel: rows on the panel without the grouped cards. */
+.columns-list ion-list.list-inset.ios:not(.ios-theme-disabled) {
+  background: transparent;
+}
+
+.columns-list ion-list.list-inset ion-item {
+  --background: transparent;
+  --border-width: 0;
+  --inner-border-width: 0;
+}
+
+/* The selected row: a capsule 16 px inside the panel, with its label in the accent colour. */
+.columns-list ion-list.list-inset ion-item.selected {
+  --background: var(--matched-selected);
+  border-radius: 999px;
+}
+
+.columns-list ion-item.selected ion-label {
+  color: var(--ion-color-primary);
+}
+
+/* The selected chat fills the panel's width. */
+.columns-list ion-item.chat-item.selected {
+  --background: var(--matched-selected);
+}
+
+/*
+ * From 672 to 991 px the floating tab bar stays under the columns, and a conversation in the detail column keeps it,
+ * so the composer rises above the bar. From 992 px the bar is hidden (`Columns.css`).
+ */
+html:not(.native-tab-bar) ion-split-pane:not(.split-pane-visible) ion-tabs:has(> ion-tab-bar:not(.tab-bar-hidden)) .columns-detail ion-footer.composer ion-toolbar:last-of-type {
+  padding-bottom: calc(var(--matched-tab-bar-height) + var(--ios26-floating-safe-area-bottom));
+}
+
+/* The selected event: a 25 % accent fill and a 2 pt accent border (`CalendarList.swift:183`). */
+ion-item.agenda-event.selected::part(inner) {
+  background: rgba(var(--ion-color-primary-rgb), 0.25);
+  box-shadow: inset 0 0 0 2px var(--ion-color-primary);
+}
+
+/*
+ * The menu, from 992 px: a column beside the page. The split pane opts out of the theme in `App.tsx`, and the menu
+ * leaves the theme's overlay. Its card lies at x 10–280 pt, as the sidebar panel of native.
+ */
+ion-split-pane {
+  --side-width: 280px;
+  --side-min-width: 280px;
+  --side-max-width: 280px;
+}
+
+ion-split-pane.split-pane-visible > ion-menu.menu-pane-visible.ios:not(.ios-theme-disabled) {
+  position: relative;
+  top: auto;
+  left: auto;
+  z-index: auto;
+}
+
+ion-split-pane ion-menu.ios:not(.ios-theme-disabled) ion-content::part(scroll) {
+  margin-right: 0;
+  margin-left: 10px;
+  border-radius: 26px;
+}
+
+/* No title above the tabs. */
+ion-menu ion-header {
+  display: none;
+}
+
+ion-menu ion-list.ios {
+  padding: 8px 0;
+  background: transparent;
+}
+
+/* Rows 44 pt apart; the selected tab in a capsule 16 pt inside the card, in the accent colour. */
+ion-menu ion-item {
+  --background: transparent;
+  --min-height: 44px;
+  margin: 0 16px;
+  border-radius: 999px;
+}
+
+ion-menu ion-item.selected {
+  --background: var(--matched-selected);
+}
+
+ion-menu ion-item.selected ion-icon {
+  color: var(--ion-color-primary);
+}
+
+/*
+ * Ionic's label style `.item .sc-ion-label-ios-h { color: var(--color) }` (`@ionic/core`, `ion-item_8.entry.js:397`)
+ * has specificity (0,2,0); `.item` gives this selector (0,2,3).
+ */
+ion-menu ion-item.item.selected ion-label {
+  color: var(--ion-color-primary);
+}
+
+/* The unread count as plain secondary text. */
+ion-menu ion-item ion-badge {
+  background: transparent;
+  color: var(--matched-secondary-label);
+  font-size: 17px;
+  font-weight: 400;
+}
+
+/*
+ * In a window smaller than the screen (`Columns.css`): the leading pane's inline large title starts after the window
+ * controls, and the menu's first tab lies below them. The menu has no header in `matched`.
+ */
+html.windowed ion-split-pane:not(.split-pane-visible) ion-toolbar:first-of-type ion-title.stacked-title-large {
+  padding-inline-start: 72px;
+}
+
+html.windowed ion-split-pane.split-pane-visible ion-menu ion-list.ios {
+  padding-top: 52px;
+}
+
+/* ---- Navigation bars ---- */
+
+/* No hairline under the bar; the bar takes the page's background. */
+ion-header.header-ios ion-toolbar.ios:not(.ios-theme-disabled) {
+  --border-width: 0;
+  --background: var(--ion-background-color, #fff);
+}
+
+/* `ion-router-outlet >`: `ion-tabs` has the `ion-page` class too, and holds every page. */
+ion-router-outlet > .ion-page:has(ion-list.list-inset) ion-header.header-ios ion-toolbar.ios:not(.ios-theme-disabled),
+ion-content:has(ion-list.list-inset) {
+  --background: var(--matched-grouped-background);
+}
+
+/* The theme fades the bottom of `fullscreen` content into this colour behind the tab bar. */
+ion-content:has(ion-list.list-inset) {
+  --ios26-content-box-shadow-rgb: 242, 242, 247;
+}
+
+/* `navigationSubtitle` under the large title: 12 pt secondary, directly below it. */
+/*
+ * The theme sets `--min-height: 68px` on every iOS toolbar without a large title, with a selector of specificity
+ * (0,4,2); `!important` overrides it for the toolbars that hold one line.
+ */
+ion-header ion-toolbar.large-title-subtitle {
+  --min-height: 0 !important;
+  --padding-top: 0;
+  --padding-bottom: 0;
+  --padding-start: 0;
+  --padding-end: 0;
+}
+
+ion-toolbar.large-title-subtitle::part(container) {
+  min-height: 0;
+}
+
+/*
+ * The large title's box ends 20 px below its text (line box and 4 px padding). The subtitle toolbar moves up into that
+ * space, above the title toolbar and without a background, so the descender of "Settings" stays visible.
+ */
+ion-header.header-collapse-condense ion-toolbar.large-title-subtitle {
+  z-index: 2;
+  margin-top: -20px;
+}
+
+ion-toolbar.large-title-subtitle::part(background) {
+  background: transparent;
+}
+
+ion-toolbar.large-title-subtitle ion-note {
+  font-size: 12px;
+  color: var(--matched-secondary-label);
+}
+
+/* Calendar and Chat: `.toolbarTitleDisplayMode(.inlineLarge)` sets a larger title at the leading edge of the bar. */
+ion-toolbar ion-title.stacked-title-large {
+  padding-inline: 16px 120px;
+  text-align: start;
+}
+
+ion-title.stacked-title-large .stacked-title {
+  font-size: 22px;
+  font-weight: 700;
+  line-height: 28px;
+}
+
+/* Pages without `fullscreen` content end above the floating tab bar, as the theme does for `fullscreen` content. */
+.ion-page:not(:has(ion-footer)) > ion-content.ios:not(.content-fullscreen) {
+  --padding-bottom: calc(60px + var(--ios26-floating-safe-area-bottom));
+}
+
+/*
+ * The agenda ends 35 pt above the tab bar in `native-swift-calendar-selected.png` (`.padding(.bottom, 24)` and the week
+ * section's 10 pt), so selecting a day can scroll its week to the top.
+ */
+.ion-page:not(:has(ion-footer)) > ion-content.ios:not(.content-fullscreen):has(.agenda-month) {
+  --padding-bottom: calc(94px + var(--ios26-floating-safe-area-bottom));
+}
+
+/*
+ * With UIKit's tab bar (`nativeTabBar.ts`) the bottom safe area reaches the bar's top: 83 pt on iPhone 16, where the
+ * two rules above give 82 and 116 px with the floating bar. The agenda keeps its 34 px above the bar.
+ */
+html.native-tab-bar .ion-page:not(:has(ion-footer)) > ion-content.ios:not(.content-fullscreen) {
+  --padding-bottom: var(--ion-safe-area-bottom, 0px);
+}
+
+html.native-tab-bar .ion-page:not(:has(ion-footer)) > ion-content.ios:not(.content-fullscreen):has(.agenda-month) {
+  --padding-bottom: calc(var(--ion-safe-area-bottom, 0px) + 34px);
+}
+
+/* `ContentUnavailableView`: the icon, a title2 bold title and subheadline text, centred in the page. */
+.empty-state {
+  box-sizing: border-box;
+  min-height: 100%;
+  justify-content: center;
+  padding: 0 32px;
+}
+
+.empty-state ion-icon {
+  font-size: 48px;
+}
+
+.empty-state ion-icon.ion-color-medium,
+.empty-state ion-text.ion-color-medium {
+  color: var(--matched-secondary-label);
+}
+
+.empty-state h2 {
+  margin: 12px 0 6px;
+  font-size: 22px;
+  font-weight: 700;
+}
+
+.empty-state p {
+  font-size: 15px;
+}
+
+/* ---- Home and Settings lists (`HomeList.swift`, `SettingsList.swift`) ---- */
+
+ion-content ion-list.list-inset.ios:not(.ios-theme-disabled) {
+  margin: 0 16px 36px;
+}
+
+ion-content ion-header.header-collapse-condense + ion-list.list-inset.ios:not(.ios-theme-disabled) {
+  margin-top: 12px;
+}
+
+/* "Groups": `.title3.bold()` over `.subheadline` secondary, at the rows' text inset. */
+ion-list-header.ios {
+  min-height: 0;
+  padding-inline-start: 32px;
+}
+
+ion-list-header.ios ion-label {
+  margin: 22px 0 10px;
+}
+
+ion-list-header.ios ion-label h2 {
+  margin: 0;
+  font-size: 20px;
+  font-weight: 700;
+}
+
+ion-list-header.ios ion-label p {
+  margin: 2px 0 0;
+  font-size: 15px;
+  font-weight: 400;
+  color: var(--matched-secondary-label);
+}
+
+/* `Label`: a 30 pt icon column and the text 57 pt from the section's edge. */
+ion-list.list-inset ion-item {
+  --padding-start: 13px;
+}
+
+/* `ion-icon` sets `box-sizing: content-box !important`: width and padding add up to the 30 px column. */
+ion-list.list-inset ion-item > ion-icon[slot='start'] {
+  width: 24px;
+  height: 24px;
+  margin: 0 14px 0 0;
+  padding: 3px;
+  color: var(--ion-color-primary);
+}
+
+/* A 12 pt circle in the group's colour; `ellipse` fills 81 % of its box. */
+ion-list.list-inset ion-item > ion-icon.group-dot {
+  width: 14px;
+  height: 14px;
+  padding: 8px;
+}
+
+/* White symbol on a 30 pt rounded square filled with the colour's gradient. */
+ion-list.list-inset ion-item > ion-icon.settings-tile {
+  width: 18px;
+  height: 18px;
+  padding: 6px;
+  border-radius: 7px;
+  background: linear-gradient(rgba(255, 255, 255, 0.18), rgba(255, 255, 255, 0)) var(--tile-color);
+  color: #fff;
+}
+
+ion-list.list-inset ion-item.action-item ion-label {
+  color: var(--ion-color-primary);
+}
+
+ion-list.list-inset ion-item ion-label p,
+ion-list.list-inset ion-item ion-note[slot='end'] {
+  color: var(--matched-secondary-label);
+}
+
+ion-list.list-inset ion-item ion-label p {
+  font-size: 15px;
+}
+
+ion-list.list-inset ion-item ion-note[slot='end'] {
+  font-size: 17px;
+}
+
+ion-list.list-inset ion-item > ion-icon[slot='end'] {
+  font-size: 15px;
+  color: var(--matched-tertiary-label);
+}
+
+ion-item > ion-badge[slot='end'] {
+  margin-inline-start: 8px;
+}
+
+/* The unread count in `GroupRow`: a 22 pt accent capsule, semibold footnote. */
+ion-item > ion-badge[slot='end']:not(.ion-color) {
+  min-width: 22px;
+  height: 22px;
+  padding: 0 7px;
+  border-radius: 11px;
+  font-size: 13px;
+  font-weight: 600;
+  line-height: 22px;
+}
+
+/* `InitialsBadge.swift`: 32 pt lilac rounded square. */
+ion-item > ion-badge.ion-color-light {
+  width: 32px;
+  height: 32px;
+  padding: 0;
+  border-radius: 8px;
+  background: #e8e2fc;
+  color: #54458c;
+  font-size: 12px;
+  font-weight: 600;
+  line-height: 32px;
+}
+
+/* ---- Calendar (`CalendarList.swift`, `WeekStrip.swift`) ---- */
+
+ion-toolbar:has(> .week-strip) {
+  --padding-start: 0;
+  --padding-end: 0;
+}
+
+.week-strip {
+  padding-bottom: 6px;
+}
+
+.week-strip-month {
+  margin-bottom: 6px;
+  font-size: 17px;
+}
+
+.week-strip-page {
+  box-sizing: border-box;
+  padding-inline: 8px;
+}
+
+.week-strip-day {
+  gap: 4px;
+  padding: 0;
+}
+
+.week-strip-day.weekend {
+  color: var(--matched-secondary-label);
+}
+
+.week-strip-number {
+  width: 40px;
+  height: 40px;
+  font-size: 20px;
+}
+
+/* A selected day other than today is filled with the primary label colour. */
+.week-strip-day.selected:not(.today) .week-strip-number {
+  background: var(--ion-text-color, #000);
+  color: var(--ion-background-color, #fff);
+}
+
+.week-strip-day.has-events .week-strip-dot {
+  background: var(--matched-secondary-label);
+}
+
+/* `MonthPill`: a glass capsule, centred, not pinned. */
+ion-item-divider.agenda-month {
+  position: relative;
+  min-height: 0;
+  padding: 0;
+  border: 0;
+  --background: transparent;
+  --padding-start: 0;
+  --inner-padding-end: 0;
+}
+
+ion-item-divider.agenda-month ion-label {
+  flex: none;
+  margin: 10px auto 2px;
+  padding: 6px 14px;
+  border-radius: 999px;
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--ion-text-color, #000);
+}
+
+/* `WeekSection`'s title: footnote medium, secondary, 56 pt in from the content edge. */
+ion-item.agenda-week {
+  --background: transparent;
+  --min-height: 0;
+  --padding-start: 72px;
+  --padding-top: 14px;
+  --padding-bottom: 4px;
+}
+
+ion-item.agenda-week ion-note {
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--matched-secondary-label);
+}
+
+ion-item.agenda-item {
+  --background: transparent;
+  --border-width: 0;
+  --inner-border-width: 0;
+  --min-height: 0;
+  --padding-start: 16px;
+  --padding-end: 16px;
+  --padding-top: 5px;
+  --padding-bottom: 5px;
+  --inner-padding-end: 0;
+}
+
+ion-item.agenda-item > .agenda-day {
+  align-self: flex-start;
+  gap: 2px;
+  width: 44px;
+  margin: 0 12px 0 0;
+  color: var(--matched-secondary-label);
+}
+
+.agenda-day-number {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+}
+
+.agenda-day.today .agenda-day-number {
+  background: var(--ion-color-primary);
+  color: #fff;
+}
+
+/* The day's box: a dashed outline when empty, an accent-tinted card with an accent bar for an event. */
+ion-item.agenda-item::part(inner) {
+  min-height: 52px;
+  padding: 0 12px 0 14px;
+  border-radius: 16px;
+}
+
+ion-item.agenda-empty::part(inner) {
+  border: 1px dashed var(--matched-separator);
+}
+
+ion-item.agenda-empty ion-label {
+  font-size: 15px;
+  color: var(--matched-secondary-label);
+}
+
+ion-item.agenda-event::part(inner) {
+  position: relative;
+  padding-block: 12px;
+  padding-inline-start: 26px;
+  background: rgba(var(--ion-color-primary-rgb), 0.1);
+}
+
+ion-item.agenda-event::part(inner)::before {
+  position: absolute;
+  top: 12px;
+  bottom: 12px;
+  left: 10px;
+  width: 4px;
+  border-radius: 2px;
+  background: var(--ion-color-primary);
+  content: '';
+}
+
+ion-item.agenda-event::part(detail-icon) {
+  display: none;
+}
+
+ion-item.agenda-event ion-label {
+  margin: 0;
+}
+
+ion-item.agenda-event ion-label h2 {
+  display: -webkit-box;
+  overflow: hidden;
+  font-size: 17px;
+  font-weight: 600;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+}
+
+ion-item.agenda-event ion-label p {
+  font-size: 15px;
+  color: var(--matched-secondary-label);
+}
+
+/* ---- Chat list (`ChatList.swift`) ---- */
+
+ion-toolbar.chip-toolbar {
+  --padding-start: 0;
+  --padding-end: 0;
+  --padding-top: 0;
+  --padding-bottom: 0;
+}
+
+ion-toolbar.chip-toolbar::part(container) {
+  min-height: 0;
+}
+
+ion-toolbar.chip-toolbar .chip-row {
+  gap: 8px;
+  padding: 8px 16px;
+}
+
+/* `FilterChips`: subheadline medium in glass capsules; the selected chip filled with the accent. */
+.chip-row ion-chip {
+  height: 34px;
+  margin: 0;
+  padding: 0 14px;
+  border-radius: 17px;
+  font-size: 15px;
+  font-weight: 500;
+}
+
+.chip-row ion-chip.chip-outline {
+  color: var(--ion-text-color, #000);
+}
+
+.chip-row ion-chip:not(.chip-outline) {
+  border: 0.5px solid transparent;
+  background: var(--ion-color-primary);
+  color: #fff;
+}
+
+/* `ChatRow`: 44 pt avatars 30 pt from the edge, the time on the title's line, the unread dot left of the avatar. */
+ion-item.chat-item {
+  --padding-start: 30px;
+  --inner-padding-end: 12px;
+}
+
+ion-item.chat-item > .chat-avatar {
+  width: 44px !important;
+  height: 44px !important;
+  margin: 12px 12px 12px 0;
+  font-size: 17px !important;
+}
+
+/* The text column ends where the time ends, 8 px before the chevron. */
+ion-item.chat-item ion-label {
+  margin: 12px 8px 12px 0;
+}
+
+ion-item.chat-item > .chat-avatar ion-icon {
+  font-size: 26px;
+}
+
+ion-item.chat-item ion-label h2 {
+  margin-inline-end: 84px;
+  overflow: hidden;
+  font-size: 17px;
+  font-weight: 600;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+ion-item.chat-item ion-label p {
+  display: -webkit-box;
+  overflow: hidden;
+  font-size: 15px;
+  color: var(--matched-secondary-label);
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+}
+
+ion-item.chat-item > .chat-time {
+  position: absolute;
+  top: 13px;
+  right: 40px;
+  margin: 0;
+  font-size: 15px;
+}
+
+ion-item.chat-item > .chat-time:not(.ion-color) {
+  color: var(--matched-secondary-label);
+}
+
+/*
+ * The unread dot, 10 px wide and centred 15 px from the row's edge, is drawn on the row's background: `.item-inner`
+ * clips an icon positioned outside it. The icon stays in the accessibility tree with its "Unread" label.
+ */
+ion-item.chat-item:has(> .chat-unread)::part(native) {
+  background-image: radial-gradient(circle 5px at 15px 50%, var(--ion-color-primary) 4.5px, transparent 5px);
+}
+
+ion-item.chat-item > .chat-unread {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+}
+
+/* The chat avatar's `color.gradient`. */
+ion-avatar.chat-avatar {
+  background-image: linear-gradient(rgba(255, 255, 255, 0.18), rgba(255, 255, 255, 0));
+}
+
+/* "+": `.glassProminent`, a 56 pt accent circle 16 pt above the tab bar and 25 pt from the edge in `native-swift-chat-three.png`. */
+ion-content ion-fab.ios:not(.ios-theme-disabled) ion-fab-button {
+  --background: var(--ion-color-primary);
+  --color: #fff;
+  width: 56px;
+  height: 56px;
+}
+
+ion-content ion-fab.ios:not(.ios-theme-disabled).fab-vertical-bottom {
+  bottom: calc(var(--ios26-floating-safe-area-bottom) + var(--matched-tab-bar-height) + 16px);
+}
+
+/* With UIKit's tab bar the web view's bottom safe area ends at the bar's top (`nativeTabBar.ts`). */
+html.native-tab-bar ion-content ion-fab.ios:not(.ios-theme-disabled).fab-vertical-bottom {
+  bottom: calc(var(--ion-safe-area-bottom, 0px) + 16px);
+}
+
+/*
+ * The theme pads full-screen content, and the fade behind its bar, by 60 px and the floating safe area below the bar.
+ * With UIKit's tab bar the bottom safe area already reaches the bar's top, so a page without a footer is padded by that
+ * safe area. Pages with a footer, the conversation, keep the theme's padding.
+ */
+html.native-tab-bar .ion-page:not(:has(ion-footer)) > ion-content.ios:not(.ios-theme-disabled).content-fullscreen:not(:has(.ion-content-scroll-host)) {
+  --padding-bottom: var(--ion-safe-area-bottom, 0px);
+}
+
+html.native-tab-bar .ion-page:not(:has(ion-footer)) > ion-content.ios:not(.ios-theme-disabled).content-fullscreen .ion-content-scroll-host {
+  margin-bottom: calc(var(--ion-safe-area-bottom, 0px) * -1);
+  padding-bottom: var(--ion-safe-area-bottom, 0px);
+}
+
+html.native-tab-bar .ion-page:not(:has(ion-footer)) > ion-content.content-fullscreen::part(background)::after {
+  height: var(--ion-safe-area-bottom, 0px);
+}
+
+ion-content ion-fab.ios:not(.ios-theme-disabled).fab-horizontal-end {
+  right: calc(25px + var(--ion-safe-area-right, 0px));
+}
+
+/* ---- Conversation (`ChatDetail.swift`, `MessageBubble.swift`) ---- */
+
+ion-toolbar ion-buttons[slot='end'] .chat-avatar {
+  width: 36px !important;
+  height: 36px !important;
+  margin-inline-end: 4px;
+  font-size: 14px !important;
+}
+
+ion-toolbar ion-buttons[slot='end'] .chat-avatar ion-icon {
+  font-size: 22px;
+}
+
+/* `.defaultScrollAnchor(.bottom)`: a short conversation sits above the composer. */
+.message-list {
+  box-sizing: border-box;
+  min-height: 100%;
+  justify-content: flex-end;
+}
+
+/*
+ * `HStack(spacing: 8)` also puts 8 px between the bubble and the spacer, whose length is `max(60, width - 520)`
+ * (`ChatDetail.swift:34`).
+ */
+.message-line.incoming {
+  padding-right: max(68px, 100% - 512px);
+}
+
+.message-line.outgoing {
+  padding-left: max(68px, 100% - 512px);
+}
+
+.message-bubble {
+  position: relative;
+  z-index: 0;
+}
+
+.message-bubble.incoming {
+  background: var(--matched-gray5);
+}
+
+/*
+ * `BubbleShape`'s tail: the horn path of `MessageBubble.swift` moved into a 28 × 24 box whose right edge is 4 px outside
+ * the bubble, mirrored for incoming bubbles. It sits behind the text and in front of the bubble's own background.
+ */
+.message-bubble.tail::before {
+  position: absolute;
+  bottom: 0;
+  z-index: -1;
+  width: 28px;
+  height: 24px;
+  background: inherit;
+  clip-path: path('M24 0L24 13C24 23 28 24 28 24C23.9 24.4 19.8 22.9 17 20C12 24 8 24 8 24L0 24L0 0Z');
+  content: '';
+}
+
+.message-bubble.tail.outgoing::before {
+  right: -4px;
+}
+
+.message-bubble.tail.incoming::before {
+  left: -4px;
+  transform: scaleX(-1);
+}
+
+.message-photo svg {
+  box-sizing: border-box;
+  border: 0.5px solid var(--matched-separator);
+}
+
+/*
+ * `ChatComposer`: no bar background; a glass "+" and a glass field with the send button inside it. The positions are
+ * the accessibility frames of `native-swift/`'s composer: "+" at x 21, y 766, 44 × 44; the field from x 78 to 377, with
+ * its text 16 px in and its bottom 42 px above the screen's.
+ */
+ion-footer.composer.footer-ios ion-toolbar.ios:first-of-type {
+  --background: transparent;
+  --border-width: 0;
+  --padding-start: 21px;
+  --padding-end: 16px;
+  --padding-top: 8px;
+  --padding-bottom: 8px;
+}
+
+ion-footer.composer ion-toolbar::part(container) {
+  align-items: flex-end;
+  min-height: 44px;
+}
+
+ion-footer.composer ion-toolbar.ios:not(.ios-theme-disabled) ion-buttons[slot='start'] {
+  margin: 0;
+}
+
+ion-footer.composer ion-textarea.composer-field.ios:not(.ios-theme-disabled) {
+  --padding-start: 16px;
+  --padding-end: 16px;
+  --padding-top: 11px;
+  --padding-bottom: 11px;
+  /* `ion-textarea` is `width: 100%`, which puts its margins outside the toolbar. */
+  width: auto;
+  min-height: 44px;
+  margin: 0 0 0 12px;
+  border-radius: 22px;
+}
+
+/* The text stops 4 px before the 32 px send button, which sits 6 px inside the field's corner. */
+ion-footer.composer ion-toolbar:has(.composer-send) ion-textarea.composer-field.ios:not(.ios-theme-disabled) {
+  --padding-end: 42px;
+}
+
+/*
+ * `ion-textarea` sets `position: relative; z-index: 2` on itself (`textarea.ios.css`), so the button takes
+ * `z-index: 3` to be drawn and tapped above the field. Its margins add up to zero width in the row: -38 + 32 + 6.
+ */
+ion-footer.composer ion-buttons.composer-send.ios:not(.ios-theme-disabled) {
+  position: relative;
+  z-index: 3;
+  margin: 0 6px 6px -38px;
+  overflow: visible;
+  border: 0;
+  background: none;
+  box-shadow: none;
+  -webkit-backdrop-filter: none;
+  backdrop-filter: none;
+  transform: none;
+}
+
+ion-footer.composer ion-buttons.composer-send ion-button.ios.button-has-icon-only:not(.ios-theme-disabled)::part(native) {
+  width: 32px;
+  height: 32px;
+}
+
+ion-footer.composer ion-buttons.composer-send ion-button.ios.button-has-icon-only:not(.ios-theme-disabled) ion-icon {
+  font-size: 32px;
+  color: var(--ion-color-primary);
+}
+
+/*
+ * Ionic pads the footer for the home indicator only when no tab bar is below it. The conversation hides the bar, so
+ * this adds the padding while Ionic has not hidden the bar for the keyboard. It is on the toolbar itself; the 8 px of
+ * `--padding-bottom` above are on the toolbar's container.
+ */
+ion-tabs:has(> ion-tab-bar.tab-bar-conversation:not(.tab-bar-hidden)) ion-footer.composer ion-toolbar:last-of-type {
+  padding-bottom: var(--ion-safe-area-bottom, 0px);
+}

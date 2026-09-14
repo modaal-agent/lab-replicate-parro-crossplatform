@@ -11,3 +11,10 @@ node_modules/
 xcuserdata/
 DerivedData/
 .build/
+
+# XcodeGen output (native-swift/): generated from native-swift/xcodegen.yml
+*.xcodeproj
+native-swift/TabShell/Info.plist
+
+# Capacitor's Xcode project is committed, as its template expects (spec 001 §4.2)
+!ionic-capacitor/ios/App/App.xcodeproj

@@ -1,0 +1,16 @@
+/* For information on how to create your own theme, please refer to:
+http://ionicframework.com/docs/theming/ */
+
+/*
+ * The accent colour `#D13C63` (spec 001 §11.1) as Ionic's primary colour, in both styling variants
+ * (spec 001 §13.6 D16). Shade, tint and contrast follow the Color Generator's `shade(0.12)`,
+ * `tint(0.1)` and `contrast()` in ionic-docs `src/components/page/theming/_utils/color.ts` at `07f9946`.
+ */
+:root {
+  --ion-color-primary: #d13c63;
+  --ion-color-primary-rgb: 209, 60, 99;
+  --ion-color-primary-contrast: #ffffff;
+  --ion-color-primary-contrast-rgb: 255, 255, 255;
+  --ion-color-primary-shade: #b83557;
+  --ion-color-primary-tint: #d65073;
+}

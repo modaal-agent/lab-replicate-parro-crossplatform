@@ -1,0 +1,15 @@
+/* The filter chips scroll sideways in one row, as in `IMG_0212.PNG`. */
+.chip-row {
+  display: flex;
+  overflow-x: auto;
+  padding: 0 12px;
+  scrollbar-width: none;
+}
+
+.chip-row::-webkit-scrollbar {
+  display: none;
+}
+
+.chip-row ion-chip {
+  flex: none;
+}
