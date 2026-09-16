@@ -44,7 +44,7 @@ go at the end, and an existing entry is never edited.
 - Node 20.19.5 is installed. Capacitor 8 requires Node 22 or later (Capacitor 8 upgrade guide), so
   phase 2 starts with a Node upgrade.
 - Two Xcodes: 26.6 (17F113, selected by `xcode-select`) and 27.0 (27A266a) at
-  `/Volumes/DATA01/DISTR/Xcode/7882741C-…/Xcode.app`.
+  `<xcode-installs>/7882741C-…/Xcode.app`, outside `/Applications`.
 - Side effect: `xcrun simctl list devicetypes` run with Xcode 27.0's `DEVELOPER_DIR` installed
   CoreSimulator 1171.7 over 1169.1. To inspect an Xcode bundle without installing components, read
   the files inside the bundle instead of running `simctl` through it.
@@ -111,7 +111,7 @@ search result summary.
 ## 2026-09-13 — Machine changes since the first toolchain read
 
 - macOS is 26.6.2 (25G83); the first read the same day gave 26.5.1 (25F80). `sw_vers`.
-- The Xcode 27.0 build 27A266a is at `/Volumes/DATA01/DISTR/Xcode/Xcode_27_RC.app`; `mdfind` no longer
+- The Xcode 27.0 build 27A266a is at `<xcode-installs>/Xcode_27_RC.app`; `mdfind` no longer
   finds the `7882741C-…` path. `xcode-select -p` still names Xcode 26.6.
 - In the 27.0 RC SDK, `grep` finds `defaultTabBarPlacement(_:)` at SwiftUI `.swiftinterface:31224` and
   no match for `ArrangementView`, `arrangementViewStyle`, `reservedRegions`, `ReservedRegion` or
@@ -124,7 +124,7 @@ search result summary.
 - From the user: "I installed Node 24 via nvm, and uninstalled Brew node."
 - `nvm ls`: v20.19.5 and v24.21.0 are installed, `lts/krypton -> v24.21.0`, and
   `default -> 20 (-> v20.19.5)`. A new interactive shell (`zsh -ic 'which node; node --version'`)
-  still resolves `/Users/admin/.nvm/versions/node/v20.19.5/bin/node`, v20.19.5, npm 11.6.2. Phase 2
+  still resolves `~/.nvm/versions/node/v20.19.5/bin/node`, v20.19.5, npm 11.6.2. Phase 2
   runs `nvm use 24` first, unless the default alias is changed with `nvm alias default 24`.
 - Under v24.21.0 (`nvm use 24`): npm 11.19.0; `npm ls -g --depth=0` lists only `corepack@0.36.0` and
   `npm@11.19.0`. The eleven global packages under v20.19.5 (among them `@openai/codex`,
@@ -506,7 +506,7 @@ search result summary.
   | --- | --- | --- |
   | `gh api repos/ionic-team/starters/tarball/557f7c44de5b995f5cc9d65e04299c7c4907d0ba`, main, committed 2026-08-19 ("fix(angular): keep ng generate working with angular-toolkit 13 (#1887)") | fetched, unpacked in the session scratchpad | `react-vite/base`, 22 files, and `react-vite/official/tabs`, 10 files, compared file by file with `ionic-capacitor/` |
   | `ionic-capacitor/node_modules/@capacitor/cli/assets/ios-spm-template.tar.gz` (8.5.2) | unpacked | 20 files, compared with `ionic-capacitor/ios/` |
-  | the session transcript, `~/.claude/projects/-Volumes-DATA01-Projects-lab-replicate-parro-crossplatform/4276af08-dfbc-4979-8dbb-6757d935c8d5.jsonl` | Python: entries deduplicated by `uuid`, tool calls by `tool_use` id | prompt timestamps; tool calls, tool names and active time between prompts |
+  | the session transcript, this session's JSONL file under `~/.claude/projects/` | Python: entries deduplicated by `uuid`, tool calls by `tool_use` id | prompt timestamps; tool calls, tool names and active time between prompts |
   | `git log --format='%h %cI %s'` | command | commit times |
   | `git ls-files`, `wc -l`, Python `difflib` | command | files and lines by origin |
   | `python3 -c` over `package-lock.json`'s `packages`; `du -sh node_modules` | command | 779 packages; 344 MB |
@@ -1130,7 +1130,7 @@ rounds of phases 3, 4 and 7 read again for iPhone Duo.
 ### Machine state
 
 - `xcrun simctl list devicetypes | grep -i -E 'duo|fold'` prints nothing: no iPhone Duo simulator.
-- Installed: Xcode 26.6 (17F113), selected; Xcode 27.0 RC (27A266a) at `/Volumes/DATA01/DISTR/Xcode/Xcode_27_RC.app`
+- Installed: Xcode 26.6 (17F113), selected; Xcode 27.0 RC (27A266a) at `<xcode-installs>/Xcode_27_RC.app`
   with the iOS 27.0 SDK; simulator runtimes iOS 18.6, 26.5 (23F77), 27.0 (24A434). No Xcode 27.1.
 - In the iOS 27.0 SDK of Xcode 27.0 RC, `grep -rn -i` over `UIKit.framework/Headers` finds no `reservedRegion`,
   `verticalBar` or `UIArrangement`, and over `WebKit.framework/Headers` no `segment`, `fold`, `posture`, `reservedRegion`
@@ -1505,3 +1505,82 @@ Spec 001 §17.5 lists the files and what the pages show.
     divider and `ionic-capacitor-matched-ipadmedium-v2` right of it.
   - Not tested: the pages in a browser window, and dragging with a real mouse, pen or touch.
 - **Side effects:** a Firefox profile in the session scratchpad; the default Firefox profile was not used.
+
+## 2026-09-16 — Audit for what a public reader cannot resolve, and LICENSE, SECURITY.md, CONTRIBUTING.md
+
+- **Question asked:** "check the repo for hermecity - it shouldn't mention other private repos,
+  contain paths to local files, or reference documents outside of this repo", and add LICENSE (MIT),
+  SECURITY and CONTRIBUTING, with the repository public but frozen: "this repo will be public, but
+  frozen, no public contributions are accepted. Issues and discussions can be opened, but answers
+  are not guaranteed."
+- **Machine-specific paths in committed files**, from
+  `git ls-files -z | xargs -0 grep -InE '(/Users/|/Volumes/|/private/tmp/|/home/[a-z]|file:///)'`:
+  - `DISCOVERY.md:47`, `:114`, `:1133` and `specs/001-four-tab-shells/spec.md:97`, `:98`, `:557`,
+    `:606` gave the two Xcode bundles by their full path, naming a volume and a directory on this
+    machine.
+  - `DISCOVERY.md:127` gave a Node binary by a path starting with this machine's account directory.
+  - `DISCOVERY.md:509` gave a session transcript by a path holding the absolute path of this working
+    copy and a session UUID.
+  - Resolvable for any reader and left alone: `/Library/Developer/CoreSimulator/Profiles/DeviceTypes`
+    (`DISCOVERY.md:120`, `spec.md:614`), `~/.npm` (`:317`), `~/.ionic/config.json` (`:344`, `:407`).
+- **References to documents that are not in the repository:**
+  - "the session scratchpad": 35 lines in `DISCOVERY.md`, 7 in `spec.md`, naming 24 scripts —
+    `imgdiff.swift`, `p4-measure.sh`, `p4-iphone.sh`, `p4-orient.py`, `p7-measure.sh`, `p7-test.sh`,
+    `p7-copy.sh`, `p7-effort.py`, `shoot-matched.sh`, `shoot-ionic.sh` and others. `spec.md:2061`
+    states of the XCUITest driver: "session scratchpad, not committed". These carry the "how it was
+    taken" column of most measurements in spec 001 §§15–20.
+  - The session transcript, cited as the source of tool-call counts and active time:
+    `spec.md:147`, `:1708`, `:1710`, `:1753`, `:1755`, `:2429`; `DISCOVERY.md:509`, `:521`, `:1092`.
+  - `modaal-agent-skills` (`DISCOVERY.md:12`), as the repository README.md, AGENTS.md, `.gitignore`
+    and `ci.yml` were adapted from. `gh api repos/modaal-agent/modaal-agent-skills` returns 404 and
+    `gh api "search/repositories?q=modaal-agent-skills"` returns `total_count` 0; the public
+    repository with that content is `modaal-agent/skills`.
+- **`modaal-agent/duet-tutorials` at `511b22b` resolves**: `gh api repos/modaal-agent/duet-tutorials
+  --jq .visibility` returns `public`, and `gh api
+  "repos/modaal-agent/duet-tutorials/contents/tutorial3-start/src-ios/App?ref=511b22b"` lists
+  `Foyer` and `xcodegen.yml`, the paths cited in spec 001 §1.7. No change needed there.
+- **No leak of the names in `_assets/` into any text file.** A case-insensitive `grep -Iil` over the
+  tracked files for the distinctive word of the school name matches only the invented
+  "Brightwater Montessori" in
+  `ionic-capacitor/src/fixtures/fixture.ts:79`, `native-swift/TabShell/Fixtures/Fixture.swift:88`,
+  `:90` and `spec.md:693`, `:740`. The word-boundary matches for the child's first name are all the
+  UI label "Mark all as read". No email address, no `DEVELOPMENT_TEAM`, no token: `grep` for
+  `[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}` over the tracked files gives only
+  `AppIcon-512@2x.png`, `git@github.com` in `package-lock.json` and `hello@cypress.io`.
+- **All four images in `_assets/` still carry the real school name and the child's first name**, in
+  the header of each screen: `IMG_0210.PNG` also in the Groups list, `IMG_0211.PNG`, `IMG_0212.PNG`
+  and `IMG_0213.PNG` in the subtitle line. Read with the Read tool. This repeats what the entry
+  "2026-09-13 — Repository seeded (`d8c8f44`)" recorded and it is still unfixed; the images hold no
+  message text, address, email or full name.
+- **Every relative Markdown link in `README.md`, `AGENTS.md`, `DISCOVERY.md` and `spec.md`
+  resolves**, checked by extracting each `](path)` and testing it with `[ -e ]`.
+- **Neither build opens a network connection.** `grep -rInE '\b(fetch\(|XMLHttpRequest|URLSession|WKWebView\(|axios|WebSocket)\b'`
+  over `ionic-capacitor/src` and `native-swift/TabShell` matches nothing at `168575f`. This is the
+  claim SECURITY.md §"What is here, for the purpose of a report" makes.
+- **Sources read:**
+
+  | source | how | taken from it |
+  | --- | --- | --- |
+  | `modaal-agent/skills`, `LICENSE`, `SECURITY.md`, `CONTRIBUTING.md`, `AGENTS.md` | fetched with `gh api repos/modaal-agent/skills/contents/<file>` | the MIT text and its `Copyright (c) 2026 Modaal.dev` line; the private-reporting wording; the §"Public-facing text is hermetic" rule this audit was run against |
+  | `modaal-agent/duet-tutorials` at `511b22b` | fetched with `gh api` | that the paths spec 001 §1.7 cites exist and are public |
+
+- **Written:** `LICENSE` (MIT, `Copyright (c) 2026 Modaal.dev`, matching `modaal-agent/skills` and
+  the `dev.modaal.lab.tabshell` bundle identifiers), `SECURITY.md` and `CONTRIBUTING.md`.
+  `README.md` takes three rows in its Layout table and two lines under §"Working in this
+  repository".
+- **Answers.** Asked which of the above to redact, given that `AGENTS.md` §"DISCOVERY.md is an
+  append-only log" forbids editing an existing entry "not to fix a typo or a path" and §"Specs are a
+  decision record" allows a closed spec only additions: "Redact machine-specific paths only" — the
+  session-scratchpad and transcript citations stay, because they carry how each measurement was
+  taken. Asked what to do about the two names in the four `_assets/` images before the repository is
+  public: "Leave them".
+- **The redaction, made under the one-time exception those answers grant**, in place in both files:
+  - The seven Xcode bundle paths now read `<xcode-installs>/` in place of the directory holding the
+    two bundles. The bundle names `Xcode_26_6.app`, `7882741C-…/Xcode.app` and `Xcode_27_RC.app` are
+    unchanged, so the finding that the second install moved and `mdfind` stopped resolving the old
+    path still reads. Spec 001 §1.3 takes an addition saying the same.
+  - `DISCOVERY.md:127` now reads `~/.nvm/versions/node/v20.19.5/bin/node`.
+  - `DISCOVERY.md:509` now names its source "the session transcript, this session's JSONL file under
+    `~/.claude/projects/`", without the working copy's absolute path or the session UUID.
+  - `git ls-files -z | xargs -0 grep -InE '(/Users/[a-z]|/Volumes/[A-Z]|/private/tmp/|file:///)'`
+    over the tracked files now matches only the grep pattern quoted in this entry.

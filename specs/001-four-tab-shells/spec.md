@@ -94,8 +94,8 @@ search UI.
 | tool | version | read with |
 | --- | --- | --- |
 | macOS | 26.5.1 (25F80) | `sw_vers` |
-| Xcode, selected | 26.6 (17F113), iOS 26.5 SDK, `/Volumes/DATA01/DISTR/Xcode/Xcode_26_6.app` | `xcode-select -p`, `xcodebuild -version`, `xcodebuild -showsdks` |
-| Xcode, second install | 27.0 (27A266a), iOS 27.0 SDK, `/Volumes/DATA01/DISTR/Xcode/7882741C-…/Xcode.app` | the same, with `DEVELOPER_DIR` set |
+| Xcode, selected | 26.6 (17F113), iOS 26.5 SDK, `<xcode-installs>/Xcode_26_6.app` | `xcode-select -p`, `xcodebuild -version`, `xcodebuild -showsdks` |
+| Xcode, second install | 27.0 (27A266a), iOS 27.0 SDK, `<xcode-installs>/7882741C-…/Xcode.app` | the same, with `DEVELOPER_DIR` set |
 | Swift | 6.3.3 | `swift --version` |
 | XcodeGen | 2.45.4, `/opt/homebrew/bin/xcodegen` | `xcodegen --version` |
 | Node, npm | 20.19.5, 11.6.2 | `node --version`, `npm --version` |
@@ -104,6 +104,14 @@ search UI.
 
 Running `xcrun simctl` with Xcode 27.0's `DEVELOPER_DIR` on 2026-09-13 installed CoreSimulator
 1171.7 over 1169.1.
+
+**Added 2026-09-16:** the two Xcode rows above, and §10.5's row for the second install, gave the full
+path of each bundle, naming a volume and a directory on the machine the measurements were taken on.
+They now read `<xcode-installs>/` in place of that directory; the bundle names are unchanged, so
+§10.5's finding that the second install moved and `mdfind` stopped resolving the old path still
+reads. `/opt/homebrew/bin/xcodegen` above is Homebrew's default location and was left. DISCOVERY.md
+§"2026-09-16 — Audit for what a public reader cannot resolve, and LICENSE, SECURITY.md,
+CONTRIBUTING.md" records why.
 
 Registry versions (`npm view <package> version`): `@capacitor/core`, `@capacitor/cli`,
 `@capacitor/ios` 8.5.2; `@ionic/core`, `@ionic/react`, `@ionic/angular` 9.0.3; `@ionic/cli` 7.2.1.
@@ -554,7 +562,7 @@ and each superseded section carries a line pointing here.
 - **D7 is confirmed: the system navigation bar in `native-swift/`.**
 - **D9 is amended: phases 1–4 build with Xcode 26.6 or Xcode 27.0 RC**, and each phase records which
   one in its §5 entry. Xcode 26.6 is 17F113 with the iOS 26.5 SDK. The RC is the 27A266a build §1.3
-  lists as the second install, now at `/Volumes/DATA01/DISTR/Xcode/Xcode_27_RC.app` (§10.5). With
+  lists as the second install, now at `<xcode-installs>/Xcode_27_RC.app` (§10.5). With
   the iOS 27.0 SDK, `defaultTabBarPlacement(_:)` and `TabRole.prominent` (§1.4) can be used behind
   `if #available(iOS 27.0, *)` at D4's iOS 26.0 floor. Phase 5 still requires Xcode 27.1: the RC's
   SDK has no `ArrangementView`, and no installed Xcode has an iPhone Duo device type (§10.5).
@@ -603,7 +611,7 @@ first written here is in this file at commit `187bd6e`.
 | item | §1.3 value | now | read with |
 | --- | --- | --- | --- |
 | macOS | 26.5.1 (25F80) | 26.6.2 (25G83) | `sw_vers` |
-| Xcode 27.0 (27A266a) | `/Volumes/DATA01/DISTR/Xcode/7882741C-…/Xcode.app` | `/Volumes/DATA01/DISTR/Xcode/Xcode_27_RC.app` | `mdfind "kMDItemCFBundleIdentifier == 'com.apple.dt.Xcode'"` |
+| Xcode 27.0 (27A266a) | `<xcode-installs>/7882741C-…/Xcode.app` | `<xcode-installs>/Xcode_27_RC.app` | `mdfind "kMDItemCFBundleIdentifier == 'com.apple.dt.Xcode'"` |
 | selected Xcode | 26.6 | 26.6 | `xcode-select -p` |
 
 In the iOS 27.0 RC SDK, `grep` over the SwiftUI, SwiftUICore and UIKit `arm64e-apple-ios.swiftinterface`

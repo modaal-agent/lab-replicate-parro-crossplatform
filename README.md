@@ -20,8 +20,14 @@ The plan — the screens, the scope, the phases and what is compared — is
 | `specs/NNN-slug/spec.md` | the plan, the measurements and the decisions behind a change |
 | `DISCOVERY.md` | the append-only log of findings, side effects, sources and decisions, in order |
 | `.github/workflows/ci.yml` | the `rules` job: `AGENTS.md` and `CLAUDE.md` are byte-identical |
+| `CONTRIBUTING.md` | what this repository accepts: issues and discussions, no pull requests |
+| `SECURITY.md` | where a vulnerability, a credential in the history or personal data in a committed file is reported |
+| `LICENSE` | MIT, over everything but the reference screenshots in `_assets/` and the dependencies |
 
 ## Working in this repository
 
 [AGENTS.md](AGENTS.md), which is the same file as [CLAUDE.md](CLAUDE.md), lists the rules for an
 agent working here.
+
+The repository is public and frozen. [CONTRIBUTING.md](CONTRIBUTING.md) says what is accepted and
+how to build either stack; [SECURITY.md](SECURITY.md) says what to report privately and where.
