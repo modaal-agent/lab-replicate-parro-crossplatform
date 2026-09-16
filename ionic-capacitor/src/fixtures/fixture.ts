@@ -3,7 +3,8 @@ import { people } from 'ionicons/icons';
 /**
  * The placeholder content of every screen (spec 001 §2.2, §12.2): the same content as
  * `native-swift/TabShell/Fixtures/Fixture.swift`. All names are invented, per AGENTS.md
- * §"Two builds of one shell"; the structure follows `_assets/IMG_0210.PNG` … `IMG_0213.PNG`.
+ * §"Two builds of one shell"; the structure follows the four reference screenshots described in
+ * spec 001 §1.2.
  */
 
 export interface SchoolGroup {

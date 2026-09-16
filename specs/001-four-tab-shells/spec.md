@@ -10,7 +10,8 @@ nothing.
   material to §1.2, §2 and §5 here; README.md keeps the goal and the layout.
 - [AGENTS.md](../../AGENTS.md) §"Two builds of one shell" — the rules both directories follow,
   including placeholder data only.
-- `_assets/IMG_0210.PNG` … `IMG_0213.PNG` — the four reference screenshots (§1.2).
+- `IMG_0210.PNG` … `IMG_0213.PNG` — the four reference screenshots, described in §1.2 and removed
+  from the repository on 2026-09-16.
 - `modaal-agent/duet-tutorials` at `511b22b`, `tutorial3-start/src-ios/App/xcodegen.yml` — the
   XcodeGen project spec §3.1 takes its shape from (§1.7).
 - Apple's iPhone Duo tech talks [111461](https://developer.apple.com/videos/play/tech-talks/111461/),
@@ -61,7 +62,8 @@ uses a community theme, `@rdlabo/ionic-theme-ios26` (§13.2, D15).
 ### 1.1 This repository at the baseline
 
 `d8c8f44` tracks `README.md`, `AGENTS.md`, `CLAUDE.md`, `.gitignore`, `.github/workflows/ci.yml` (the
-`rules` job) and the four PNGs under `_assets/`. `ionic-capacitor/` and `native-swift/` exist on disk,
+`rules` job) and the four reference screenshots of §1.2, since removed. `ionic-capacitor/` and
+`native-swift/` exist on disk,
 are empty, and are not tracked. `specs/` did not exist before this spec.
 
 ### 1.2 The screenshots
@@ -69,12 +71,20 @@ are empty, and are not tracked. `specs/` did not exist before this spec.
 The four files are 1179 × 2556 px, which is 393 × 852 pt at @3x. The calendar in `IMG_0211.PNG`
 highlights Sunday 13 September, and the files were created on 2026-09-13.
 
+**Added 2026-09-16:** the four files were removed from the repository and from its history, because
+each of them shows a real school name and a real child's first name in its header
+(DISCOVERY.md §"2026-09-16 — `_assets/` removed from the tree and the history"). `IMG_0210.PNG` …
+`IMG_0213.PNG` stay in this document and in DISCOVERY.md as the names of the four screens they
+showed; the table below is what each one contained, and no reference to them is a path any more.
+`screenshots/native-swift-v1/` and `screenshots/ionic-capacitor-matched-v1/` hold the same four
+screens as built here, with the invented names of §12.1.
+
 | screen | reference | what it contains |
 | --- | --- | --- |
-| Home | [`_assets/IMG_0210.PNG`](../../_assets/IMG_0210.PNG) | header with the school name, the child's name and a search button; "Groups" section for the current school year, one row per group with a colour dot, an unread-count badge and a teacher-initials badge; "Previous school years" disclosure row; action rows "Report absence", "Privacy preferences", "Mark all as read"; "Parro news" row |
-| Calendar | [`_assets/IMG_0211.PNG`](../../_assets/IMG_0211.PNG) | header with a calendar button; Mon–Sun week strip with today highlighted and a drag handle below it; agenda list grouped by month (pill label) and by week ("Week 38, September 14 - September 20"); event cards with title, time range and initials badge; "There are no events today" row under today |
-| Chat | [`_assets/IMG_0212.PNG`](../../_assets/IMG_0212.PNG) | header with a search button; horizontally scrolling filter chips "Unread", "Child chat", "Group chat", "Private chat"; empty state with an illustration, a title and body text; floating "+" button at the bottom right |
-| Settings | [`_assets/IMG_0213.PNG`](../../_assets/IMG_0213.PNG) | rows with leading icons: Account, My children, Connect calendar, Notifications, Reminders, Pin code security, Accessibility, Language (with subtitle); a second group: What's new? and Download files (with subtitles), Parro support (with a trailing external-link icon) |
+| Home | `IMG_0210.PNG` | header with the school name, the child's name and a search button; "Groups" section for the current school year, one row per group with a colour dot, an unread-count badge and a teacher-initials badge; "Previous school years" disclosure row; action rows "Report absence", "Privacy preferences", "Mark all as read"; "Parro news" row |
+| Calendar | `IMG_0211.PNG` | header with a calendar button; Mon–Sun week strip with today highlighted and a drag handle below it; agenda list grouped by month (pill label) and by week ("Week 38, September 14 - September 20"); event cards with title, time range and initials badge; "There are no events today" row under today |
+| Chat | `IMG_0212.PNG` | header with a search button; horizontally scrolling filter chips "Unread", "Child chat", "Group chat", "Private chat"; empty state with an illustration, a title and body text; floating "+" button at the bottom right |
+| Settings | `IMG_0213.PNG` | rows with leading icons: Account, My children, Connect calendar, Notifications, Reminders, Pin code security, Accessibility, Language (with subtitle); a second group: What's new? and Download files (with subtitles), Parro support (with a trailing external-link icon) |
 
 All four share a bottom tab bar (Home, Calendar, Chat, Settings; the selected tab in the accent
 colour; a numeric badge on Home) and a header with the screen title in the accent colour above a
@@ -346,14 +356,14 @@ screenshots.
 ### 3.3 Appearance
 
 **Added 2026-09-13:** phase 1 uses `navigationSubtitle(_:)`, so the fallback in the Header item below
-is not built (§11.1). §10.7 sets phase 1's aim; §11.3 lists each difference from `_assets/`.
+is not built (§11.1). §10.7 sets phase 1's aim; §11.3 lists each difference from the reference screenshots.
 
 - **Tab bar:** the system `TabView` bar. Built with the iOS 26.5 SDK it is the Liquid Glass bar, not
   the flat bar in §1.2 (D8). Icons are SF Symbols; no image assets.
 - **Header:** the system navigation bar with the screen title and the screenshot's trailing button
   as a `ToolbarItem` (D7). Phase 1 checks the iOS 26.5 SDK interface for a navigation subtitle
   modifier; if there is none, the "school • child" line is the first row of the list.
-- **Accent colour:** sampled from the Home tab label in `_assets/IMG_0210.PNG` in phase 1 and stored
+- **Accent colour:** sampled from the Home tab label in `IMG_0210.PNG` (§1.2) in phase 1 and stored
   as `AccentColor` in `Assets.xcassets`.
 
 ## 4. `ionic-capacitor/`
@@ -425,7 +435,7 @@ device or simulator, OS version, window size in points, toolchain versions and c
 
 | measure | how it is taken | phases |
 | --- | --- | --- |
-| fidelity | screenshot in the iPhone 16 simulator (393 × 852 pt), next to the matching file in `_assets/`; list each visible difference | 1, 2 |
+| fidelity | screenshot in the iPhone 16 simulator (393 × 852 pt), next to the matching reference screenshot; list each visible difference | 1, 2 |
 | size of the wide-layout change | `git diff --stat` over the phase's directory, from the last phone-only commit to the commit that finishes the wide layout | 3, 4 |
 | state across a resize | whether the selected tab, the scroll position and the list selection or navigation stack are unchanged after the window width crosses between compact and regular at runtime, in an iPad simulator window resized in iPadOS windowing | 3, 4, 5 |
 | navigation primitives | which built-in components carry the layout, and the lines of custom layout code beside them | 3, 4 |
@@ -648,14 +658,14 @@ From the user on 2026-09-13, giving the go-ahead for phase 1 (DISCOVERY.md, entr
 state before phase 1"): iterate on the UI in the simulator from screenshots, towards "visually
 pleasing UI, potentially improving the reference - making it look like native iOS".
 
-- Where `_assets/` and the iOS system idiom differ, `native-swift/` takes the system idiom: system
+- Where the reference screenshots and the iOS system idiom differ, `native-swift/` takes the system idiom: system
   list styles and text styles in place of the screenshot's font and flat rows, SF Symbols in place of
   the screenshot's icons, `ContentUnavailableView` in place of the illustrated empty state. The
   content §1.2 lists per screen stays: the rows and sections, the week strip and agenda, the filter
   chips, "+", the header title, subtitle and trailing button, and the Home badge.
-- Phase 1's fidelity entry in §5 lists each visible difference from `_assets/` and marks it either
+- Phase 1's fidelity entry in §5 lists each visible difference from the reference screenshots and marks it either
   as a change made under this section or as a gap.
-- **O6 — open:** whether phase 2 styles `ionic-capacitor/` after `_assets/`, as §4.4 states, or after
+- **O6 — open:** whether phase 2 styles `ionic-capacitor/` after the reference screenshots, as §4.4 states, or after
   phase 1's screenshots of `native-swift/`. §4.4 stands until the user answers.
 
 ## 11. Phase 1 results (added 2026-09-13)
@@ -736,10 +746,10 @@ The app size is the simulator `.app` on disk, not an App Store download size.
 
 ### 11.3 Fidelity (§5, phase 1)
 
-Each visible difference between the v6 screenshots and `_assets/`, marked **change** (toward the iOS
+Each visible difference between the v6 screenshots and the reference screenshots, marked **change** (toward the iOS
 system idiom, under §10.7 or D7/D8) or **gap** (content from §1.2 not built).
 
-| screen | `_assets/` | `native-swift/` | mark |
+| screen | reference (§1.2) | `native-swift/` | mark |
 | --- | --- | --- | --- |
 | all | flat full-width tab bar, outline icons, dark plum badge | floating Liquid Glass tab bar, filled SF Symbols, system red badge | change (D8) |
 | all | custom header, title in the accent colour | system navigation bar, title in the primary label colour, `navigationSubtitle` below it, trailing button in a glass circle or capsule | change (D7) |
@@ -758,7 +768,7 @@ system idiom, under §10.7 or D7/D8) or **gap** (content from §1.2 not built).
 | Chat | accent-outlined chips | Liquid Glass chips; the selected chip filled with the accent and scrolled into view | change |
 | Chat | illustration with a title and two lines of text | `ContentUnavailableView` with an SF Symbol, the title, and one shorter sentence | change |
 | Chat | rounded-square "+" button | circular `.glassProminent` "+" button | change |
-| Chat | no chat rows shown | rows with an avatar, name, two-line preview, time and an unread dot | not in `_assets/` |
+| Chat | no chat rows shown | rows with an avatar, name, two-line preview, time and an unread dot | not in the reference |
 | Settings | black line icons | white SF Symbols on coloured rounded squares, as in the iOS Settings app | change |
 | Settings | "Language" with subtitle "English, English" | "Language" with the value "English" on the trailing side | change |
 | Settings | external-link square icon on "Parro support" | `arrow.up.forward` in tertiary grey | change |
@@ -777,7 +787,7 @@ deeper than the §2.3 detail" stays a non-goal.
 
 ### 12.1 The screen
 
-No file in `_assets/` shows a conversation. The layout follows iOS Messages, under §10.7.
+No reference screenshot shows a conversation. The layout follows iOS Messages, under §10.7.
 
 - **Navigation bar:** the chat's title and a subtitle, inline, with the chat's avatar on the trailing
   side. The tab bar is hidden while the conversation is on screen.
@@ -859,7 +869,7 @@ simulator", records rounds c1 to c5.
 - **Screenshots:** `screenshots/chat/native-swift-chat-{list,group,direct,child,group-typing,group-sent,child-sent,list-after}.png`,
   1179 × 2556 px. The status bar shows the time the script ran (21:25–21:27), not 9:41, so that it
   agrees with the times of the sent messages.
-- **No reference to compare against:** no file in `_assets/` shows a conversation, and no screenshot
+- **No reference to compare against:** no reference screenshot shows a conversation, and no screenshot
   of the Messages app was taken for comparison.
 
 ## 13. Two styling variants in `ionic-capacitor/` (added 2026-09-13)
@@ -885,7 +895,7 @@ and were renamed; §17.3 maps each old path to its new one.
 
 | variant | what it looks like | pass |
 | --- | --- | --- |
-| `stock` | Ionic 9's iOS mode styles as the tabs starter ships them, with `#D13C63` (§11.1) set as Ionic's `primary` colour. Screens use an Ionic component wherever one fits (D16). No CSS is written to match `_assets/` or `native-swift/`. | 2a |
+| `stock` | Ionic 9's iOS mode styles as the tabs starter ships them, with `#D13C63` (§11.1) set as Ionic's `primary` colour. Screens use an Ionic component wherever one fits (D16). No CSS is written to match the reference screenshots or `native-swift/`. | 2a |
 | `matched` | as close to the `native-swift/` screenshots in `screenshots/phase1/` and `screenshots/chat/` as the web view allows: floating glass tab bar, glass toolbar buttons, inset grouped lists, glass chips, bubbles with tails, glass composer | 2b |
 
 Both variants show the same fixture (§2.2, §10.2 O3, §12.2), the same screens and routes (§2.3, §4.3,
@@ -1098,7 +1108,7 @@ and were renamed; §17.3 maps each old path to its new one.
 
 | measure | how it is taken | passes |
 | --- | --- | --- |
-| fidelity of `stock` | screenshots next to `_assets/`, as §5's fidelity row; each difference marked **Ionic default** or **gap** | 2a |
+| fidelity of `stock` | screenshots next to the reference screenshots, as §5's fidelity row; each difference marked **Ionic default** or **gap** | 2a |
 | fidelity of `matched` | screenshots next to `screenshots/phase1/native-swift-*.png` and `screenshots/chat/native-swift-chat-*.png`; each difference marked **matched** or **gap**, and each gap with its reason | 2b |
 | cost of `matched` | `git diff --stat` over `ionic-capacitor/` from pass 2a's last commit to pass 2b's last commit, split into `src/styles/matched/`, other TS and TSX files, and configuration (`package.json`, `vite.config.ts`, `tsconfig.json`); npm packages added, from `npm ls --depth=0` before and after | 2b |
 | web bundle per variant | `du -sk dist` and the file sizes `vite build` prints, per variant; `grep -r -- '--ion-color-primary-brightness'` over `stock`'s `dist/` prints no match | 2a, 2b |
@@ -1335,12 +1345,12 @@ messages are dated 22:42, the minute in which they were sent.
 
 ### 14.5 Fidelity of `stock` (§13.8)
 
-Each visible difference between the round s1 screenshots and `_assets/`, marked:
+Each visible difference between the round s1 screenshots and the reference screenshots, marked:
 - **Ionic default:** what the Ionic component draws in iOS mode with the accent colour;
 - **own:** layout or content written in this pass;
 - **gap:** content from §1.2 that is not built.
 
-| screen | `_assets/` | `stock` | mark |
+| screen | reference (§1.2) | `stock` | mark |
 | --- | --- | --- | --- |
 | all | flat tab bar, filled icon on the selected tab, dark labels, dark plum badge | flat 50 px `ion-tab-bar` with a 0.55 px top border, outline ionicons, grey labels with the selected one in the accent colour, badge in the accent colour | Ionic default |
 | all | rounded custom typeface | the system font through Ionic's iOS typography | Ionic default |
@@ -1360,10 +1370,10 @@ Each visible difference between the round s1 screenshots and `_assets/`, marked:
 | Chat | chips with a solid accent outline | `IonChip outline` with a lighter accent outline; the selected chip tinted | Ionic default |
 | Chat | illustration, title, two sentences | ionicon, title, one sentence | gap: the illustration |
 | Chat | rounded-square "+" | round `IonFab` | Ionic default |
-| Chat | no rows shown | rows with avatar, name, wrapped preview, time and a dot | not in `_assets/` |
+| Chat | no rows shown | rows with avatar, name, wrapped preview, time and a dot | not in the reference |
 | Settings | "Language" with the subtitle "English, English" | "Language" with "English" on the trailing side | own |
 | Settings | no separators | hairline separators | Ionic default |
-| conversation | not in `_assets/` | the tab bar stays visible (D14); bubbles without tails; the chat's avatar in the header | own |
+| conversation | not in the reference | the tab bar stays visible (D14); bubbles without tails; the chat's avatar in the header | own |
 
 ## 15. Pass 2b results: `matched` (added 2026-09-13)
 

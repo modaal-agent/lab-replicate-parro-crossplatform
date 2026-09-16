@@ -83,7 +83,8 @@ struct ChatThread: Identifiable, Hashable {
 }
 
 /// The placeholder content of every screen (spec 001 §2.2, §12.2). All names are invented, per
-/// AGENTS.md §"Two builds of one shell"; the structure follows `_assets/IMG_0210.PNG` … `IMG_0213.PNG`.
+/// AGENTS.md §"Two builds of one shell"; the structure follows the four reference screenshots
+/// described in spec 001 §1.2.
 enum Fixture {
   static let schoolName = "Brightwater Montessori"
   static let childName = "Sam"

@@ -1584,3 +1584,39 @@ Spec 001 §17.5 lists the files and what the pages show.
     `~/.claude/projects/`", without the working copy's absolute path or the session UUID.
   - `git ls-files -z | xargs -0 grep -InE '(/Users/[a-z]|/Volumes/[A-Z]|/private/tmp/|file:///)'`
     over the tracked files now matches only the grep pattern quoted in this entry.
+
+## 2026-09-16 — `_assets/` removed from the tree and the history
+
+- **Question answered again.** The entry above records "Leave them" for the two names in the four
+  `_assets/` images. That was replaced within the same turn: "Please also remove _assets (redact the
+  history)". This entry supersedes that answer.
+- **What was removed:** `_assets/IMG_0210.PNG`, `IMG_0211.PNG`, `IMG_0212.PNG` and `IMG_0213.PNG`,
+  with `git rm -r _assets`. Each showed a real school name and a real child's first name in its
+  screen header, and `IMG_0210.PNG` also in its Groups list.
+- **`git log --oneline --all -- _assets` gives one commit**, `d8c8f44`, the root commit, which is
+  where the four files entered the history. 18 commits in `git rev-list --all --count`.
+- **The remote already holds them.** `git remote -v` gives
+  `git@github.com:modaal-agent/lab-replicate-parro-crossplatform.git`, `git ls-remote origin` gives
+  `168575f` for `HEAD` and `refs/heads/main` — the same commit as local `HEAD` — and
+  `gh repo view --json visibility,isPrivate,pushedAt` gives `PRIVATE`, `isPrivate` true, pushed
+  2026-09-14T20:48:08Z. A rewrite plus a force-push does not delete the four blobs from GitHub: they
+  stay reachable there by commit and blob SHA until GitHub garbage-collects, which a repository
+  owner cannot trigger.
+- **`git-filter-repo` is not installed** (`command -v git-filter-repo` gives nothing). `brew` and
+  `pip3` are on the machine; `pipx` is not.
+- **References rewritten so that none of them is a path any more.** The four file names stay in this
+  file and in the spec as the names of the four screens, defined in spec 001 §1.2:
+  - `specs/001-four-tab-shells/spec.md`: the four Markdown links in §1.2 became plain names; §1.2
+    took an `Added 2026-09-16` note; §1.1's list of what `d8c8f44` tracks names the screenshots as
+    removed; 18 further mentions of `` `_assets/` `` became "the reference screenshots" or
+    "reference (§1.2)".
+  - `AGENTS.md` and `CLAUDE.md`: the "what a screen looks like" row now points at spec 001 §1.2;
+    §"Two builds of one shell"'s placeholder-data rule no longer names a file that showed the real
+    names; §"What goes in which document"'s `_assets/` entry became the rule that a screenshot of
+    someone's real account is not committed. `cmp AGENTS.md CLAUDE.md` passes.
+  - `README.md`: the `_assets/` row is gone from the Layout table, and the `LICENSE` row no longer
+    carves it out.
+  - `ionic-capacitor/src/fixtures/fixture.ts:6` and
+    `native-swift/TabShell/Fixtures/Fixture.swift:86` point at spec 001 §1.2 instead of the files.
+- **Not yet done at the time of this entry:** the commit, the history rewrite and what happens to
+  the remote.

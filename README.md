@@ -13,7 +13,6 @@ The plan — the screens, the scope, the phases and what is compared — is
 
 | path | what |
 | --- | --- |
-| `_assets/` | the reference screenshots, one per screen |
 | `ionic-capacitor/` | the Ionic + Capacitor build (added with its first commit) |
 | `native-swift/` | the SwiftUI build (added with its first commit) |
 | `screenshots/` | screenshots taken of the builds, one folder per build, styling variant and round; spec 001 §17 gives the folder and file names. `index-<device>.html` shows one device's screenshots of `native-swift` and `ionic-capacitor` side by side or split (§17.5) |
@@ -22,7 +21,7 @@ The plan — the screens, the scope, the phases and what is compared — is
 | `.github/workflows/ci.yml` | the `rules` job: `AGENTS.md` and `CLAUDE.md` are byte-identical |
 | `CONTRIBUTING.md` | what this repository accepts: issues and discussions, no pull requests |
 | `SECURITY.md` | where a vulnerability, a credential in the history or personal data in a committed file is reported |
-| `LICENSE` | MIT, over everything but the reference screenshots in `_assets/` and the dependencies |
+| `LICENSE` | MIT, over everything but the dependencies |
 
 ## Working in this repository
 

@@ -14,7 +14,7 @@ and fails if they differ.
 | what is being built and why | [README.md](README.md) |
 | the screens, the scope, the phases, what the comparison measures | [specs/001-four-tab-shells/spec.md](specs/001-four-tab-shells/spec.md) |
 | what was found, tried, read and decided, in order | [DISCOVERY.md](DISCOVERY.md) |
-| what a screen looks like | `_assets/IMG_0210.PNG` … `IMG_0213.PNG` — spec 001 §1.2 maps each file to its screen |
+| what a screen looks like | spec 001 §1.2, which describes what each of the four reference screenshots contained, and `screenshots/` for the builds |
 | the plan for any other change too big to carry in a commit message | `specs/` |
 
 Run from the repository root:
@@ -30,9 +30,11 @@ cmp AGENTS.md CLAUDE.md   # what the `rules` job runs
   directories in the same change, or its commit message names the directory it has not reached.
 - **Each directory builds on its own toolchain.** Nothing in one directory imports, links or copies
   generated output from the other, so a build or a measurement of one stack runs without the other.
-- **Placeholder data only.** The screenshots in `_assets/` show a real school name and a child's
-  first name. Fixtures, previews, sample data, screenshots taken of the builds and commit messages
-  use invented names; do not copy a person's or a school's name from `_assets/` into any file.
+- **Placeholder data only.** Fixtures, previews, sample data, screenshots taken of the builds,
+  specs, DISCOVERY.md entries and commit messages use invented names. No real person's name and no
+  real school's name is written in any file here. The four screenshots the shell was built from
+  showed both; they were removed from the repository and from its history on 2026-09-16, and spec
+  001 §1.2 describes what they contained instead.
 - **A measurement is recorded with how it was taken:** device or simulator model, OS version, window
   size in points, toolchain versions and the commit it was taken at. Measurements go in the spec for
   the change that produced them.
@@ -146,6 +148,7 @@ Habits to avoid (common LLM-isms):
 - **DISCOVERY.md** — the dated log of observations, measurements, side effects, sources and user
   answers, in the order they happened. The plan that follows from an entry goes in the spec; a rule
   that follows from it goes here.
-- **`_assets/`** — the reference screenshots. They are inputs and are not edited; a new reference
-  screenshot is added beside them and described in the spec that uses it, as an addition, in the
-  same commit.
+- **A screenshot of someone's real account is not committed.** Describe what it contains in the
+  spec that uses it, and keep the file outside the repository. `_assets/`, which held four such
+  files, was removed on 2026-09-16 — see spec 001 §1.2. A screenshot taken of one of the two builds
+  carries invented names and goes in `screenshots/`, under spec 001 §17.
