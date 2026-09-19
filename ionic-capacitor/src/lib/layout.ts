@@ -23,12 +23,41 @@ function subscribeTo(media: string) {
   };
 }
 
-const subscribeToColumns = subscribeTo(columnsQuery);
 const subscribeToMenu = subscribeTo(menuQuery);
 
-/** Whether the window is at least 672 px wide, updated as the window is resized. */
+/**
+ * The horizontal size class the iOS shell sets on the root element (`TraitBridgeViewController.swift`, spec 001 §21.5
+ * D18), or undefined in a browser.
+ */
+function nativeSizeClass(): 'regular' | 'compact' | undefined {
+  const root = document.documentElement.classList;
+  return root.contains('size-regular') ? 'regular' : root.contains('size-compact') ? 'compact' : undefined;
+}
+
+/** Whether the iOS shell reports the phone idiom, which iPhone Duo keeps on its inner display. */
+export function isPhoneIdiom(): boolean {
+  return document.documentElement.classList.contains('idiom-phone');
+}
+
+function subscribeToColumns(onChange: () => void) {
+  const unsubscribe = subscribeTo(columnsQuery)(onChange);
+  addEventListener('nativetraits', onChange);
+  return () => {
+    unsubscribe();
+    removeEventListener('nativetraits', onChange);
+  };
+}
+
+/**
+ * Whether each tab shows its list beside its detail: in regular width when the iOS shell sends the size class, as
+ * `native-swift/`'s split views do (spec 001 §21.5, D19), and from 672 px in a browser. On iOS the media query is not
+ * read: it read false for one render during a native tab switch at 951 px (§21.3).
+ */
 export function useColumns(): boolean {
-  return useSyncExternalStore(subscribeToColumns, () => window.matchMedia(columnsQuery).matches);
+  return useSyncExternalStore(subscribeToColumns, () => {
+    const sizeClass = nativeSizeClass();
+    return sizeClass ? sizeClass === 'regular' : window.matchMedia(columnsQuery).matches;
+  });
 }
 
 /** Whether the window is at least 992 px wide, where the split pane shows the menu in place of the tab bar. */
@@ -46,7 +75,8 @@ export function useMenu(): boolean {
  */
 export function watchWindowed(): () => void {
   const update = () => {
-    const windowed = innerWidth !== screen.width && innerWidth !== screen.height;
+    // On iPhone Duo `screen` reports the outer display while the app runs on the inner one (spec 001 §21.2, D20).
+    const windowed = !isPhoneIdiom() && innerWidth !== screen.width && innerWidth !== screen.height;
     document.documentElement.classList.toggle('windowed', windowed);
   };
   update();

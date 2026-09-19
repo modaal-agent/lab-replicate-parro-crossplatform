@@ -2642,3 +2642,24 @@ screenshot --display=3` on the host while the XCUITest driver waits.
 - The inner display in portrait (669 × 951 pt), the closed device on the outer display (466 × 678 pt), the folded poses
   and Split View: each needs DeviceHub's controls (§21.1).
 - The reserved regions, the vertical bar on the leading edge, and `ArrangementView` (§6, phase 5).
+
+### 21.10 Step 2 results: the traits in the web view (added 2026-09-19)
+
+DISCOVERY.md, entry "The iOS shell sends its traits to the web view (spec 001 §21.5, D18–D20)", lists the rounds.
+
+- **Files:** `ios/App/App/TraitBridgeViewController.swift` new, 119 lines of Swift written by hand; `SceneDelegate.swift`
+  +1 −1; `project.pbxproj` +4; `src/lib/layout.ts` +34 −4. No npm package and no plugin.
+- **Classes the web view receives:**
+
+  | device | root classes |
+  | --- | --- |
+  | iPhone Duo, iOS 27.1, inner display in landscape | `idiom-phone size-regular vbar-trailing` |
+  | `iPad Pro 13-inch (M5)`, iOS 27.0, full screen | `idiom-pad size-regular` |
+  | `iPhone 17`, iOS 27.0 | `idiom-phone size-compact` |
+
+- **§21.3's web-side fault:** after the change, six of six runs of the Settings step kept the native tab bar (round r8);
+  before it, four of six lost it. The plugin-side fault is not changed (D23).
+- **`windowed`** is no longer set on the inner display: in round s0 (`testTour` on this build) the titles "Calendar" and
+  "Chat" start at x 26 pt, 16 pt inside the panel, where r2 had x ≈ 83 pt; the tour kept the tab bar after the
+  conversation.
+- **Classes that nothing reads yet:** `vbar-leading` and `vbar-trailing`.

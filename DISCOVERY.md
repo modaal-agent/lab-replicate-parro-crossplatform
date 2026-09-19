@@ -1857,3 +1857,42 @@ description was written by hand.
   `dev.modaal.lab.tabshell.matched` installed.
 - `native-swift/TabShell.xcodeproj` and `TabShell/Info.plist` generated (ignored); `ionic-capacitor/node_modules`,
   `dist/` and `ios/App/App/public/` written (ignored).
+
+## 2026-09-19 — The iOS shell sends its traits to the web view (spec 001 §21.5, D18–D20)
+
+Step 2 of spec 001 §21.6, on the working tree on top of `5c25a83`, Xcode 27.1 beta (27A9269).
+
+### What was written
+
+- `ionic-capacitor/ios/App/App/TraitBridgeViewController.swift`, new, 119 lines: a `CAPBridgeViewController` subclass.
+  It overrides `webViewConfiguration(for:)` (`CAPBridgeViewController.swift:119` in `@capacitor/ios` 8.5.2, `open`) to
+  add a `WKUserScript` at document start, registers for `UITraitHorizontalSizeClass`, `UITraitUserInterfaceIdiom` and,
+  from iOS 27.1, `UITraitCollection.systemTraitsAffectingVerticalBarEdge` (UIKit's `.swiftinterface:2867`), and sets
+  `idiom-phone`/`idiom-pad`, `size-regular`/`size-compact` and `vbar-leading`/`vbar-trailing` on `<html>`, with a
+  `nativetraits` event after a change.
+- `SceneDelegate.swift:11`: `TraitBridgeViewController()` in place of `CAPBridgeViewController()`. The window's root
+  controller is created there; `Main.storyboard`'s `CAPBridgeViewController` is not the root.
+- `project.pbxproj`: the file's `PBXBuildFile`, `PBXFileReference`, group and Sources entries, +4 lines, written by hand;
+  `plutil -lint` passes.
+- `src/lib/layout.ts` +34 −4: `useColumns()` takes `size-regular` or `size-compact` when present and the media query
+  otherwise, and re-reads on `nativetraits`; `isPhoneIdiom()`; `watchWindowed()` sets nothing with `idiom-phone`.
+- `npx tsc --noEmit` passes; `npx eslint src` prints the 2 warnings of spec 001 §19.3.
+
+### Rounds
+
+| round | device | what it showed | change |
+| --- | --- | --- | --- |
+| r7 p1 | iPhone Duo, inner display, probe build | root classes as before the change, including `windowed`; no trait class | at document start `document.documentElement` can be null, so the script threw; `viewDidAppear` sent nothing because `sentClasses` already held the classes the user script was built with. The script now applies the classes when a `MutationObserver` on `document` sees the root element, and a KVO observation of `webView.isLoading` sends them again after each load |
+| r7 p2 | iPhone Duo, inner display, landscape | `idiom-phone size-regular vbar-trailing`, no `windowed` | — |
+| r7 | `iPad Pro 13-inch (M5)`, iOS 27.0, full screen | `idiom-pad size-regular`; viewport 1032 × 1376; `env()` top 32, bottom 20 | — |
+| r7 | `iPhone 17`, iOS 27.0 (`F3E920DC-C15A-49A4-9153-CB3CF0DC8818`, booted at 04:14 for this round) | first two launches: a white page and "⚡️ Loading app at capacitor://localhost..." with no "WebView loaded" after 30 s. An A/B build with `CAPBridgeViewController()` in `SceneDelegate.swift` (bundle `dev.modaal.lab.tabshell.ab`, uninstalled after) showed the same. After 60 s more, "⚡️ WebView loaded" and `idiom-phone size-compact`, `env()` bottom 83 | none: the page did not load on this simulator in the minutes after its first boot, with either controller |
+| r8 | iPhone Duo, `matched` | `testRepro` six times with `XCUIApplication.launch()`: the tab bar's four buttons present after Settings and after Calendar in each run. Before the change, 4 of 6 launched runs lost the bar (entry above) | — |
+| r9 | `iPhone 17`, iOS 27.0, `matched`, `testTour` | the phone layout: `home` with the tab bar at the bottom (x 0, y 791, 402 × 83 pt), `home-detail` pushed with a back button, the conversation pushed without the tab bar; "Settings" not found after the conversation, since the tab bar is hidden there (D14) and the tour does not go back. The first r9 run stopped in the driver's `layout()`, which read the frame of a navigation bar that had left during the push; `layout()` now checks each element before reading its frame | — |
+
+- **s0** (iPhone Duo, `matched`, `testTour` on this build): every step found its element; the titles "Calendar" and
+  "Chat" at x 26 pt (`StaticText` frames), 16 pt inside the panel, where r2 had x ≈ 83 pt; the tab bar present on
+  `settings` and `settings-detail`.
+- **The `native-swift/` side needs nothing for D18–D20:** `NavigationSplitView` and `TabView` take the size class
+  themselves (spec 001 §18).
+- **`stock` shares both files,** so its columns follow the size class on iOS too; its CSS has no rule for the new
+  classes.
