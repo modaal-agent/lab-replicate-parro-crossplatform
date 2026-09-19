@@ -1971,3 +1971,20 @@ scratchpad) lists, per label, the frame in each tree; positions below are in poi
 - **`iPhone 17`, iOS 27.0**, `testTour`: the phone layout with the tab bar at the bottom; the agenda's "Sun" in the
   accent colour and the times in 24-hour form. The tour stops after the conversation, where the bar is hidden (D14).
 - The status bar of the iPad showed "◀ TabShell", as in phase 4's round e1: `native-swift/` had been in front.
+
+## 2026-09-19 — Machine state after the iPhone Duo rounds
+
+After `bd571ba`, read with `xcrun simctl list devices` and `xcrun simctl listapps`:
+
+- `iPhone Duo` `2BA513E7-59CC-4754-A9F7-E73F027D9619` stays booted, as found, with the status bar at 9:41. Installed from
+  this session: `dev.modaal.lab.tabshell` (`native-swift/` at `168575f`), `dev.modaal.lab.tabshell.matched` (the build
+  of round s11, the tree of `bd571ba`) and the driver's `dev.modaal.lab.driver.DriverUITests.xctrunner`; the host app
+  `dev.modaal.lab.driver.host` is not listed. `dev.modaal.lab.tabshell.probe` was uninstalled.
+- `iPad Pro 13-inch (M5)` `85260B52-…` and `iPhone 17` `F3E920DC-…` on iOS 27.0, booted for rounds i1, r7, r9 and the
+  regression tours, are shut down; each keeps `dev.modaal.lab.tabshell.matched`, and the iPad `dev.modaal.lab.tabshell`.
+- The session scratchpad holds `driver/` (the XCUITest project), `tour.sh`, `drv.sh`, `shot-watch.sh`,
+  `build-matched.sh`, `frames.py`, `pair.sh`, `probe/probe.js`, `measure/` (with the `168575f` tree and its
+  `node_modules`), the rounds under `duo/`, derived data `dd-*` and the logs.
+- The poses other than the inner display in landscape need DeviceHub's controls: an assistive access grant for the
+  terminal (System Settings, Privacy & Security, Accessibility) would let `osascript` press them, or a person can
+  switch the pose between runs of `tour.sh`.
