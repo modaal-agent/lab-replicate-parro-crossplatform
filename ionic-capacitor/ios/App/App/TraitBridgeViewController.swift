@@ -6,7 +6,7 @@ import WebKit
 /// classes on the root element for the idiom (`idiom-phone`, `idiom-pad`), the horizontal size class (`size-regular`,
 /// `size-compact`) and, from iOS 27.1, the edge of the vertical bars (`vbar-leading`, `vbar-trailing`). A user script
 /// sets them before the page's scripts run; after a trait change, and after each page load, they are set again and a
-/// `nativetraits` event is sent.
+/// `nativetraits` event is sent. The same script sets `data-hour-cycle` from the device's region (D24).
 final class TraitBridgeViewController: CAPBridgeViewController {
     /// The classes the web view has, so that an unchanged trait collection sends nothing.
     private var sentClasses: [String] = []
@@ -90,6 +90,23 @@ final class TraitBridgeViewController: CAPBridgeViewController {
         return classes
     }
 
+    /// The hour cycle of the device's region, for `Intl.DateTimeFormat` in `dates.ts` (spec 001 §21.5, D24). The web
+    /// view's `Intl` takes the language alone, `en-US`, while a region can give a 24-hour clock, as `en_US@rg=nlzzzz`
+    /// does on the simulator of spec 001 §21.2.
+    private static var hourCycle: String {
+        let pattern = DateFormatter.dateFormat(fromTemplate: "j", options: 0, locale: .current) ?? ""
+        if pattern.contains("H") {
+            return "h23"
+        }
+        if pattern.contains("k") {
+            return "h24"
+        }
+        if pattern.contains("K") {
+            return "h11"
+        }
+        return "h12"
+    }
+
     /// Replaces the root element's trait classes with `classes`, and sends `nativetraits` when `notify` is set.
     private static func script(classes: [String], notify: Bool) -> String {
         let list = classes.map { "'\($0)'" }.joined(separator: ",")
@@ -100,6 +117,7 @@ final class TraitBridgeViewController: CAPBridgeViewController {
           function apply(root) {
             root.classList.remove('idiom-phone', 'idiom-pad', 'size-regular', 'size-compact', 'vbar-leading', 'vbar-trailing');
             root.classList.add(\(list));
+            root.setAttribute('data-hour-cycle', '\(hourCycle)');
             \(notify ? "window.dispatchEvent(new Event('nativetraits'));" : "")
           }
           if (document.documentElement) {

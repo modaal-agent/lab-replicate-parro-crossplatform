@@ -1896,3 +1896,78 @@ Step 2 of spec 001 §21.6, on the working tree on top of `5c25a83`, Xcode 27.1 b
   themselves (spec 001 §18).
 - **`stock` shares both files,** so its columns follow the size class on iOS too; its CSS has no rule for the new
   classes.
+
+## 2026-09-19 — `matched` styled after `native-swift/` on iPhone Duo's inner display (spec 001 §21.5, D21, D22, D24)
+
+Steps 3 and 4 of spec 001 §21.6, on the working tree on top of `efdb4e2`, iPhone Duo simulator (iOS 27.1), inner display
+in landscape, Xcode 27.1 beta (27A9269). Each round is `build-matched.sh` (web build, `npx cap copy ios`, `xcodebuild`,
+install) and `testTour`, compared with round r2's `native-swift/` screenshots and element trees. `frames.py` (session
+scratchpad) lists, per label, the frame in each tree; positions below are in points.
+
+### Method
+
+- **Frames first, pixels second.** Both apps expose their texts, buttons and links with frames to XCUITest, so each
+  round reads the same labels from both trees; `magick … -trim -format '%@'` on a thresholded crop gave glyph boxes
+  where a frame was not enough (the title sizes in s1).
+- **The tour dumps a tree with every screenshot** from s4 (`Recorder.shot` calls `dump`). Before that, the trees of
+  `home-detail`, `calendar-event` and `settings-detail` were missing, and s4 took `native-swift/` again with the dumping
+  driver; its screenshots are identical to r2's (0 differing pixels, `magick compare -metric AE -fuzz 10%`).
+
+### Rounds
+
+| round | what it showed, against `native-swift/` | change |
+| --- | --- | --- |
+| s0 | the build of step 2: the iPad panel at x 10–385; titles at x 26 | D22 in `Columns.css`: the columns' box takes `--ion-safe-area-left` and `-right` as padding and sets both to 0 inside the columns. D21 in `matched/index.css` under `html.idiom-phone`: a 375 px list column without the panel's margin, corners, shadow and fill; the detail ending 20 pt before the 84 pt inset (`vbar-trailing`); Home and Settings without the condensed large title and with the inline title shown (`header.ios.css:230` hides it with `opacity: 0`); list margins 20 px; 52 px rows; no chevrons; the selected label in black; "New chat" 20 px from the column's edge; the detail title leading, 20 px in |
+| s1 | rows no longer cut; "New chat" at x 299–355, y 563–619, native's frame; the composer field ending at x 830 against 831; bubbles wrapping at native's width. Home's inline title blurred; a grey band at the bottom of the Home list; the list titles 12 pt high ("Chat" y 16 against 28); the detail title 115 pt wide against 99 and 14 pt high; the composer field 33 pt low (y 627 against 594) | the theme blurs and lowers an inactive inline title (`filter: blur(2px); transform: translateY(8px)`, specificity (0,5,3)), reset with (0,5,4); the theme's fade colour set to white; the first toolbar of each column 12 px lower; inline titles 15 px; the large title 20 px in; the list toolbar's end padding 24 px; the composer 15 px in, the field 8 px after "+", and the home indicator's padding, which Ionic leaves out while an `ion-tab-bar` is in the tabs |
+| s2 | chat rows within 3 pt; the composer field at x 458, y 593 against 459, 594; titles 4 pt high; "Search" and "Today" ending at x 339 against 351: the theme's end padding was 4 px, and 24 moved them 20 pt | toolbars 16 px lower; end padding 12 px; "Groups" 10 px under the bar; chips 32 px; the fade left out in the list column |
+| s3 | "Calendar" and "Chat" at x 20, y 28; "Groups" y 93; Settings rows within 1 pt (Language y 463 against 462, Download files 581 against 581); "September" y 87 against 88. Chat previews wrapping differently; separators to the column's edge; the avatar at x 791–827 against 805–841; the placeholders' text smaller and lower | chat rows ending 20 px in, the preview 15 px before that; the detail toolbar's end padding 0 |
+| s4 | the placeholders: "Select a setting" 160 pt wide against 146, "Placeholder content for this page." 232 against 294 | `ContentUnavailableView` sizes from the widths: 20 px title, 19 px text in 24 px lines; the list column's empty state 59 px in |
+| s5 | "Select a setting" x 538–684, native's frame; the text 286 against 294 pt; the block with a description 13 pt low below a bar, 11 pt low in the empty Chat list, and within 3 pt without a bar; the avatar 6 pt short | the block raised by bottom padding, 26 px below a bar and 34 px in the list; the avatar's margin −6 px |
+| s6 | the placeholder within 2 pt; the Chat empty state 6 pt high; a title without a subtitle 117 pt wide against native's 110 | the list padding 22 px; 16 px for a title without a subtitle, 15 px only above a subtitle |
+| s7 | 16 px gave 105 and 97 pt against 110 and 101.3: the theme's size had been about 18 px, not Ionic's 17 px (`title.ios.css:97`) | 17 px |
+| s8 | titles 110, 102 and 119 pt against 110, 101.3 and 118, at y 39 against 37.7 | D24 (below) |
+| s9 | times in 24-hour form; the chat times ending at x 334 against 355: `.chat-time` is positioned in the row's inner box, which the 20 px end padding narrowed. Native's previews: "Photo: Sam's drawing of / the sunflowers", "See you / on Monday!", "gym clothes / for tomorrow's PE lesson." | `.chat-time` `right: 0`; the preview's end margin removed; `text-wrap: pretty` on the previews; today's weekday in the agenda in the accent colour |
+| s10 | `text-wrap: pretty` is supported in this web view: the Sam preview wraps as native's, and the other two break earlier than native's (x 275 and 315 against 337 and 355). Without it one of three wraps as native's too. Native keeps greedy lines and moves one word down when the last line would hold a single word | `text-wrap: pretty` removed |
+| s11 | the final round (below) | — |
+
+- **Today's weekday in the agenda** was grey in `matched` on every device since pass 2b: `CalendarPage.css:24` gives it
+  the accent colour, and `matched`'s `ion-item.agenda-item > .agenda-day` rule overrides it; `DayLabel` in
+  `CalendarList.swift:136` colours it with the accent. The rule added in s9 applies on every device.
+
+### D24: the hour cycle
+
+- `TraitBridgeViewController.swift` reads `DateFormatter.dateFormat(fromTemplate: "j", options: 0, locale: .current)`
+  and sets `data-hour-cycle` (`h23`, `h24`, `h11` or `h12`) on `<html>` in the same script as the classes;
+  `dates.ts` passes it to `Intl.DateTimeFormat(undefined, { timeStyle: 'short', hourCycle })`. `npx tsc --noEmit`
+  passes; `npx vitest run` 1 of 1.
+- Node 22.22.3 with `en-US` and `hourCycle: 'h23'` gives "09:41" and "13:30" (`node -e`); `en-US-u-rg-nlzzzz` gives
+  "9:41 AM", so the region extension is ignored, and `en-NL` gives "09:41".
+- On the Duo (round s9): "09:41", "Today 09:41", "Friday 15:02", "13:30 – 16:00", "09:15 – 09:40", "19:00 – 20:30".
+  Native: "9:41", "Today 9:41", "Friday 15:02", "13:30–16:00", "09:15–09:40". `ChatList.swift:218` formats with
+  `.shortened`, which gives one hour digit for this region; `CalendarList.swift:170` formats the range with
+  `.interval.hour().minute()`, two digits and no spaces around the dash.
+
+### Checks on the final build
+
+- **Differing pixels between the two builds**, `magick compare -metric AE -fuzz 10%` over 5,725,971 pixels:
+
+  | screen | r2 (`168575f`) | s11 |
+  | --- | --- | --- |
+  | `home` | 2.77 % | 1.52 % |
+  | `home-detail` | 3.21 % | 1.81 % |
+  | `calendar` | 3.65 % | 2.14 % |
+  | `calendar-event` | 5.12 % | 2.80 % |
+  | `chat-empty` | 2.47 % | 1.28 % |
+  | `chat-list` | 3.76 % | 1.59 % |
+  | `chat-group` | 9.57 % | 5.28 % |
+  | `settings` | 4.68 % | 1.91 % |
+  | `settings-detail` | 5.13 % | 2.24 % |
+
+  `native-swift/`'s screenshots of r2 and s11 differ by 0 pixels on each screen.
+- **The tab bar after a conversation** (round r10): six of six `testRepro` runs kept it, twelve of twelve with round r8.
+- **`iPad Pro 13-inch (M5)`, iOS 27.0**, `testTour` on the final build: the menu column, the panel at x 10–385 pt with
+  chevrons and the selected label in the accent, as spec 001 §19.2; the root has `idiom-pad`, so no rule of this entry
+  but the agenda's weekday colour applies.
+- **`iPhone 17`, iOS 27.0**, `testTour`: the phone layout with the tab bar at the bottom; the agenda's "Sun" in the
+  accent colour and the times in 24-hour form. The tour stops after the conversation, where the bar is hidden (D14).
+- The status bar of the iPad showed "◀ TabShell", as in phase 4's round e1: `native-swift/` had been in front.

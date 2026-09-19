@@ -2,7 +2,13 @@
 
 const dayMs = 24 * 60 * 60 * 1000;
 
-const timeFormat = new Intl.DateTimeFormat(undefined, { timeStyle: 'short' });
+/**
+ * The hour cycle of the device's region, which the iOS shell sets before the page's scripts run
+ * (`TraitBridgeViewController.swift`, spec 001 §21.5 D24); undefined in a browser, where the language decides.
+ */
+const hourCycle = document.documentElement.dataset.hourCycle as Intl.DateTimeFormatOptions['hourCycle'];
+
+const timeFormat = new Intl.DateTimeFormat(undefined, { timeStyle: 'short', hourCycle });
 const weekdayShortFormat = new Intl.DateTimeFormat(undefined, { weekday: 'short' });
 const weekdayLongFormat = new Intl.DateTimeFormat(undefined, { weekday: 'long' });
 const monthFormat = new Intl.DateTimeFormat(undefined, { month: 'long' });

@@ -13,6 +13,17 @@ window.SCREENSHOTS = {
     "settings-detail": [2853,2007],
     "settings": [2853,2007],
   },
+  "ionic-capacitor-matched-duoinner-v2": {
+    "calendar-event": [2853,2007],
+    "calendar": [2853,2007],
+    "chat-empty": [2853,2007],
+    "chat-group": [2853,2007],
+    "chat-list": [2853,2007],
+    "home-detail": [2853,2007],
+    "home": [2853,2007],
+    "settings-detail": [2853,2007],
+    "settings": [2853,2007],
+  },
   "ionic-capacitor-matched-ipad-v1": {
     "calendar-event": [2064,2752],
     "calendar": [2064,2752],

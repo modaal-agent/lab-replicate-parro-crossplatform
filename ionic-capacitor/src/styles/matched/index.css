@@ -557,6 +557,11 @@ ion-item.agenda-item > .agenda-day {
   color: var(--matched-secondary-label);
 }
 
+/* Today's weekday in the accent colour (`DayLabel` in `CalendarList.swift:136`). */
+ion-item.agenda-item > .agenda-day.today {
+  color: var(--ion-color-primary);
+}
+
 .agenda-day-number {
   display: flex;
   align-items: center;
@@ -921,4 +926,202 @@ ion-footer.composer ion-buttons.composer-send ion-button.ios.button-has-icon-onl
  */
 ion-tabs:has(> ion-tab-bar.tab-bar-conversation:not(.tab-bar-hidden)) ion-footer.composer ion-toolbar:last-of-type {
   padding-bottom: var(--ion-safe-area-bottom, 0px);
+}
+/*
+ * ---- iPhone Duo's inner display (spec 001 §21.5, D21) ----
+ * The phone idiom in the column layout: `idiom-phone` and `size-regular` from `TraitBridgeViewController.swift`.
+ * Positions are the element frames of `native-swift/` in round r2 and `screenshots/native-swift-duoinner-v1/`; the
+ * iPad panel above is iPadOS 26.5's, and on iPhone Duo the list column is flush and white.
+ */
+
+/* The list column at x 0–375 pt, as `navigationSplitViewColumnWidth(ideal: 375)` gives it (`RootTabView.swift:80`). */
+html.idiom-phone .ion-page.columns {
+  grid-template-columns: 375px minmax(0, 1fr);
+}
+
+/*
+ * With the bars on the trailing edge, the detail's content ends 20 pt before the bars' 84 pt inset: the placeholders are
+ * centred at x 611 pt and the composer field ends at x 831 pt, 16 pt inside that edge.
+ */
+html.idiom-phone.vbar-trailing .ion-page.columns {
+  padding-inline-end: calc(var(--ion-safe-area-right, 0px) + 20px);
+}
+
+html.idiom-phone .ion-page.columns > .ion-page.columns-list {
+  --ion-safe-area-top: inherit;
+  --ion-safe-area-bottom: inherit;
+  margin: 0;
+  border-radius: 0;
+  background: var(--ion-background-color, #fff);
+  box-shadow: none;
+}
+
+html.idiom-phone ion-router-outlet > .ion-page.columns > .ion-page.columns-list ion-header.header-ios ion-toolbar.ios:not(.ios-theme-disabled),
+html.idiom-phone ion-router-outlet > .ion-page.columns > .ion-page.columns-list ion-content.ios {
+  --background: var(--ion-background-color, #fff);
+}
+
+/* Home and Settings: an inline title and subtitle, centred, in place of the large title. */
+html.idiom-phone .columns-list ion-header.header-collapse-condense {
+  display: none;
+}
+
+/* The theme blurs and lowers the inline title until the large title scrolls away (`filter: blur(2px)`). */
+html.idiom-phone .columns-list ion-header.header-collapse-condense-inactive:not(.header-collapse-condense) ion-toolbar.in-toolbar ion-title {
+  opacity: 1;
+  filter: none;
+  transform: none;
+}
+
+/* The theme fades full-screen content into the grouped background behind its tab bar. */
+html.idiom-phone .columns-list ion-content {
+  --ios26-content-box-shadow-rgb: 255, 255, 255;
+}
+
+/*
+ * Navigation bars at y 24–82 pt in both columns: the titles 16 pt lower than the theme's 68 px toolbar puts them.
+ * An inline title above a subtitle is 15 pt: "Group 6/7/8 B" is 99 pt wide in the conversation of `native-swift/`,
+ * and 115 pt at 17 px. A title alone is 17 pt: 110 pt wide in the group's placeholder page, 117 pt at the theme's
+ * size and 105 pt at 16 px.
+ */
+html.idiom-phone .ion-page.columns ion-header ion-toolbar:first-of-type {
+  padding-top: 16px;
+}
+
+html.idiom-phone .ion-page.columns ion-toolbar ion-title:not(.stacked-title-large) .stacked-title {
+  font-size: 15px;
+  line-height: 18px;
+}
+
+html.idiom-phone .ion-page.columns ion-toolbar ion-title:not(:has(.stacked-title)) {
+  font-size: 17px;
+}
+
+/* Calendar and Chat: the large inline title 20 pt in; the trailing button 24 pt from the column's edge. */
+html.idiom-phone .columns-list ion-toolbar ion-title.stacked-title-large {
+  padding-inline-start: 20px;
+}
+
+html.idiom-phone .columns-list ion-header ion-toolbar:first-of-type {
+  --padding-end: 12px;
+}
+
+/* No bar below the list: the theme's fade behind a bottom tab bar is left out. */
+html.idiom-phone .columns-list ion-content.content-fullscreen::part(background)::after {
+  display: none;
+}
+
+/* "Groups" 11 pt below the navigation bar. */
+html.idiom-phone .columns-list ion-list-header.ios ion-label {
+  margin-top: 10px;
+}
+
+/* `FilterChips` on iPhone Duo: 32 pt capsules. */
+html.idiom-phone .columns-list .chip-row ion-chip {
+  height: 32px;
+  border-radius: 16px;
+}
+
+/* Rows: 52 pt, 20 pt inside the column, no chevrons; the selected row a grey capsule with its label in black. */
+html.idiom-phone .columns-list ion-content ion-list.list-inset.ios:not(.ios-theme-disabled) {
+  margin: 0 20px 10px;
+}
+
+html.idiom-phone .columns-list ion-list-header.ios {
+  padding-inline-start: 36px;
+}
+
+html.idiom-phone .columns-list ion-list.list-inset ion-item {
+  --min-height: 52px;
+}
+
+html.idiom-phone .columns-list ion-list.list-inset ion-item > ion-icon[slot='start'] {
+  margin-inline-end: 7px;
+}
+
+html.idiom-phone .columns-list ion-item::part(detail-icon) {
+  display: none;
+}
+
+html.idiom-phone .columns-list ion-item.selected ion-label,
+html.idiom-phone .columns-list ion-item.item.selected ion-label {
+  color: var(--ion-text-color, #000);
+}
+
+/* Chats: the separator, the preview and the time end 20 pt inside the column, where the chevron was. */
+html.idiom-phone .columns-list ion-item.chat-item {
+  --padding-end: 20px;
+  --inner-padding-end: 0px;
+}
+
+html.idiom-phone .columns-list ion-item.chat-item ion-label {
+  margin-inline-end: 0;
+}
+
+html.idiom-phone .columns-list ion-item.chat-item > .chat-time {
+  right: 0;
+}
+
+/* "+": 20 pt from the column's trailing edge, 50 pt above the window's bottom. */
+html.idiom-phone .columns-list ion-content ion-fab.ios:not(.ios-theme-disabled).fab-horizontal-end {
+  right: 20px;
+}
+
+/* The conversation's avatar 6 pt inside the detail's edge, at x 805–841 pt in `native-swift/`. */
+html.idiom-phone .columns-detail ion-header ion-toolbar:first-of-type {
+  --padding-end: 0px;
+}
+
+/* `ion-buttons` keeps 6 px after its last child. */
+html.idiom-phone .columns-detail ion-toolbar ion-buttons[slot='end'] .chat-avatar {
+  margin-inline-end: -6px;
+}
+
+/* The detail's title at the leading edge, 20 pt in, as the navigation bar of `native-swift/` places it. */
+html.idiom-phone .columns-detail ion-header ion-toolbar ion-title {
+  padding-inline: 20px;
+  text-align: start;
+}
+
+/*
+ * The composer: "+" 15 pt from the column's edge, the field 8 pt after it, above the home indicator. Ionic leaves out
+ * the home indicator's padding while an `ion-tab-bar` is in the tabs, and `IonTabBar` stays in the page hidden.
+ */
+html.idiom-phone .columns-detail ion-footer.composer.footer-ios ion-toolbar.ios:first-of-type {
+  --padding-start: 15px;
+}
+
+html.idiom-phone .columns-detail ion-footer.composer ion-textarea.composer-field.ios:not(.ios-theme-disabled) {
+  margin-inline-start: 8px;
+}
+
+html.idiom-phone .columns-detail ion-footer.composer ion-toolbar:last-of-type {
+  padding-bottom: var(--ion-safe-area-bottom, 0px);
+}
+
+/*
+ * `ContentUnavailableView` in regular width: a 20 pt bold title and 19 pt text in 24 pt lines. "Select a setting" is
+ * 146 pt wide and "Placeholder content for this page." 294 pt in `native-swift/`, 160 and 232 pt at 22 and 15 px. In
+ * the list column its text wraps 59 pt from each edge.
+ */
+html.idiom-phone .ion-page.columns .empty-state h2 {
+  font-size: 20px;
+}
+
+html.idiom-phone .ion-page.columns .empty-state p {
+  font-size: 19px;
+  line-height: 24px;
+}
+
+html.idiom-phone .columns-list .empty-state {
+  padding: 0 59px 22px;
+}
+
+/*
+ * Below a navigation bar the view's centre is 13 pt higher than the centre of the content under the bar: the group's
+ * placeholder spans y 289–402 pt in `native-swift/` and 301–417 pt without this padding. In the list column the Chat
+ * empty state's title is 11 pt higher, at y 363 against 374 pt. Without a bar, in `NoSelection`, the two agree.
+ */
+html.idiom-phone .columns-detail ion-header ~ ion-content .empty-state {
+  padding-bottom: 26px;
 }

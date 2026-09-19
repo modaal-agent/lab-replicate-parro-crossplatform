@@ -11,6 +11,20 @@
   position: relative;
 }
 
+/*
+ * Each column takes the safe-area inset on its own side (spec 001 §21.5, D22). On iPhone Duo's inner display the tab
+ * bar and the status bar take 84 pt at the trailing edge, beside the detail column; Ionic pads every item and toolbar
+ * end by `--ion-safe-area-right`, which cut the list's rows. The columns' box takes the insets, and the columns none.
+ */
+.ion-page.columns {
+  padding-inline: var(--ion-safe-area-left, 0px) var(--ion-safe-area-right, 0px);
+}
+
+.ion-page.columns > .ion-page {
+  --ion-safe-area-left: 0px;
+  --ion-safe-area-right: 0px;
+}
+
 /* From 992 px the menu lists the tabs in place of the tab bar. */
 ion-split-pane.split-pane-visible ion-tab-bar {
   display: none;

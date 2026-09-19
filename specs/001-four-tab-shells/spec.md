@@ -1897,7 +1897,7 @@ second bullet below.
 
 **Added 2026-09-14:** §20.6 lists the five `v2` folders phase 7 adds.
 
-**Added 2026-09-19:** §21.8 lists the two `duoinner` folders.
+**Added 2026-09-19:** §21.8 lists the two `duoinner` folders, and §21.11 the third, `ionic-capacitor-matched-duoinner-v2`.
 
 All four were taken in the `iPhone 16 (iOS 26.5)` simulator, `70D15E5B-3D95-4290-B3E9-970F68617BE8`,
 393 × 852 pt, portrait, at 1179 × 2556 px, with Xcode 26.6 (17F113) on macOS 26.6.2 (25G83). The section
@@ -2624,6 +2624,8 @@ difference in §21.2 whether it is closed, with the round that shows it.
 
 ### 21.8 Screenshots
 
+**Added 2026-09-19:** §21.11 adds `ionic-capacitor-matched-duoinner-v2`.
+
 **Added 2026-09-19:** new `device` value `duoinner` (§17.1): the `iPhone Duo` simulator on iOS 27.1, open, the inner
 display in landscape, the app full screen at 951 × 669 pt, 2853 × 2007 px, taken with `xcrun simctl io <udid>
 screenshot --display=3` on the host while the XCUITest driver waits.
@@ -2663,3 +2665,105 @@ DISCOVERY.md, entry "The iOS shell sends its traits to the web view (spec 001 §
   "Chat" start at x 26 pt, 16 pt inside the panel, where r2 had x ≈ 83 pt; the tour kept the tab bar after the
   conversation.
 - **Classes that nothing reads yet:** `vbar-leading` and `vbar-trailing`.
+
+### 21.11 Steps 3 and 4 results: `matched` on the inner display (added 2026-09-19)
+
+DISCOVERY.md, entry "`matched` styled after `native-swift/` on iPhone Duo's inner display (spec 001 §21.5, D21, D22,
+D24)", lists rounds s0 to s11. Measured on the working tree on top of `efdb4e2`.
+
+**What landed:**
+
+| file | change | lines |
+| --- | --- | --- |
+| `src/components/Columns.css` | D22: the columns' box takes `--ion-safe-area-left` and `-right` as padding, and sets both to 0 inside the columns, for every idiom and both variants | +14 |
+| `src/styles/matched/index.css:931–1127` | D21: the section "iPhone Duo's inner display", 35 rule blocks under `html.idiom-phone`, no `!important` | +197 |
+| `src/styles/matched/index.css:560–563` | today's weekday in the agenda in the accent colour, on every device (a pass 2b gap: `CalendarList.swift:136`) | +5 |
+| `ios/App/App/TraitBridgeViewController.swift` | D24: `data-hour-cycle` from `DateFormatter.dateFormat(fromTemplate: "j", …)` | +19 −1 |
+| `src/lib/dates.ts` | D24: `hourCycle` in the time format | +7 −1 |
+
+`native-swift/` is unchanged. Since `168575f`, `ionic-capacitor/` has +401 −7 lines, of which 137 are Swift written by
+hand in one file (`TraitBridgeViewController.swift`) and no npm package was added.
+
+**What the rules of D21 do, in the order of the section:** the list column 375 pt, flush and white; the detail ending
+20 pt before the trailing inset (`vbar-trailing`); Home and Settings with the inline title and subtitle in place of the
+large title, unblurred; every column's first toolbar 16 px lower; titles 15 px above a subtitle and 17 px alone; the
+large titles 20 px in; the list toolbar's end padding 12 px; no fade at the list's bottom; "Groups" under the bar; 32 px
+chips; rows 20 px in, 52 px high, no chevrons, the selected label black; chat rows and times ending 20 px in; "New
+chat" 20 px in; the avatar at the detail's edge; the detail title leading; the composer 15 px in, 8 px gap, above the
+home indicator; `ContentUnavailableView`'s 20 px title and 19 px text; the empty states' vertical offsets.
+
+**Fidelity, round s11, against `native-swift-duoinner-v1`** (§21.2's differences first). Marks as §13.8: **matched**, the
+same element placed within 3 pt; **gap**, with its reason.
+
+| element | `native-swift/` | `matched`, s11 | mark |
+| --- | --- | --- | --- |
+| list column | flush, x 0–375 pt, white | the same | matched |
+| list rows | cells x 20–355 pt, 52 pt; text at x 70 pt; Settings rows at y 82–498 pt | the same frames within 2 pt (Language y 463 against 462, Download files 581 against 581) | matched |
+| list headers | "Calendar" and "Chat" x 20, y 28 pt; "Home" and "Settings" centred; bars at y 24–82 pt | x 20, y 28 pt; centred titles; "Groups" y 93 against 93 | matched |
+| search and "Today" buttons | 40 × 40 and 70 × 36 pt, ending at x 351 pt | 45 × 44 and 74 × 44 pt, ending at x 351 pt | gap: the theme's glass button height; not changed |
+| rows' chevrons, selection | none; grey capsule, black text | the same | matched |
+| "New chat" | x 299–355, y 563–619 pt | the same | matched |
+| detail title | x 395, y 31.7 pt, 99 pt wide above a subtitle; 110 pt alone | x 395, y 32 pt, 99 pt; 110 pt | matched |
+| conversation avatar | x 805–841, y 30–66 pt | x 805–841, y 32–68 pt | matched |
+| detail content | ends 20 pt before the 84 pt inset; composer field text at x 459, y 594 pt | the same; x 458, y 593 pt | matched |
+| placeholders | 20 pt title, 19 pt text, block at y 289–402 pt (group page) | the same sizes; within 2 pt | matched |
+| time format | "9:41", "13:30–16:00", "09:15–09:40" | "09:41", "13:30 – 16:00", "09:15 – 09:40" | gap: the hour cycle follows the region (D24); the single time's leading zero and the spaces around the dash come from `en-US` locale data in the web view, where native uses the region's patterns (`ChatList.swift:218`, `CalendarList.swift:170`) |
+| chat previews | greedy lines, one word moved down to avoid a one-word last line | greedy lines: "…drawing of the / sunflowers", "…See you on / Monday!" | gap: `text-wrap: pretty` in this web view rebalances whole paragraphs (round s10) |
+| second event card | "Book week opening / assembly in the main…" | "Book week opening / assembly in the main hall" | gap: not investigated |
+| icons | SF Symbols | Ionicons | gap: §15.6 |
+| tab bar | vertical bar at x 881 pt | the same, from the plugin's `UITabBarController` | matched (§21.2) |
+| tab bar after a conversation | stays | stays in 12 of 12 runs (rounds r8, r10) | matched (§21.10) |
+
+**Differing pixels between the builds**, `magick compare -metric AE -fuzz 10%` over the 5,725,971 pixels of a
+screenshot: `home` 2.77 → 1.52 %, `home-detail` 3.21 → 1.81 %, `calendar` 3.65 → 2.14 %, `calendar-event` 5.12 →
+2.80 %, `chat-empty` 2.47 → 1.28 %, `chat-list` 3.76 → 1.59 %, `chat-group` 9.57 → 5.28 % (the conversations are
+scrolled to different offsets), `settings` 4.68 → 1.91 %, `settings-detail` 5.13 → 2.24 %, from round r2 to s11.
+
+**Measurements** (§5, §21.7), one run each, `measure.sh` in the session scratchpad, 2026-09-19 05:05:44–05:07:13, iPhone
+Duo simulator, Xcode 27.1 beta (27A9269), Node 22.22.3, a new `-derivedDataPath` per `xcodebuild`, `rm -rf dist` per web
+build. Before: `git archive 168575f ionic-capacitor` with `npm ci`; after: the working tree. The one-minute load average
+was 4.06 at the start and 12.27 at its highest; the fifteen-minute average was about 18 throughout.
+
+| measure | before (`168575f`) | after |
+| --- | --- | --- |
+| web build `npm run build:matched` | 7.08 s | 5.86 s |
+| `npx cap sync ios` | 0.76 s | 0.67 s |
+| clean Debug `xcodebuild` | 15.73 s | 13.50 s |
+| clean Release `xcodebuild` | 14.46 s | 14.86 s |
+| Debug `.app` | 12176 KiB | 12244 KiB |
+| Release `.app`; `public/`; `App` binary | 11580 KiB; 6300 KiB; 543,024 bytes | 11632 KiB; 6324 KiB; 571,504 bytes |
+| `index-*.js`; `index-*.css` | 1,447,062; 367,823 bytes | 1,447,498; 379,586 bytes |
+| `warning:` lines per build | 6 | 6 |
+| `native-swift/` clean Debug and Release, for comparison | 8.09 s, 2268 KiB; 7.44 s, 1436 KiB | unchanged |
+
+`npx tsc --noEmit` passes; `npx eslint src` prints the 2 warnings of §19.3; `npx vitest run` passes 1 of 1.
+
+**Checks outside the inner display:** `iPad Pro 13-inch (M5)` on iOS 27.0 keeps §19.2's menu and panel (`idiom-pad`);
+`iPhone 17` on iOS 27.0 keeps the phone layout, with the agenda's weekday colour and the 24-hour times the only
+changes. Both on the final build.
+
+**Effort** (§16, §20.5): tool calls from the session transcript and active time from the first to the last of them,
+with no gap over 5 minutes.
+
+| step | tool calls | time |
+| --- | --- | --- |
+| 1: toolchain, driver, baseline, the tab bar fault, record (`5c25a83`) | 131 | 03:23:35–04:06:19, 42.7 min |
+| 2: the traits in the web view (`efdb4e2`) | 31 | 04:06:48–04:24:23, 17.6 min |
+| 3 and 4: rounds s0–s11, D24, checks, measurements, before this section | 65 up to 05:06 | 04:24:43–05:06:09, 41.4 min |
+
+**Screenshots:**
+
+| folder | files | round | working tree on top of | added in |
+| --- | --- | --- | --- | --- |
+| `ionic-capacitor-matched-duoinner-v2` | the 9 names of `-v1`; the tab bar on each | s11 | `efdb4e2` | the commit that adds this section |
+
+- `v2` because the round retakes every screen of `v1` (§17.4); `native-swift-duoinner-v1` takes no new version: round
+  s11's `native-swift/` screenshots differ from r2's by 0 pixels.
+- `du -sk` 3580 KiB; 2853 × 2007 px, orientation `Undefined`; no two PNG files under `screenshots/` have the same
+  SHA-256. `build-index.sh` wrote `manifest.js` with 28 folders; `index-duoinner.html` shows `v2` on the right by default.
+
+**Open:**
+- the poses of §21.9;
+- the plugin's vertical bar after a hide and a show (§21.3, D23), which folding from a conversation on the outer display
+  would exercise;
+- iPadOS 27's flush list column (round i1) for `matched` on iPad.
