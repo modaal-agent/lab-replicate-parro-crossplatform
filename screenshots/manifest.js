@@ -2,6 +2,17 @@
 // folder -> screenshot name -> [width px, height px]
 window.SCREENSHOT_PARTS = { builds: ["native-swift", "ionic-capacitor"], styles: ["stock", "matched"], appearances: ["dark"] };
 window.SCREENSHOTS = {
+  "ionic-capacitor-matched-duoinner-v1": {
+    "calendar-event": [2853,2007],
+    "calendar": [2853,2007],
+    "chat-empty": [2853,2007],
+    "chat-group": [2853,2007],
+    "chat-list": [2853,2007],
+    "home-detail": [2853,2007],
+    "home": [2853,2007],
+    "settings-detail": [2853,2007],
+    "settings": [2853,2007],
+  },
   "ionic-capacitor-matched-ipad-v1": {
     "calendar-event": [2064,2752],
     "calendar": [2064,2752],
@@ -147,6 +158,17 @@ window.SCREENSHOTS = {
     "home-detail": [1179,2556],
     "home": [1179,2556],
     "settings": [1179,2556],
+  },
+  "native-swift-duoinner-v1": {
+    "calendar-event": [2853,2007],
+    "calendar": [2853,2007],
+    "chat-empty": [2853,2007],
+    "chat-group": [2853,2007],
+    "chat-list": [2853,2007],
+    "home-detail": [2853,2007],
+    "home": [2853,2007],
+    "settings-detail": [2853,2007],
+    "settings": [2853,2007],
   },
   "native-swift-ipad-v1": {
     "calendar-event": [2064,2752],

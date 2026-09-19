@@ -1620,3 +1620,240 @@ Spec 001 §17.5 lists the files and what the pages show.
     `native-swift/TabShell/Fixtures/Fixture.swift:86` point at spec 001 §1.2 instead of the files.
 - **Not yet done at the time of this entry:** the commit, the history rewrite and what happens to
   the remote.
+
+## 2026-09-19 — iPhone Duo simulator: both builds on the inner display
+
+From the user, on `168575f`: "Now that iPhone Duo is out and installed locally and ready for testing, please build and
+run the current "matched" style Capacitor app, and compare it to the native swift app - on iPhone Duo simulator. Capture
+screenshots (in the new device class folders). Then find a way to make the look and feel of the Capacitor app match the
+default style of the SwiftUI app on iPhone Duo. Record the full discovery/implementation/iteration path for subsequent
+analysis/reciting. Commit logical steps autonomously."
+
+Spec 001 §21 holds the plan and results that follow from this entry. Round names: r on the iPhone Duo simulator with the
+XCUITest driver, p for the probe build, a and h for the console-captured runs, i for the iPad on iOS 27.0.
+
+### Machine state, read at 03:24–03:27
+
+The machine differs from spec 001 §10.5, §10.6 and the entry "iPhone Duo: what a Capacitor app can adopt before the
+device ships" of 2026-09-14:
+
+| item | before | now | read with |
+| --- | --- | --- | --- |
+| selected Xcode | 26.6 (17F113), `/Volumes/DATA01/DISTR/Xcode/Xcode_26_6.app` | 27.1 beta (27A9269), `/Applications/Xcode_27_1_beta.app`, iOS 27.1 SDK only | `xcode-select -p`, `xcodebuild -version`, `xcodebuild -showsdks` |
+| other Xcode | 27.0 RC at `/Volumes/DATA01/DISTR/Xcode/Xcode_27_RC.app` | 26.5 (17F42) at `/Applications/Xcode_26_5.app`; `/Volumes/DATA01/DISTR/Xcode/` does not exist | `mdfind "kMDItemCFBundleIdentifier == 'com.apple.dt.Xcode'"`, `ls` |
+| simulator runtimes | iOS 18.6, 26.5 (23F77), 27.0 (24A434) | iOS 27.0 (24A434), iOS 27.1 (24A94401); devices of other runtimes are listed as unavailable | `xcrun simctl list runtimes`, `list devices -j` |
+| simulators of earlier phases | `iPhone 16 (iOS 26.5)` `70D15E5B-…`, `iPad Pro 13-inch (M5)` `7A47789D-…` | neither UDID is listed | `xcrun simctl list devices -j` |
+| iPhone Duo | no device type | device type `com.apple.CoreSimulator.SimDeviceType.iPhone-Duo`; `iPhone Duo` `2BA513E7-59CC-4754-A9F7-E73F027D9619` (booted) and `1CBE1FEE-0E61-4FCE-928D-B0CDA06561D0` (shut down), iOS 27.1 | `xcrun simctl list devicetypes`, `list devices` |
+| Swift | 6.3.3 | 6.4 (swiftlang-6.4.0.34.1) | `swift --version` |
+| XcodeGen | 2.45.4 | 2.44.1, `/opt/homebrew/bin/xcodegen` | `xcodegen --version` |
+| Node, npm | 24.21.0 and 20.19.5 under nvm | 22.22.3 (default) and 21.1.0 under nvm; npm 11.15.0 | `node --version`, `ls ~/.nvm/versions/node` |
+| AXe | 1.7.1 in `xcodebuildmcp` | not on `PATH` | `which axe idb` |
+| ImageMagick | 7.1.2-31 | 7.1.2-15 | `magick -version` |
+| macOS, host | 26.6.2 (25G83) | 26.6.2 (25G83); Apple M1 Max, 64 GB | `sw_vers`, `sysctl` |
+
+Node 22.22.3 meets Capacitor 8's "Node 22 or greater" (spec 001 §1.3); this entry's builds use it.
+
+### The iPhone Duo simulator
+
+- **Device type** (`/Library/Developer/CoreSimulator/Profiles/DeviceTypes/iPhone Duo.simdevicetype`, `profile.plist`):
+  model `iPhone19,4`, product class `V68`, `minRuntimeVersion` 27.1, product family 1 (iPhone),
+  `com.apple.CoreSimulator.display.resizableScene`. `capabilities.plist` lists two integrated displays at scale 3: `LCD`
+  1398 × 2034 px (466 × 678 pt) and `LCD-1` 2007 × 2853 px (669 × 951 pt).
+- **`xcrun simctl io 2BA513E7-… enumerate`:** screen 1 `LCD` (device name `primary`) and screen 3 `LCD-1`
+  (`primary-1`), both "UI Orientation: Landscape Left", plus `TVOut`, `Wireless` (CarPlay) and `Resizable` 7680 × 4320.
+- **As booted:** `simctl io … screenshot --display=3` gives the inner display, 2853 × 2007 px, the home screen in
+  landscape with the time and Wi-Fi in a column at the top trailing corner; `--display=1` gives a black 2034 × 1398 px
+  frame. So the device is open, with the inner display in landscape.
+- **Another app, "Vibereef", is installed on this simulator;** it was not opened.
+- **No command changes the pose.** `xcrun simctl help` lists no pose, fold or display-mode subcommand; `simctl ui` sets
+  appearance, contrast and content size only. Xcode 27.1's simulator window is `DeviceHub.app`
+  (`com.apple.dt.Devices` 27.1, `Contents/Applications/DeviceHub.app`), running. Its only URL scheme is `devices`, and
+  `strings` on its binary and on `DeviceKit.framework` finds no pose, hinge or fold command. `osascript` against
+  `System Events` fails with "osascript is not allowed assistive access" (-1728, -1719), so its buttons cannot be
+  pressed from a script without a permission the user grants in System Settings. `strings` on the iOS 27.1 runtime's
+  `SpringBoard.framework` finds hinge code, `SBHingeMotionDetectionSettings` and "SBDisplayToolService: Insufficient
+  authorization to replay hinge samples for client", which was not pursued.
+- **XCTest has no pose API.** `XCUIAutomation.framework/Headers/XCUIDevice.h` in the 27.1 SDK declares `orientation`,
+  `appearance`, `pressButton:`, `location` and iOS 27.0's `voiceOverService`. Round r3 set
+  `XCUIDevice.shared.orientation = .portrait` before launching each app: the driver read orientation 1 afterwards, and
+  both apps kept a 951 × 669 pt window, landscape, in every screenshot. Talk 111461 at 2:46 says the inner display does
+  not honour supported interface orientations.
+- **Poses covered:** the inner display in landscape only. The inner display in portrait, the closed device (outer
+  display), the folded poses and Split View need DeviceHub's controls pressed by hand and were not taken.
+
+### iOS 27.1 SDK headers
+
+Read in `Xcode_27_1_beta.app/…/iPhoneOS.sdk`:
+
+- `UIKit.framework/Headers/UIViewReservedRegion.h`: `UIViewReservedRegion` (`identifier`, `kind`, `frame`, `margins`,
+  `active`), kinds `occlusionRegionKind` and `divisionRegionKind`, `UIViewReservedRegionQueryOptionsIncludeInactive`;
+  `UIView.h:760–763` `reservedRegionsOfKind:` and `reservedRegionsOfKind:options:`. All `API_AVAILABLE(ios(27.1))`.
+- `UIVerticalBarEdge.h`: `UIVerticalBarEdge` `Unspecified`, `Leading`, `Trailing`, read from
+  `UITraitCollection.verticalBarEdge`, iOS 27.1.
+- `UINavigationItem.h:68–82`, `:312`: `UIVerticalBarCompressionBehavior` (`Automatic`, `PrefersBarItems`,
+  `PrefersTabBar`) and `verticalBarCompressionBehavior`. `UIViewController.h:807–858`: `UIVerticalBarBehavior`
+  (`Automatic`, `Disabled`), `preferredVerticalBarBehavior`, `childViewControllerForPreferredVerticalBarBehavior`,
+  `setNeedsUpdateOfVerticalBarConfiguration`.
+- `grep -rn -i -E 'segment|fold|posture|reservedRegion|division'` over `WebKit.framework/Headers`, leaving out
+  "segmented": no match.
+
+### Builds, Xcode 27.1 beta, working tree on `168575f`
+
+- `npm ci` in `ionic-capacitor/` under Node 22.22.3: 36.36 s real, exit 0, "10 vulnerabilities (8 moderate, 2 high)";
+  `npm ls --depth=0` lists the versions of spec 001 §20.3 (`@capacitor/*` 8.5.2, `@ionic/react` 9.0.3,
+  `@rdlabo/ionic-theme-ios26` 9.2.0, `@capgo/capacitor-native-navigation` 8.3.1, Vite 8.3.0, TypeScript 5.9.3).
+- `native-swift/`: `xcodegen generate` (2.44.1), then `xcodebuild … -destination 'platform=iOS Simulator,id=2BA513E7-…'`
+  with a new `-derivedDataPath`: 11.29 s real, "BUILD SUCCEEDED", one `warning:` line, from
+  `appintentsmetadataprocessor`. No source change.
+- `matched`: `npm run build:matched` 7.99 s real; `npx cap copy ios` 0.75 s; `xcodebuild …
+  PRODUCT_BUNDLE_IDENTIFIER=dev.modaal.lab.tabshell.matched build` 15.95 s. Warnings that spec 001 §20.3 did not list
+  with Xcode 26.6: three at `node_modules/@capacitor/keyboard/ios/Sources/KeyboardPlugin/Keyboard.m:50:17` ("auto
+  property synthesis will not synthesize property 'identifier' / 'jsName' / 'pluginMethods' declared in protocol
+  'CAPBridgedPlugin'") and one at `NativeNavigationPlugin.swift:271:47` ("'weak' ownership of capture 'self' differs
+  from implicitly-captured strong reference in outer scope").
+- `xcrun simctl status_bar 2BA513E7-… override --time 9:41 --batteryState charged --batteryLevel 100 --cellularBars 4
+  --wifiBars 3`, then install and launch. Both apps open full screen on the inner display, 951 × 669 pt.
+
+### The driver
+
+An XcodeGen project in the session scratchpad, `driver/` (not committed): a host app and a UI test bundle that drives an
+app by bundle identifier, as in phases 3 and 4. `tour.sh <bundle> <dir> <prefix> <test>` runs one test through
+`xcodebuild test -only-testing:` with `TEST_RUNNER_DRV_*` variables and `-collect-test-diagnostics never`.
+
+- **`XCUIScreen.main` is the outer display.** Round r1's first screenshot through it was 1398 × 2034 px, orientation
+  `RightTop`, and black. `XCUIScreen.screens` gave two screens, 678 × 466 and 950 × 668 pt; the lit one's PNG was 2006 ×
+  2852 px, `RightTop`, one pixel short of the display on each side.
+- **Screenshots are therefore taken on the host:** the test writes `<name>.req` and waits; `shot-watch.sh` answers with
+  `xcrun simctl io 2BA513E7-… screenshot --display=3 <name>.png`, upright at 2853 × 2007 px, orientation `Undefined`.
+  The test falls back to the largest `XCUIScreen.screens` PNG after 15 s; no screenshot of this entry used it.
+- **Tabs:** SwiftUI's and the plugin's tab bars expose buttons "Home", "Calendar", "Chat", "Settings"; `app.tabBars` is
+  empty in both apps. Rows are `Button` or `Cell` elements in `native-swift/` and `Link` or `StaticText` in `matched`,
+  found by label prefix.
+
+### Round r2: the two builds side by side
+
+`testTour` on each app: `home`, the "Group 6/7/8 B" row (`home-detail`), Calendar, the "Charity market" card
+(`calendar-event`), Chat (`chat-empty`), three taps on "New chat" (`chat-list`), the "Group 6/7/8 B" chat (`chat-group`),
+Settings, the "Notifications" row (`settings-detail`). `native-swift/` at 03:32:46. `matched`'s first run (03:33) and
+its run in round r3 (03:37) stopped at the Settings step with "Failed to get matching snapshot", where the driver read
+the tapped button's frame for its note; the driver was changed to read the frame before the tap, and `matched` ran again
+at 03:40:47. Frames from `app.debugDescription` in points; the screenshots are in
+`screenshots/native-swift-duoinner-v1/` and `ionic-capacitor-matched-duoinner-v1/`.
+
+- **The tab bar is the same in both.** SwiftUI's `TabView` with `.sidebarAdaptable` and the plugin's
+  `UITabBarController` both draw a vertical bar of icons at the trailing edge, the four buttons at x 881 pt, 44 × 58 pt,
+  at y 435, 485, 535 and 585 pt, with the Home badge, and the status bar in the same trailing column. In the trailing
+  84 pt column (252 px), `magick … -fuzz 2% -metric AE` counts 0 differing pixels on `home`, 2,701 on `calendar` and
+  4,992 on `chat-list` of 505,764.
+- **The differences:**
+
+  | element | `native-swift/` | `matched` |
+  | --- | --- | --- |
+  | list column | flush at x 0–375 pt, white; a `CollectionView` labelled "Sidebar" with cells at x 20–355 pt | the iPad panel of spec 001 §19.2: x 10–385 pt, fill `#f9f8f8`, 26 px corners, a shadow, from y 88 pt (web `main` element x 10, y 88, 375 × 571 pt) |
+  | list header, Home and Settings | a navigation bar at y 24 pt, 375 × 58 pt: the title centred ("Home" at x 166 pt) with the subtitle below it; Home's search button at x 311 pt, 40 × 40 pt | the large title at the leading edge with the subtitle under it; the search button at x 240 pt, 45 × 44 pt |
+  | list header, Calendar and Chat | the leading inline large title from x 20 pt, the subtitle below, "Today" or the search button | the same form from x ≈ 83 pt; the subtitle cut to "Brightwater Mo…" |
+  | list rows | full titles; no chevrons; the selected Home row a grey capsule with black text | titles wrap or are cut ("Jamie Vi…", "Group 6/…", "Previous school / years"): the rows span the panel (the Home row's link x 26–369 pt), and their content keeps an end padding that includes the 84 px trailing inset; chevrons; the selected row's title in the accent colour |
+  | "New chat" | x 299–355, y 563–619 pt | x 220–276, y 587–643 pt |
+  | detail title | leading: "Group 6/7/8 B" and "24 members" at x 395 pt, y 31.7 and 49.7 pt; the avatar at x 805–841 pt | centred at x 572–690 pt, y 18 and 40 pt; the avatar at x 811–847 pt |
+  | detail content | ends before the tab bar: the conversation's last bubble text ends at x 821 pt; the composer field x 459–815 pt, y 594 pt; the placeholders centred at x ≈ 610 pt | runs under the tab bar: "I can help from 13:00." at x 761–925 pt, under the bar at x 881–925 pt; the composer field x 488–835 pt, y 627 pt; the placeholders centred at x ≈ 673 pt |
+  | times | "9:41", "Today 9:41", "13:30–16:00" | "9:41 AM", "Today 9:41 AM", "1:30 – 4:00 PM" |
+  | the tab bar after a conversation | stays | gone from `settings` and `settings-detail` (mean grey 1.0 over x 881–925 pt, y 435–643 pt; 0.90 to 0.92 in the other seven files and in every `native-swift/` file) |
+
+- **Times.** `xcrun simctl spawn 2BA513E7-… defaults read -g AppleLocale` prints `en_US@rg=nlzzzz` and `AppleLanguages`
+  `en-US`, `nl-US`, `uk-NL`. SwiftUI formats with the region's 24-hour clock. `src/lib/dates.ts:5` formats with
+  `Intl.DateTimeFormat(undefined, { timeStyle: 'short' })`, whose locale in the web view is `en-US` without the region.
+  Spec 001 §15.6 recorded "09:41" against "9:41" on the machine of 2026-09-13.
+
+### Round p1: what the web view receives
+
+A probe script (`probe/probe.js` in the session scratchpad) added to the copied web assets only, built as
+`dev.modaal.lab.tabshell.probe`, as round x1 of phase 4 did; `npx cap copy ios` restored `public/` after the build. It
+draws a readout that the driver reads from the element tree:
+
+| value | inner display, landscape |
+| --- | --- |
+| `innerWidth × innerHeight` | 951 × 669 |
+| `screen.width × screen.height` | 466 × 678, the outer display's size |
+| `devicePixelRatio` | 3 |
+| `env(safe-area-inset-*)` and `--ion-safe-area-*` | top 0, right 84 px, bottom 34 px, left 0 |
+| `--cap-native-navigation-*` | top 0, right 84 px, bottom 669 px, left 0: the plugin reports the vertical bar's height as the bottom inset |
+| media queries | `(min-width: 672px)` true, `(min-width: 992px)` false, landscape, `(pointer: coarse)` true, `(hover: hover)` false |
+| root classes | `plt-iphone plt-ios plt-tablet plt-cordova plt-capacitor plt-mobile plt-hybrid ion-ce ios native-tab-bar windowed` |
+| `navigator.userAgent` | "Mozilla/5.0 (iPhone; CPU iPhone OS 18_7 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Mobile/15E148" |
+
+- **`windowed` is set on a full-screen app.** `watchWindowed()` (`src/lib/layout.ts:47–55`) compares `innerWidth` with
+  `screen`, which reports the outer display. `Columns.css:33–35` then pads the list column's first toolbar by 72 px, and
+  `matched/index.css:218` the inline large title: this is the x ≈ 83 pt of "Calendar" and "Chat" in r2. Item 4 of the
+  entry "iPhone Duo: what a Capacitor app can adopt before the device ships" expected this misfire for Split View.
+- **The trailing 84 px inset is the tab bar and the status bar column.** Ionic's `ion-item` and `ion-toolbar` pad their
+  end by `--ion-safe-area-right`, which cuts the rows in the list column; the detail column has no rule for it, so its
+  content runs under the bar.
+- **Ionic sets `plt-iphone` and `plt-tablet` together**, from the user agent and the width.
+
+### Rounds r4, r5, a1–a9, h1: the tab bar that does not come back
+
+- **r4 `testTabs`** (03:42): nine tab switches, the bar's four buttons present after each.
+- **r4 `testRepro`**: Chat, three "New chat", the group chat, then Settings: after Settings, `app.buttons["Home"]` and
+  the other three did not exist for 2.4 s, and "Calendar" was not found afterwards. The r2 rerun at 03:40:47 took
+  `settings` and `settings-detail` without the bar and did not find "Home" at its last step.
+- **r5**, four more runs: two with `XCUIApplication.launch()`, two attached to an app started by `xcrun simctl launch
+  --console-pty` (the driver calls `activate()` when `DRV_ATTACH=1`). One of four lost the bar (a1). Counting every run
+  that tapped Settings after a conversation: 4 of 6 launched runs lost the bar (the first r2 run and r3 counted as lost,
+  since the "Settings" button was not found again after the tap), and 5 of 10 attached runs (the attached r4 run and
+  a1–a9). The fault is intermittent in both.
+- **Console logs.** `log stream --predicate 'process == "App"'` did not carry Capacitor's `⚡️` lines; `simctl launch
+  --console-pty` did. `console.log` was added to `useNativeTabBar` (from a1), a `resize` listener (from a3) and a log of
+  each `Tabs` render (from a6), all temporary and removed before the commit. Runs a1 and a3, which lost the bar, printed
+  `setTabbar selected=chat hidden=true` then `selected=settings hidden=false` after the Settings tap; runs a6, a8 and a9,
+  which lost it too, printed:
+
+  ```
+  ⚡️  TO JS {"id":"settings","title":"Settings","index":3}
+  PROBE render columns=false menu=false inner=951x669 vv=951 path=/chat/chat-1
+  PROBE setTabbar selected=chat hidden=true badge=1
+  PROBE render columns=true menu=false inner=951x669 vv=951 path=/settings
+  PROBE setTabbar selected=settings hidden=false badge=1
+  ```
+
+  Each run that kept the bar (a2, a4, a5, a7) printed only the second pair. The `resize` listener logged nothing in runs
+  a3 to a9.
+- **Fault 1, the web side:** in the render that follows the native tab tap, `useColumns()`
+  (`useSyncExternalStore(…, () => matchMedia('(min-width: 672px)').matches)`, `layout.ts:30`) returned false while
+  `innerWidth` and `visualViewport.width` read 951. With `columns` false and the path still a conversation,
+  `inConversation` is true (`App.tsx:127`) and the bar is hidden, then shown in the next render. That false render also
+  keys the router outlet to `phone` (`App.tsx:138`) for one render. Why WebKit's media query evaluates false there was
+  not found; the plugin moves the web view into the selected tab's controller on a tab switch (spec 001 §20.1).
+- **Fault 2, the plugin:** round h1 (03:56) called `setTabbar({ hidden: true })` 6 s after launch and `setTabbar({
+  hidden: false })` 2 s later, with no tab switch. Screenshots at 4, 7, 10 and 13 s show the bar, the bar, no bar, no
+  bar, while the plugin's `insets` event reports `tabbarHeight` 669 after the second call. Hiding calls
+  `applySystemTabBarItems([])`, `setTabBarHidden(true)` and hides the tab bar's subviews
+  (`NativeNavigationPlugin.swift:878–915`); showing sets the controllers and calls `setTabBarHidden(false)`
+  (`:825–858`, `:930–938`). On `iPhone 16 (iOS 26.5)` in phase 7 the same pair hid and showed the bottom bar around a
+  conversation (spec 001 §20.4). With iOS 27.1's vertical bar the show does not bring it back. The plugin's cause was
+  not looked for further.
+
+### Round i1: `native-swift/` on iPad with iOS 27.0
+
+`iPad Pro 13-inch (M5)` on iOS 27.0 (`85260B52-9E43-46A9-B94C-7AF1B901216F`, booted for this round), the Xcode 27.1
+build of r2 installed, 03:58: the tabs as a bar at the top with the sidebar button, the list column flush at the leading
+edge on a grey fill, with no floating panel and no shadow, and the detail beside it. On iOS 26.5 the list column was the
+floating panel at x 10–385 pt (spec 001 §19.5). So the flush column comes with iOS 27, and on iPhone Duo its fill is
+white. `matched`'s panel rules (`matched/index.css:67–140`) follow iPadOS 26.5.
+
+### Screenshots
+
+Round r2, copied with `cp` into two folders with the new `device` value `duoinner` (spec 001 §21.8):
+`screenshots/native-swift-duoinner-v1/` (3436 KiB) and `screenshots/ionic-capacitor-matched-duoinner-v1/` (3628 KiB),
+9 files each, 2853 × 2007 px, orientation `Undefined`. `shasum -a 256` over every PNG under `screenshots/` finds no two
+equal. `./screenshots/build-index.sh` wrote `manifest.js` with 27 folders and created `index-duoinner.html`, whose
+description was written by hand.
+
+### Side effects
+
+- `iPhone Duo` `2BA513E7-…`: status bar overridden to 9:41; `dev.modaal.lab.tabshell`, `dev.modaal.lab.tabshell.matched`
+  and `dev.modaal.lab.tabshell.probe` installed; the driver's host app `dev.modaal.lab.driver.host` and its test runner
+  installed by `xcodebuild test`.
+- `iPad Pro 13-inch (M5)` on iOS 27.0 `85260B52-…`: booted, status bar overridden, `dev.modaal.lab.tabshell` and
+  `dev.modaal.lab.tabshell.matched` installed.
+- `native-swift/TabShell.xcodeproj` and `TabShell/Info.plist` generated (ignored); `ionic-capacitor/node_modules`,
+  `dist/` and `ios/App/App/public/` written (ignored).
